@@ -384,7 +384,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   _buildAppInfoRow(Icons.star_rounded, 'Rate the App', () {}),
                   const Divider(color: Colors.white12),
-                  _buildAppInfoRow(Icons.share_social_rounded, 'Share with Friends', () {}),
+                  _buildAppInfoRow(Icons.share_rounded, 'Share with Friends', () {}),
                   const Divider(color: Colors.white12),
                   _buildAppInfoRow(Icons.policy_rounded, 'Privacy Policy', () {}),
                   const Divider(color: Colors.white12),
@@ -413,7 +413,7 @@ class ProfileScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceElevated,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+        title: Text('Sign Out', style: const TextStyle(color: Colors.white)),
         content: const Text(
           'Are you sure you want to sign out? Your local data will be kept.',
           style: TextStyle(color: AppColors.textSecondary),
@@ -421,11 +421,11 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Cancel', style: const TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Sign Out', style: TextStyle(color: AppColors.neonRed)),
+            child: Text('Sign Out', style: const TextStyle(color: AppColors.neonRed)),
           ),
         ],
       ),
@@ -776,6 +776,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  // ignore: unused_element
   Widget _buildGameStatCard(IconData icon, String label, String value, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -795,7 +796,7 @@ class ProfileScreen extends StatelessWidget {
                 Text(label,
                     style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                 Text(value,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
                         color: Colors.white)),
