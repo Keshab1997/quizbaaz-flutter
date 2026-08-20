@@ -37,6 +37,7 @@ class HiveService {
 
   static const _userKey = 'current_user';
   static const _statsKey = 'user_stats';
+  static const _quizHistoryKey = 'quiz_history';
 
   // Legacy keys (v1 schema, single box).
   static const _bestScoreKey = 'best_daily_score';
@@ -188,6 +189,40 @@ class HiveService {
 
   static Future<void> clearStats() async {
     await _statsBox.delete(_statsKey);
+  }
+
+  // --------------------------------------------------------- Quiz History --
+
+  /// Saves a quiz result to the history list (newest first, max 100 entries).
+  static Future<void> saveQuizHistory(Map<String, dynamic> result) async {
+    final List<dynamic> existing = _statsBox.get(_quizHistoryKey) != null
+        ? List<dynamic>.from(
+            jsonDecode(_statsBox.get(_quizHistoryKey) as String) as List)
+        : [];
+    existing.insert(0, result); // newest first
+    if (existing.length > 100) existing.removeLast(); // keep max 100
+    await _statsBox.put(_quizHistoryKey, jsonEncode(existing));
+  }
+
+  /// Loads all quiz history entries (newest first).
+  static List<Map<String, dynamic>> loadQuizHistory() {
+    final raw = _statsBox.get(_quizHistoryKey);
+    if (raw is! String) return const [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (e) {
+      debugPrint('Hive: failed to decode quiz history – $e');
+      return const [];
+    }
+  }
+
+  /// Clears all quiz history.
+  static Future<void> clearQuizHistory() async {
+    await _statsBox.delete(_quizHistoryKey);
   }
 
   // ------------------------------------------------------------ TTL cache --
@@ -344,6 +379,8 @@ class HiveService {
     // Meta keeps schema info, only sync markers are reset.
     await _metaBox.delete(metaLastSyncAt);
     await _metaBox.delete(metaLastPullAt);
+    // Clear quiz history
+    await clearQuizHistory();
   }
 
   /// Debug helper: a snapshot of what is currently stored.

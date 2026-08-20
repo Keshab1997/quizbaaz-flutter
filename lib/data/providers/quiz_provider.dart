@@ -34,6 +34,10 @@ class QuizProvider extends ChangeNotifier {
   // Quiz type + rewards
   bool _isDailyQuiz = false;
   String? _chapterId;
+  String? _categoryTitle;
+  String? _categoryTitleBn;
+  String? _chapterTitle;
+  String? _chapterTitleBn;
   int _earnedCoins = 0;
   int _earnedGems = 0;
   bool _dailyRewardSkipped = false;
@@ -115,10 +119,18 @@ class QuizProvider extends ChangeNotifier {
   Future<void> startChapterQuiz(
     String jsonFilePath, {
     String? chapterId,
+    String? categoryTitle,
+    String? categoryTitleBn,
+    String? chapterTitle,
+    String? chapterTitleBn,
   }) async {
     _resetQuizState();
     _isDailyQuiz = false;
     _chapterId = chapterId ?? jsonFilePath;
+    _categoryTitle = categoryTitle;
+    _categoryTitleBn = categoryTitleBn;
+    _chapterTitle = chapterTitle;
+    _chapterTitleBn = chapterTitleBn;
     _isLoading = true;
     notifyListeners();
 
@@ -146,6 +158,10 @@ class QuizProvider extends ChangeNotifier {
     _answerRecords.clear();
     _totalTimeSeconds = 0;
     _chapterId = null;
+    _categoryTitle = null;
+    _categoryTitleBn = null;
+    _chapterTitle = null;
+    _chapterTitleBn = null;
     _questions = [];
     _secondsRemaining = questionTimeSec;
   }
@@ -273,6 +289,12 @@ class QuizProvider extends ChangeNotifier {
       isDaily: _isDailyQuiz,
       score: _score,
       chapterId: _isDailyQuiz ? null : _chapterId,
+      categoryTitle: _isDailyQuiz ? null : _categoryTitle,
+      categoryTitleBn: _isDailyQuiz ? null : _categoryTitleBn,
+      chapterTitle: _isDailyQuiz ? null : _chapterTitle,
+      chapterTitleBn: _isDailyQuiz ? null : _chapterTitleBn,
+      coinsEarned: coins,
+      gemsEarned: gems,
     );
 
     final granted = _userProvider.grantQuizRewards(

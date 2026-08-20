@@ -17,6 +17,7 @@ import '../battle/battle_screen.dart';
 import '../chapter_quiz/chapter_list_screen.dart';
 import '../daily_quiz/daily_quiz_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
+import '../history/quiz_history_screen.dart';
 import '../profile/profile_screen.dart';
 import '../rewards/rewards_screen.dart';
 import '../shop/shop_screen.dart';
@@ -789,6 +790,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _startDailyQuiz),
       _QuickAction('Battle', Icons.bolt_rounded, AppColors.neonPink,
           () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BattleScreen()))),
+      _QuickAction('History', Icons.history_rounded, AppColors.neonPurple,
+          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizHistoryScreen()))),
       _QuickAction('Rewards', Icons.card_giftcard_rounded, AppColors.neonGold,
           () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RewardsScreen()))),
       _QuickAction('Shop', Icons.storefront_rounded, AppColors.neonPurple,

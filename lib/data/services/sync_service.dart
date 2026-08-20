@@ -85,6 +85,33 @@ class SyncService {
     }
   }
 
+  /// Mirrors a quiz result to Firestore.
+  static Future<void> pushQuizHistory(
+    String userId,
+    Map<String, dynamic> result,
+  ) async {
+    if (userId.isEmpty) return;
+    final ok = await FirestoreService.saveQuizHistory(userId, result);
+    if (!ok) {
+      await HiveService.enqueuePending('save_quiz_history', {
+        'user_id': userId,
+        'result': result,
+      });
+    }
+  }
+
+  /// Pulls the user's quiz history from Firestore into Hive cache.
+  static Future<List<Map<String, dynamic>>> pullQuizHistory(
+    String userId, {
+    int limit = 50,
+  }) async {
+    final rows = await FirestoreService.getQuizHistory(userId, limit: limit);
+    if (rows.isNotEmpty) {
+      await HiveService.cachePut('quiz_history', rows);
+    }
+    return rows;
+  }
+
   /// Mirrors a gift claim.
   static Future<void> pushGift(String userId, Map<String, dynamic> gift) async {
     if (userId.isEmpty) return;
@@ -137,6 +164,12 @@ class SyncService {
             ok = await FirestoreService.saveGift(
               payload['user_id'] as String? ?? '',
               (payload['gift'] as Map?)?.cast<String, dynamic>() ?? {},
+            );
+            break;
+          case 'save_quiz_history':
+            ok = await FirestoreService.saveQuizHistory(
+              payload['user_id'] as String? ?? '',
+              (payload['result'] as Map?)?.cast<String, dynamic>() ?? {},
             );
             break;
           default:

@@ -273,6 +273,53 @@ class FirestoreService {
     }
   }
 
+  // ------------------------------------------------------- Quiz History --
+
+  /// Saves a quiz result to the user's history subcollection.
+  static Future<bool> saveQuizHistory(
+    String userId,
+    Map<String, dynamic> result,
+  ) async {
+    if (!isReady || userId.isEmpty) return false;
+    try {
+      final id = result['id'] as String? ?? DateTime.now().millisecondsSinceEpoch.toString();
+      await _db
+          .collection(_users)
+          .doc(userId)
+          .collection('quiz_history')
+          .doc(id)
+          .set({...result, 'timestamp': FieldValue.serverTimestamp()},
+              SetOptions(merge: true));
+      return true;
+    } catch (e) {
+      debugPrint('Firestore: saveQuizHistory error – $e');
+      return false;
+    }
+  }
+
+  /// Fetches the user's quiz history (newest first).
+  static Future<List<Map<String, dynamic>>> getQuizHistory(
+    String userId, {
+    int limit = 50,
+  }) async {
+    if (!isReady || userId.isEmpty) return const [];
+    try {
+      final snapshot = await _db
+          .collection(_users)
+          .doc(userId)
+          .collection('quiz_history')
+          .orderBy('played_at', descending: true)
+          .limit(limit)
+          .get();
+      return snapshot.docs
+          .map((d) => Map<String, dynamic>.from(d.data())..remove('timestamp'))
+          .toList();
+    } catch (e) {
+      debugPrint('Firestore: getQuizHistory error – $e');
+      return const [];
+    }
+  }
+
   // --------------------------------------------------------------- Gifts --
 
   static Future<List<Map<String, dynamic>>> getGifts(String userId) async {

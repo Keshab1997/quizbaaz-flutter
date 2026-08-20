@@ -118,7 +118,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                               ],
                             ),
                           ),
-                          ...category.chapters.map((ch) => _buildChapterCard(context, ch, category.colorHex)),
+                          ...category.chapters.map((ch) => _buildChapterCard(context, ch, category.colorHex, category.categoryName)),
                           const SizedBox(height: 14),
                         ],
                       );
@@ -186,7 +186,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
     );
   }
 
-  Widget _buildChapterCard(BuildContext context, ChapterModel chapter, String colorHex) {
+  Widget _buildChapterCard(BuildContext context, ChapterModel chapter, String colorHex, String categoryName) {
     final isLocked = !chapter.isUnlocked;
     final catColor = _parseColor(colorHex);
 
@@ -206,6 +206,9 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                 context.read<QuizProvider>().startChapterQuiz(
                   chapter.jsonFile,
                   chapterId: chapter.chapterId,
+                  categoryTitle: categoryName,
+                  chapterTitle: chapter.title,
+                  chapterTitleBn: chapter.titleBn,
                 );
                 Navigator.push(
                   context,

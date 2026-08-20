@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/app_config.dart';
 import '../models/champion_model.dart';
 import '../models/leaderboard_model.dart';
+import '../models/quiz_result_history.dart';
 import '../models/shop_item.dart';
 import '../models/user_model.dart';
 import '../models/user_stats.dart';
@@ -257,6 +258,12 @@ class UserProvider extends ChangeNotifier {
     required bool isDaily,
     int? score,
     String? chapterId,
+    String? categoryTitle,
+    String? categoryTitleBn,
+    String? chapterTitle,
+    String? chapterTitleBn,
+    int? coinsEarned,
+    int? gemsEarned,
   }) async {
     _stats.recordQuiz(
       answered: answered,
@@ -277,6 +284,30 @@ class UserProvider extends ChangeNotifier {
     await HiveService.saveStats(_stats);
     await HiveService.saveUser(_user);
 
+    // Save quiz result history
+    final wrong = answered - correct;
+    final accuracy = answered > 0 ? (correct / answered) * 100 : 0.0;
+    final history = QuizResultHistory(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userId: _user.userId,
+      quizType: isDaily ? 'daily' : 'chapter',
+      categoryTitle: categoryTitle,
+      categoryTitleBn: categoryTitleBn,
+      chapterTitle: chapterTitle,
+      chapterTitleBn: chapterTitleBn,
+      chapterId: chapterId,
+      totalQuestions: answered,
+      correctAnswers: correct,
+      wrongAnswers: wrong,
+      score: score ?? 0,
+      coinsEarned: coinsEarned ?? 0,
+      gemsEarned: gemsEarned ?? 0,
+      timeSeconds: timeSeconds,
+      accuracy: accuracy,
+      playedAt: DateTime.now(),
+    );
+    await _saveQuizHistory(history);
+
     if (isDaily && !_user.isGuest) {
       await SyncService.pushLeaderboardEntry(
         user: _user,
@@ -287,6 +318,38 @@ class UserProvider extends ChangeNotifier {
     }
     await SyncService.pushUser(_user);
     await SyncService.pushStats(_user.userId, _stats);
+  }
+
+  /// Saves quiz history to Hive and mirrors to Firestore.
+  Future<void> _saveQuizHistory(QuizResultHistory history) async {
+    final json = history.toJson();
+    await HiveService.saveQuizHistory(json);
+    if (!_user.isGuest) {
+      await SyncService.pushQuizHistory(_user.userId, json);
+    }
+  }
+
+  /// Loads quiz history from Hive (instant) then refreshes from Firestore.
+  Future<List<QuizResultHistory>> loadQuizHistory({int limit = 50}) async {
+    // Load from Hive first (instant)
+    final localData = HiveService.loadQuizHistory();
+    var history =
+        localData.map(QuizResultHistory.fromJson).toList();
+
+    // Refresh from Firestore if online
+    if (!_user.isGuest && SyncService.isOnline) {
+      try {
+        final remoteData =
+            await SyncService.pullQuizHistory(_user.userId, limit: limit);
+        if (remoteData.isNotEmpty) {
+          history = remoteData.map(QuizResultHistory.fromJson).toList();
+        }
+      } catch (e) {
+        debugPrint('UserProvider: quiz history refresh failed – $e');
+      }
+    }
+
+    return history;
   }
 
   /// Records a battle result.
