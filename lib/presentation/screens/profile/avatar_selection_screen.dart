@@ -118,7 +118,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                     borderRadius: BorderRadius.circular(15),
                     child: Image.asset(
                       currentAvatar,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                       width: 84,
                       height: 84,
                       errorBuilder: (_, __, ___) => const Icon(
@@ -347,15 +347,18 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
             fit: StackFit.expand,
             children: [
               // Avatar Image (full image, no circle crop)
-              Image.asset(
-                avatar,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: AppColors.textMuted,
-                    size: 50,
+              Container(
+                color: Colors.white.withValues(alpha: 0.03),
+                child: Image.asset(
+                  avatar,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    child: const Icon(
+                      Icons.person_rounded,
+                      color: AppColors.textMuted,
+                      size: 50,
+                    ),
                   ),
                 ),
               ),

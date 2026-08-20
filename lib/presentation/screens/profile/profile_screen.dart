@@ -70,10 +70,10 @@ class ProfileScreen extends StatelessWidget {
                           child: user.hasGoogleAvatar
                               ? Image.network(
                                   user.avatarUrl!,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   errorBuilder: (_, __, ___) => Image.asset(
                                     user.effectiveAvatar,
-                                    fit: BoxFit.cover,
+                                    fit: BoxFit.contain,
                                   ),
                                   loadingBuilder: (ctx, child, progress) =>
                                       progress == null
@@ -84,7 +84,7 @@ class ProfileScreen extends StatelessWidget {
                                 )
                               : Image.asset(
                                   user.effectiveAvatar,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   errorBuilder: (context, error, stackTrace) =>
                                       const Icon(Icons.person,
                                           size: 60, color: Colors.white),
