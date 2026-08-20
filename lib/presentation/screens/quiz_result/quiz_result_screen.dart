@@ -1,0 +1,234 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_assets.dart';
+import '../../../data/providers/quiz_provider.dart';
+import '../../../data/providers/user_provider.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/neon_button.dart';
+import '../leaderboard/leaderboard_screen.dart';
+
+class QuizResultScreen extends StatelessWidget {
+  const QuizResultScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final quiz = context.watch<QuizProvider>();
+    final userProvider = context.watch<UserProvider>();
+    final isGuest = userProvider.user.isGuest;
+
+    final totalQuestions = quiz.questions.length;
+    final score = quiz.score;
+    final correct = quiz.correctCount;
+    final wrong = quiz.wrongCount;
+
+    final coinsEarned = correct * 50;
+    final xpEarned = score;
+
+    return Scaffold(
+      backgroundColor: AppColors.bgDark,
+      body: Stack(
+        children: [
+          // Background Glows
+          Positioned(
+            top: -50,
+            left: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.neonGold.withOpacity(0.15),
+              ),
+            ),
+          ),
+
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  // Trophy / 3D Asset
+                  Center(
+                    child: Image.asset(
+                      AppAssets.heroBoy,
+                      height: 150,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.military_tech,
+                        size: 90,
+                        color: AppColors.neonGold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  const Text(
+                    'QUIZ COMPLETED! 🎉',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.neonGold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Awesome job! Here is your performance summary:',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Score Glass Card
+                  GlassCard(
+                    borderRadius: 24,
+                    borderColor: AppColors.neonGold.withOpacity(0.4),
+                    backgroundColor: const Color(0x33281E48),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'TOTAL SCORE',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textSecondary,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '$score',
+                          style: const TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.neonGold,
+                          ),
+                        ),
+                        const Divider(color: Colors.white12, height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStatColumn('Correct', '$correct', AppColors.neonGreen, Icons.check_circle),
+                            _buildStatColumn('Wrong', '$wrong', AppColors.neonRed, Icons.cancel),
+                            _buildStatColumn('Coins', '+$coinsEarned', AppColors.neonGold, Icons.monetization_on),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Guest Conversion Card (If Guest)
+                  if (isGuest) ...[
+                    GlassCard(
+                      borderColor: AppColors.neonCyan.withOpacity(0.4),
+                      backgroundColor: const Color(0x33003B46),
+                      child: Column(
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.workspace_premium, color: AppColors.neonCyan, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Save Your Score & Win Smartwatch!',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.neonCyan,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'You played as Guest. Sign in with 1-tap Google account to register your score on the daily leaderboard.',
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 12),
+                          NeonButton(
+                            text: '1-Tap Google Sign-In',
+                            height: 40,
+                            gradient: AppColors.primaryGradient,
+                            onPressed: () {
+                              userProvider.upgradeGuestToFullAccount(
+                                'Keshab Sarkar',
+                                '@Keshab1997',
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('🎉 Account upgraded! Score saved to Leaderboard!')),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // Action Buttons
+                  NeonButton(
+                    text: 'CHECK LEADERBOARD 🏆',
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white24),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      minimumSize: const Size.fromHeight(50),
+                    ),
+                    onPressed: () {
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                    },
+                    child: const Text(
+                      'Back to Home Dashboard',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatColumn(String title, String val, Color color, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(height: 4),
+        Text(
+          val,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+}

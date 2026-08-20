@@ -1,0 +1,57 @@
+{
+  "chapter_id": "sci_ch_01",
+  "chapter_title": "Solar System & Space Exploration",
+  "chapter_title_bn": "সৌরজগত ও মহাকাশ গবেষণা",
+  "questions": [
+    {
+      "id": "sci_01",
+      "question": "Which planet is famously known as the 'Red Planet'?",
+      "question_bn": "কোন গ্রহটি 'লাল গ্রহ' নামে পরিচিত?",
+      "options": ["Venus (শুক্র)", "Mars (মঙ্গল)", "Jupiter (বৃহস্পতি)", "Mercury (বুধ)"],
+      "correct_index": 1,
+      "explanation": "Mars appears red due to the presence of iron oxide (rust) on its surface.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "sci_02",
+      "question": "Which is the largest planet in our solar system?",
+      "question_bn": "সৌরজগতের সর্ববৃহৎ গ্রহ কোনটি?",
+      "options": ["Earth (পৃথিবী)", "Saturn (শনি)", "Jupiter (বৃহস্পতি)", "Neptune (নেপচুন)"],
+      "correct_index": 2,
+      "explanation": "Jupiter is the largest planet, with a mass more than two and a half times that of all other planets combined.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "sci_03",
+      "question": "Which planet is closest to the Sun?",
+      "question_bn": "সূর্যের সবচেয়ে নিকটতম গ্রহ কোনটি?",
+      "options": ["Mercury (বুধ)", "Venus (শুক্র)", "Mars (মঙ্গল)", "Earth (পৃথিবী)"],
+      "correct_index": 0,
+      "explanation": "Mercury is the closest planet to the Sun, orbiting it every 88 Earth days.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "sci_04",
+      "question": "What is the hottest planet in our solar system?",
+      "question_bn": "সৌরজগতের সবচেয়ে উত্তপ্ত গ্রহ কোনটি?",
+      "options": ["Mercury (বুধ)", "Venus (শুক্র)", "Mars (মঙ্গল)", "Jupiter (বৃহস্পতি)"],
+      "correct_index": 1,
+      "explanation": "Venus is the hottest planet because of its dense carbon dioxide atmosphere producing an extreme greenhouse effect.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "sci_05",
+      "question": "Which planet is surrounded by prominent, visible rings?",
+      "question_bn": "সুস্পষ্ট ও সুন্দর বলয় দ্বারা বেষ্টিত গ্রহ কোনটি?",
+      "options": ["Jupiter (বৃহস্পতি)", "Uranus (ইউরেনাস)", "Saturn (শনি)", "Neptune (নেপচুন)"],
+      "correct_index": 2,
+      "explanation": "Saturn has the most extensive and visually stunning ring system made of ice and rock particles.",
+      "points": 10,
+      "time_limit_sec": 15
+    }
+  ]
+}
