@@ -22,8 +22,11 @@ class QuizResultScreen extends StatelessWidget {
     final correct = quiz.correctCount;
     final wrong = quiz.wrongCount;
 
-    final coinsEarned = correct * 50;
-    final xpEarned = score;
+    // Actual rewards credited to the player's balance.
+    final coinsEarned = quiz.earnedCoins;
+    final gemsEarned = quiz.earnedGems;
+    final rewardSkipped = quiz.dailyRewardSkipped;
+    final isPerfect = correct == totalQuestions && totalQuestions > 0;
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
@@ -116,8 +119,36 @@ class QuizResultScreen extends StatelessWidget {
                             _buildStatColumn('Correct', '$correct', AppColors.neonGreen, Icons.check_circle),
                             _buildStatColumn('Wrong', '$wrong', AppColors.neonRed, Icons.cancel),
                             _buildStatColumn('Coins', '+$coinsEarned', AppColors.neonGold, Icons.monetization_on),
+                            _buildStatColumn('Gems', '+$gemsEarned', AppColors.neonPurple, Icons.diamond),
                           ],
                         ),
+                        if (isPerfect) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.neonGold.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.neonGold.withOpacity(0.5)),
+                            ),
+                            child: const Text(
+                              '🔥 PERFECT SCORE! +100 coin bonus',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.neonGold,
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (rewardSkipped) ...[
+                          const SizedBox(height: 12),
+                          const Text(
+                            'ℹ️ Today\'s daily reward already claimed — play again tomorrow!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ],
                       ],
                     ),
                   ),

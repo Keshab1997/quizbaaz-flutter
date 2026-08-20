@@ -19,11 +19,13 @@ class UserProvider extends ChangeNotifier {
   static const _kCoins = 'quizcraft_coins';
   static const _kGems = 'quizcraft_gems';
   static const _kInventory = 'quizcraft_inventory';
+  static const _kLastDailyReward = 'quizcraft_last_daily_reward';
 
   UserModel _user = UserModel.defaultUser();
   List<ChampionModel> _champions = [];
   List<LeaderboardItem> _leaderboard = [];
   bool _isLoading = false;
+  String? _lastDailyRewardDate;
 
   UserModel get user => _user;
   List<ChampionModel> get champions => _champions;
@@ -104,12 +106,40 @@ class UserProvider extends ChangeNotifier {
 
   // ------------------------------------------------------- Rewards / Auth ---
 
-  void addRewards(int coinsWon, int gemsWon) {
-    _user.coins += coinsWon;
-    _user.gems += gemsWon;
-    _user.playedTodayDailyQuiz = true;
+  /// "yyyy-MM-dd" key for today (local time) — used to limit the daily
+  /// quiz reward to once per day.
+  static String _todayKey() {
+    final now = DateTime.now();
+    final m = now.month.toString().padLeft(2, '0');
+    final d = now.day.toString().padLeft(2, '0');
+    return '${now.year}-$m-$d';
+  }
+
+  /// Whether the player can still claim the daily quiz reward today.
+  bool get canEarnDailyRewards => _lastDailyRewardDate != _todayKey();
+
+  /// Grants coins & gems earned from a finished quiz.
+  ///
+  /// - Daily quiz rewards are granted at most once per calendar day to stop
+  ///   reward farming (returns false if already claimed today).
+  /// - Chapter quiz (practice) always grants, but earns fewer coins.
+  bool grantQuizRewards({
+    required int coins,
+    required int gems,
+    required bool isDailyQuiz,
+  }) {
+    if (isDailyQuiz) {
+      final today = _todayKey();
+      if (_lastDailyRewardDate == today) return false;
+      _lastDailyRewardDate = today;
+      _user.playedTodayDailyQuiz = true;
+    }
+
+    _user.coins += coins;
+    _user.gems += gems;
     notifyListeners();
     _persist();
+    return true;
   }
 
   void setGuestMode(bool isGuest) {
@@ -147,9 +177,11 @@ class UserProvider extends ChangeNotifier {
       final coins = prefs.getInt(_kCoins);
       final gems = prefs.getInt(_kGems);
       final inventoryRaw = prefs.getString(_kInventory);
+      final lastDailyReward = prefs.getString(_kLastDailyReward);
 
       if (coins != null) _user.coins = coins;
       if (gems != null) _user.gems = gems;
+      if (lastDailyReward != null) _lastDailyRewardDate = lastDailyReward;
       if (inventoryRaw != null) {
         final decoded = jsonDecode(inventoryRaw) as Map<String, dynamic>;
         _user.inventory =
@@ -167,6 +199,9 @@ class UserProvider extends ChangeNotifier {
       await prefs.setInt(_kCoins, _user.coins);
       await prefs.setInt(_kGems, _user.gems);
       await prefs.setString(_kInventory, jsonEncode(_user.inventory));
+      if (_lastDailyRewardDate != null) {
+        await prefs.setString(_kLastDailyReward, _lastDailyRewardDate!);
+      }
     } catch (e) {
       debugPrint('Failed to persist state: $e');
     }

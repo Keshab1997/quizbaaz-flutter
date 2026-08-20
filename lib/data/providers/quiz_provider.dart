@@ -25,6 +25,12 @@ class QuizProvider extends ChangeNotifier {
   bool _freezeUsed = false;
   List<int> _disabledOptionIndices = [];
 
+  // Quiz type + rewards
+  bool _isDailyQuiz = false;
+  int _earnedCoins = 0;
+  int _earnedGems = 0;
+  bool _dailyRewardSkipped = false;
+
   // Timer
   int _secondsRemaining = 15;
   Timer? _timer;
@@ -47,6 +53,16 @@ class QuizProvider extends ChangeNotifier {
   /// Remaining stock of the +10s freeze lifeline owned by the player.
   int get freezeTimeStock => _userProvider.inventoryCount(ShopItemIds.freezeTime);
 
+  /// Coins actually credited for the finished quiz (0 if replay denied).
+  int get earnedCoins => _earnedCoins;
+
+  /// Gems actually credited for the finished quiz (0 if replay denied).
+  int get earnedGems => _earnedGems;
+
+  /// True when this daily quiz earned nothing because today's reward was
+  /// already claimed.
+  bool get dailyRewardSkipped => _dailyRewardSkipped;
+
   QuestionModel? get currentQuestion =>
       _questions.isNotEmpty && _currentIndex < _questions.length
           ? _questions[_currentIndex]
@@ -55,6 +71,7 @@ class QuizProvider extends ChangeNotifier {
   // Initialize Daily Quiz
   Future<void> startDailyQuiz() async {
     _resetQuizState();
+    _isDailyQuiz = true;
     _questions = await _repository.getDailyQuizQuestions();
     _startTimer();
     notifyListeners();
@@ -63,6 +80,7 @@ class QuizProvider extends ChangeNotifier {
   // Initialize Chapter Quiz
   Future<void> startChapterQuiz(String jsonFilePath) async {
     _resetQuizState();
+    _isDailyQuiz = false;
     _questions = await _repository.getChapterQuestions(jsonFilePath);
     if (_questions.isEmpty) {
       _questions = await _repository.getDailyQuizQuestions();
@@ -83,6 +101,9 @@ class QuizProvider extends ChangeNotifier {
     _fiftyFiftyUsed = false;
     _freezeUsed = false;
     _disabledOptionIndices = [];
+    _earnedCoins = 0;
+    _earnedGems = 0;
+    _dailyRewardSkipped = false;
     _secondsRemaining = 15;
   }
 
@@ -148,8 +169,44 @@ class QuizProvider extends ChangeNotifier {
     } else {
       _isQuizCompleted = true;
       _timer?.cancel();
+      _grantRewards();
     }
     notifyListeners();
+  }
+
+  /// Calculates the coins & gems for the finished quiz and credits them to the
+  /// player's account (once — daily quiz rewards are limited to once per day).
+  void _grantRewards() {
+    int coins;
+    int gems;
+
+    if (_isDailyQuiz) {
+      coins = _correctCount * 50;
+      if (_correctCount == _questions.length) coins += 100; // perfect bonus
+      gems = _correctCount == _questions.length
+          ? 10
+          : (_correctCount >= 8 ? 5 : 0);
+    } else {
+      // Chapter quiz = practice mode: smaller rewards, always claimable.
+      coins = _correctCount * 25;
+      gems = _correctCount == _questions.length ? 5 : 0;
+    }
+
+    final granted = _userProvider.grantQuizRewards(
+      coins: coins,
+      gems: gems,
+      isDailyQuiz: _isDailyQuiz,
+    );
+
+    if (granted) {
+      _earnedCoins = coins;
+      _earnedGems = gems;
+      _dailyRewardSkipped = false;
+    } else {
+      _earnedCoins = 0;
+      _earnedGems = 0;
+      _dailyRewardSkipped = true;
+    }
   }
 
   // Lifelines
