@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -26,10 +27,22 @@ class QuizProvider extends ChangeNotifier {
   bool _isQuizCompleted = false;
   bool _isLoading = false;
 
-  // Lifelines
+  // Lifelines (per-question reset)
   bool _fiftyFiftyUsed = false;
   bool _freezeUsed = false;
+  bool _skipUsed = false;
+  bool _hintUsed = false;
+  bool _audienceUsed = false;
   List<int> _disabledOptionIndices = [];
+
+  // Active boosters (from inventory)
+  bool _doublePointsActive = false;
+  bool _extraLifeUsed = false;
+  bool _extraLifeAvailable = false;
+
+  // Hint & Audience data
+  String? _currentHint;
+  Map<int, int>? _audiencePollResults; // option index -> percentage
 
   // Quiz type + rewards
   bool _isDailyQuiz = false;
@@ -73,11 +86,29 @@ class QuizProvider extends ChangeNotifier {
   /// instead of placeholder questions.
   bool get hasNoQuestions => !_isLoading && _questions.isEmpty;
 
-  /// Remaining stock of the 50-50 lifeline owned by the player.
+  // Inventory stocks
   int get fiftyFiftyStock => _userProvider.inventoryCount(ShopItemIds.fiftyFifty);
-
-  /// Remaining stock of the +10s freeze lifeline owned by the player.
   int get freezeTimeStock => _userProvider.inventoryCount(ShopItemIds.freezeTime);
+  int get skipQuestionStock => _userProvider.inventoryCount(ShopItemIds.skipQuestion);
+  int get hintRevealStock => _userProvider.inventoryCount(ShopItemIds.hintReveal);
+  int get audiencePollStock => _userProvider.inventoryCount(ShopItemIds.audiencePoll);
+  int get extraLifeStock => _userProvider.inventoryCount(ShopItemIds.extraLife);
+  int get doublePointsStock => _userProvider.inventoryCount(ShopItemIds.doublePoints);
+
+  // Per-question usage flags
+  bool get fiftyFiftyUsed => _fiftyFiftyUsed;
+  bool get freezeUsed => _freezeUsed;
+  bool get skipUsed => _skipUsed;
+  bool get hintUsed => _hintUsed;
+  bool get audienceUsed => _audienceUsed;
+
+  // Active booster states
+  bool get doublePointsActive => _doublePointsActive;
+  bool get extraLifeAvailable => _extraLifeAvailable;
+
+  // Hint & Audience data
+  String? get currentHint => _currentHint;
+  Map<int, int>? get audiencePollResults => _audiencePollResults;
 
   /// Coins actually credited for the finished quiz (0 if replay denied).
   int get earnedCoins => _earnedCoins;
@@ -111,6 +142,10 @@ class QuizProvider extends ChangeNotifier {
 
     _questions = await _repository.getDailyQuizQuestions();
     _isLoading = false;
+
+    // Check for active boosters
+    _checkActiveBoosters();
+
     if (_questions.isNotEmpty) _startTimer();
     notifyListeners();
   }
@@ -136,8 +171,21 @@ class QuizProvider extends ChangeNotifier {
 
     _questions = await _repository.getChapterQuestions(jsonFilePath);
     _isLoading = false;
+
+    // Check for active boosters
+    _checkActiveBoosters();
+
     if (_questions.isNotEmpty) _startTimer();
     notifyListeners();
+  }
+
+  /// Check if player has active boosters in inventory.
+  void _checkActiveBoosters() {
+    // Double Points booster - check if owned
+    _doublePointsActive = _userProvider.hasItem(ShopItemIds.doublePoints);
+
+    // Extra Life - check if owned
+    _extraLifeAvailable = _userProvider.hasItem(ShopItemIds.extraLife);
   }
 
   void _resetQuizState() {
@@ -149,9 +197,24 @@ class QuizProvider extends ChangeNotifier {
     _selectedOptionIndex = null;
     _isAnswerSubmitted = false;
     _isQuizCompleted = false;
+
+    // Reset per-question lifelines
     _fiftyFiftyUsed = false;
     _freezeUsed = false;
+    _skipUsed = false;
+    _hintUsed = false;
+    _audienceUsed = false;
     _disabledOptionIndices = [];
+
+    // Reset boosters
+    _doublePointsActive = false;
+    _extraLifeUsed = false;
+    _extraLifeAvailable = false;
+
+    // Reset hint & audience
+    _currentHint = null;
+    _audiencePollResults = null;
+
     _earnedCoins = 0;
     _earnedGems = 0;
     _dailyRewardSkipped = false;
@@ -194,9 +257,25 @@ class QuizProvider extends ChangeNotifier {
     if (index == correctIndex) {
       _correctCount++;
       // Score calculation: 10 base points + time bonus
-      final bonus = _secondsRemaining * 2;
-      _score += 10 + bonus;
+      var bonus = _secondsRemaining * 2;
+      var points = 10 + bonus;
+
+      // Apply double points booster
+      if (_doublePointsActive) {
+        points *= 2;
+      }
+
+      _score += points;
     } else {
+      // Wrong answer - check for extra life
+      if (_extraLifeAvailable && !_extraLifeUsed) {
+        _extraLifeUsed = true;
+        _userProvider.consumeItem(ShopItemIds.extraLife);
+        _isAnswerSubmitted = false;
+        _selectedOptionIndex = null;
+        notifyListeners();
+        return; // Don't count as wrong, let them try again
+      }
       _wrongCount++;
     }
 
@@ -220,6 +299,18 @@ class QuizProvider extends ChangeNotifier {
   void _handleTimeout() {
     if (_isAnswerSubmitted) return;
     _isAnswerSubmitted = true;
+
+    // Check for extra life on timeout
+    if (_extraLifeAvailable && !_extraLifeUsed) {
+      _extraLifeUsed = true;
+      _userProvider.consumeItem(ShopItemIds.extraLife);
+      _secondsRemaining = 5; // Give 5 more seconds
+      _isAnswerSubmitted = false;
+      _startTimer();
+      notifyListeners();
+      return;
+    }
+
     _wrongCount++;
     _totalTimeSeconds += questionTimeSec.toDouble();
 
@@ -245,12 +336,28 @@ class QuizProvider extends ChangeNotifier {
       _selectedOptionIndex = null;
       _isAnswerSubmitted = false;
       _disabledOptionIndices = [];
+
+      // Reset per-question lifeline flags
       _fiftyFiftyUsed = false;
       _freezeUsed = false;
+      _skipUsed = false;
+      _hintUsed = false;
+      _audienceUsed = false;
+
+      // Reset hint & audience data
+      _currentHint = null;
+      _audiencePollResults = null;
+
       _startTimer();
     } else {
       _isQuizCompleted = true;
       _timer?.cancel();
+
+      // Consume double points booster if used
+      if (_doublePointsActive) {
+        _userProvider.consumeItem(ShopItemIds.doublePoints);
+      }
+
       _grantRewards();
     }
     notifyListeners();
@@ -278,6 +385,12 @@ class QuizProvider extends ChangeNotifier {
       // Chapter quiz = practice mode: smaller rewards, always claimable.
       coins = _correctCount * config.coinsPerCorrectPractice;
       gems = isPerfect ? config.gemsHighScore : 0;
+    }
+
+    // Apply coin booster if active
+    if (_userProvider.hasItem(ShopItemIds.coinBooster)) {
+      coins *= 2;
+      _userProvider.consumeItem(ShopItemIds.coinBooster);
     }
 
     // Persist accuracy / streak / per-chapter progress to Hive and mirror it
@@ -350,8 +463,16 @@ class QuizProvider extends ChangeNotifier {
     return true;
   }
 
-  /// Skips the current question without scoring. Free to use.
-  void useSkipQuestion() {
+  /// Skips the current question using inventory item.
+  /// Returns false if can't be used.
+  bool useSkipQuestion() {
+    if (_skipUsed || _isAnswerSubmitted || currentQuestion == null) {
+      return false;
+    }
+    if (!_userProvider.consumeItem(ShopItemIds.skipQuestion)) {
+      return false;
+    }
+    _skipUsed = true;
     _timer?.cancel();
     _totalTimeSeconds += questionTimeSec - _secondsRemaining;
 
@@ -366,7 +487,88 @@ class QuizProvider extends ChangeNotifier {
       );
     }
 
-    nextQuestion();
+    Future.delayed(const Duration(milliseconds: 500), nextQuestion);
+    notifyListeners();
+    return true;
+  }
+
+  /// Reveals a hint for the current question. Consumes one unit.
+  /// Returns false if can't be used.
+  bool useHintReveal() {
+    if (_hintUsed || _isAnswerSubmitted || currentQuestion == null) {
+      return false;
+    }
+    if (!_userProvider.consumeItem(ShopItemIds.hintReveal)) {
+      return false;
+    }
+    _hintUsed = true;
+
+    // Generate hint from the correct answer
+    final correctIndex = currentQuestion!.correctIndex;
+    final correctAnswer = currentQuestion!.options[correctIndex];
+    _currentHint = _generateHint(correctAnswer);
+
+    notifyListeners();
+    return true;
+  }
+
+  /// Generates a hint from the correct answer.
+  String _generateHint(String answer) {
+    if (answer.length <= 3) return 'The answer is short (${answer.length} chars)';
+
+    final words = answer.split(' ');
+    if (words.length == 1) {
+      // Single word: show first and last letter
+      return 'Starts with "${answer[0]}" and ends with "${answer[answer.length - 1]}"';
+    } else {
+      // Multiple words: show word count and first letter
+      return '${words.length} words, starts with "${words[0][0]}"';
+    }
+  }
+
+  /// Shows audience poll results. Consumes one unit.
+  /// Returns false if can't be used.
+  bool useAudiencePoll() {
+    if (_audienceUsed || _isAnswerSubmitted || currentQuestion == null) {
+      return false;
+    }
+    if (!_userProvider.consumeItem(ShopItemIds.audiencePoll)) {
+      return false;
+    }
+    _audienceUsed = true;
+
+    // Generate realistic audience poll results
+    final correctIndex = currentQuestion!.correctIndex;
+    _audiencePollResults = _generateAudiencePoll(correctIndex);
+
+    notifyListeners();
+    return true;
+  }
+
+  /// Generates realistic audience poll results.
+  Map<int, int> _generateAudiencePoll(int correctIndex) {
+    final random = Random();
+    final results = <int, int>{};
+
+    // Correct answer gets highest percentage (40-70%)
+    results[correctIndex] = 40 + random.nextInt(31);
+
+    // Distribute remaining percentage among other options
+    var remaining = 100 - results[correctIndex]!;
+    final otherOptions = [0, 1, 2, 3]..remove(correctIndex);
+
+    for (var i = 0; i < otherOptions.length; i++) {
+      if (i == otherOptions.length - 1) {
+        results[otherOptions[i]] = remaining;
+      } else {
+        final maxForThis = (remaining * 0.6).toInt();
+        final value = random.nextInt(maxForThis + 1);
+        results[otherOptions[i]] = value;
+        remaining -= value;
+      }
+    }
+
+    return results;
   }
 
   @override

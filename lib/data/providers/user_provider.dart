@@ -201,7 +201,13 @@ class UserProvider extends ChangeNotifier {
     } else {
       _user.gems -= item.cost;
     }
-    _user.inventory[item.id] = inventoryCount(item.id) + item.quantity;
+
+    // Handle special packs
+    if (item.category == 'packs') {
+      _handlePackPurchase(item);
+    } else {
+      _user.inventory[item.id] = inventoryCount(item.id) + item.quantity;
+    }
 
     notifyListeners();
     _persistUser();
@@ -225,6 +231,51 @@ class UserProvider extends ChangeNotifier {
     await HiveService.savePurchaseHistory(json);
     if (!_user.isGuest) {
       await SyncService.pushPurchaseHistory(_user.userId, json);
+    }
+  }
+
+  /// Handles special pack purchases that grant multiple items.
+  void _handlePackPurchase(ShopItem item) {
+    switch (item.id) {
+      case ShopItemIds.starterPack:
+        // 5x 50-50 + 3x Freeze + 500 Coins
+        _user.inventory[ShopItemIds.fiftyFifty] =
+            inventoryCount(ShopItemIds.fiftyFifty) + 5;
+        _user.inventory[ShopItemIds.freezeTime] =
+            inventoryCount(ShopItemIds.freezeTime) + 3;
+        _user.coins += 500;
+        break;
+
+      case ShopItemIds.megaPack:
+        // 10x 50-50 + 5x Freeze + 5x Skip + 2000 Coins
+        _user.inventory[ShopItemIds.fiftyFifty] =
+            inventoryCount(ShopItemIds.fiftyFifty) + 10;
+        _user.inventory[ShopItemIds.freezeTime] =
+            inventoryCount(ShopItemIds.freezeTime) + 5;
+        _user.inventory[ShopItemIds.skipQuestion] =
+            inventoryCount(ShopItemIds.skipQuestion) + 5;
+        _user.coins += 2000;
+        break;
+
+      case ShopItemIds.legendPack:
+        // All lifelines x10 + VIP Avatar + 5000 Coins
+        _user.inventory[ShopItemIds.fiftyFifty] =
+            inventoryCount(ShopItemIds.fiftyFifty) + 10;
+        _user.inventory[ShopItemIds.freezeTime] =
+            inventoryCount(ShopItemIds.freezeTime) + 10;
+        _user.inventory[ShopItemIds.skipQuestion] =
+            inventoryCount(ShopItemIds.skipQuestion) + 10;
+        _user.inventory[ShopItemIds.hintReveal] =
+            inventoryCount(ShopItemIds.hintReveal) + 10;
+        _user.inventory[ShopItemIds.audiencePoll] =
+            inventoryCount(ShopItemIds.audiencePoll) + 10;
+        _user.inventory[ShopItemIds.extraLife] =
+            inventoryCount(ShopItemIds.extraLife) + 10;
+        _user.inventory[ShopItemIds.doublePoints] =
+            inventoryCount(ShopItemIds.doublePoints) + 10;
+        _user.inventory[ShopItemIds.vipAvatar] = 1; // Unlock VIP Avatar
+        _user.coins += 5000;
+        break;
     }
   }
 
@@ -318,7 +369,18 @@ class UserProvider extends ChangeNotifier {
     );
 
     if (isDaily) {
+      // Check for streak shield before updating streak
+      final hadStreakShield = hasItem(ShopItemIds.streakShield);
+      final previousStreak = _user.dailyStreak;
+
       _user.registerPlayOn(DateTime.now());
+
+      // If streak was reset (went to 1) but shield is active, restore streak
+      if (hadStreakShield && _user.dailyStreak == 1 && previousStreak > 1) {
+        consumeItem(ShopItemIds.streakShield);
+        _user.dailyStreak = previousStreak; // Restore previous streak
+      }
+
       _stats.touchStreak(_user.dailyStreak);
     }
 
