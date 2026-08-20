@@ -1,87 +1,90 @@
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
+
 import '../../core/constants/app_assets.dart';
-import '../models/question_model.dart';
 import '../models/chapter_model.dart';
-import '../models/champion_model.dart';
-import '../models/leaderboard_model.dart';
+import '../models/question_model.dart';
+import '../services/hive_service.dart';
 
+/// Question-bank access.
+///
+/// Questions are authored content (shipped as JSON assets and, later, pushed
+/// from the admin panel), so they are cached in Hive after the first read and
+/// served from there afterwards. Nothing here invents placeholder questions:
+/// an unavailable bank returns an empty list and the UI shows an empty state.
 class QuizRepository {
-  // Load Daily Quiz Questions
+  static const _dailyCacheTtl = Duration(hours: 12);
+
+  /// Daily quiz questions — Hive cache first, then the bundled bank.
   Future<List<QuestionModel>> getDailyQuizQuestions() async {
-    try {
-      final jsonStr = await rootBundle.loadString(AppAssets.jsonDailyQuiz);
-      final Map<String, dynamic> data = json.decode(jsonStr);
-      final List list = data['questions'] ?? [];
-      return list.map((q) => QuestionModel.fromJson(q)).toList();
-    } catch (e) {
-      // Return default questions if asset load fails
-      return [
-        QuestionModel(
-          id: 'dq_01',
-          question: 'What is the powerhouse of the cell?',
-          questionBn: 'কোষের শক্তিঘর কাকে বলা হয়?',
-          options: ['Nucleus', 'Mitochondria', 'Ribosome', 'Golgi Body'],
-          correctIndex: 1,
-          explanation: 'Mitochondria generate energy for cellular activities.',
-        ),
-        QuestionModel(
-          id: 'dq_02',
-          question: 'Which language is used for Flutter?',
-          questionBn: 'ফ্লাটার কোন ভাষায় লেখা হয়?',
-          options: ['Kotlin', 'Swift', 'Dart', 'Java'],
-          correctIndex: 2,
-          explanation: 'Dart is the official programming language for Flutter.',
-        ),
-      ];
+    final cached = HiveService.cacheGetList(
+      HiveService.cacheDailyQuiz,
+      maxAge: _dailyCacheTtl,
+    );
+    if (cached.isNotEmpty) {
+      return cached.map(QuestionModel.fromJson).toList();
     }
+
+    final rows = await _readJsonList(AppAssets.jsonDailyQuiz, 'questions');
+    if (rows.isNotEmpty) {
+      await HiveService.cachePut(HiveService.cacheDailyQuiz, rows);
+    }
+    return rows.map(QuestionModel.fromJson).toList();
   }
 
-  // Load Chapter List
+  /// Chapter/category tree — Hive cache first.
   Future<List<CategoryModel>> getCategoriesAndChapters() async {
-    try {
-      final jsonStr = await rootBundle.loadString(AppAssets.jsonChapters);
-      final Map<String, dynamic> data = json.decode(jsonStr);
-      final List list = data['categories'] ?? [];
-      return list.map((c) => CategoryModel.fromJson(c)).toList();
-    } catch (e) {
-      return [];
+    final cached = HiveService.cacheGetList(HiveService.cacheChapters);
+    if (cached.isNotEmpty) {
+      return cached.map(CategoryModel.fromJson).toList();
     }
+
+    final rows = await _readJsonList(AppAssets.jsonChapters, 'categories');
+    if (rows.isNotEmpty) {
+      await HiveService.cachePut(HiveService.cacheChapters, rows);
+    }
+    return rows.map(CategoryModel.fromJson).toList();
   }
 
-  // Load Questions for a specific chapter
+  /// Questions for one chapter, cached per file path.
   Future<List<QuestionModel>> getChapterQuestions(String jsonFilePath) async {
-    try {
-      final jsonStr = await rootBundle.loadString(jsonFilePath);
-      final Map<String, dynamic> data = json.decode(jsonStr);
-      final List list = data['questions'] ?? [];
-      return list.map((q) => QuestionModel.fromJson(q)).toList();
-    } catch (e) {
-      return [];
+    final cacheKey = 'chapter_questions:$jsonFilePath';
+    final cached = HiveService.cacheGetList(cacheKey);
+    if (cached.isNotEmpty) {
+      return cached.map(QuestionModel.fromJson).toList();
     }
+
+    final rows = await _readJsonList(jsonFilePath, 'questions');
+    if (rows.isNotEmpty) {
+      await HiveService.cachePut(cacheKey, rows);
+    }
+    return rows.map(QuestionModel.fromJson).toList();
   }
 
-  // Load Yesterday's Champions
-  Future<List<ChampionModel>> getYesterdayChampions() async {
-    try {
-      final jsonStr = await rootBundle.loadString(AppAssets.jsonChampions);
-      final Map<String, dynamic> data = json.decode(jsonStr);
-      final List list = data['champions'] ?? [];
-      return list.map((c) => ChampionModel.fromJson(c)).toList();
-    } catch (e) {
-      return [];
-    }
+  /// Drops every cached question bank (used after an admin upload).
+  Future<void> invalidateQuestionCache() async {
+    await HiveService.cacheRemove(HiveService.cacheDailyQuiz);
+    await HiveService.cacheRemove(HiveService.cacheChapters);
   }
 
-  // Load Live Leaderboard
-  Future<List<LeaderboardItem>> getLiveLeaderboard() async {
+  // -------------------------------------------------------------- Helpers --
+
+  Future<List<Map<String, dynamic>>> _readJsonList(
+    String assetPath,
+    String key,
+  ) async {
     try {
-      final jsonStr = await rootBundle.loadString(AppAssets.jsonLeaderboard);
-      final Map<String, dynamic> data = json.decode(jsonStr);
-      final List list = data['top_ranks'] ?? [];
-      return list.map((item) => LeaderboardItem.fromJson(item)).toList();
-    } catch (e) {
-      return [];
+      final jsonStr = await rootBundle.loadString(assetPath);
+      final data = json.decode(jsonStr) as Map<String, dynamic>;
+      final list = data[key] as List<dynamic>? ?? const [];
+      return list
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (_) {
+      // No bank available — callers show an empty state.
+      return const [];
     }
   }
 }

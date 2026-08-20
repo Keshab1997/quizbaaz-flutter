@@ -16,20 +16,30 @@ class ChampionPodiumWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final champ = champion ??
-        ChampionModel(
-          rank: 1,
-          userId: 'champ_01',
-          name: 'Subham Roy',
-          username: '@subham_pro',
-          avatarPath: AppAssets.championBoy,
-          score: 100,
-          timeSeconds: 38.4,
-          giftName: 'Fire-Boltt 3D Smartwatch',
-          giftIcon: AppAssets.giftBox,
-          bonusCoins: 1000,
-          badgeTitle: 'Grand Champion 🏆',
-        );
+    final champ = champion;
+
+    // No champion published yet -> honest empty state, never a fake winner.
+    if (champ == null) {
+      return GlassCard(
+        borderColor: AppColors.neonGold.withValues(alpha: 0.22),
+        child: Row(
+          children: [
+            const Icon(Icons.emoji_events_outlined,
+                color: AppColors.textMuted, size: 30),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'No champion has been crowned yet. Win a daily quiz to be the first!',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary.withValues(alpha: 0.9),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return GlassCard(
       borderColor: AppColors.neonGold.withValues(alpha: 0.4),
@@ -114,7 +124,7 @@ class ChampionPodiumWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      champ.name,
+                      champ.name.isNotEmpty ? champ.name : champ.username,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -132,7 +142,8 @@ class ChampionPodiumWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Container(
+                    if (champ.giftName.isNotEmpty)
+                      Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.08),

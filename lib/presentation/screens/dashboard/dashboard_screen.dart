@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/models/champion_model.dart';
+import '../../../data/models/leaderboard_model.dart';
 import '../../../data/models/user_model.dart';
+import '../../../data/models/user_stats.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/rewards_provider.dart';
 import '../../../data/providers/user_provider.dart';
@@ -33,40 +36,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserProvider>().initialize();
-      context.read<RewardsProvider>().initialize();
+      final userProvider = context.read<UserProvider>();
+      userProvider.initialize();
+      context
+          .read<RewardsProvider>()
+          .initialize(userId: userProvider.user.userId);
     });
   }
 
   Future<void> _refresh() async {
+    final userProvider = context.read<UserProvider>();
     await Future.wait([
-      context.read<UserProvider>().loadInitialData(),
-      context.read<RewardsProvider>().initialize(),
+      userProvider.refreshRankings(force: true),
+      context
+          .read<RewardsProvider>()
+          .initialize(userId: userProvider.user.userId),
     ]);
   }
 
-  void _onNavTap(int index) {
+  /// Opens a tab and restores the Home highlight once the user comes back,
+  /// so the bottom bar never lies about where you are.
+  Future<void> _openTab(int index, Widget screen) async {
     setState(() => _currentNavIndex = index);
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    if (mounted) setState(() => _currentNavIndex = 0);
+  }
+
+  void _onNavTap(int index) {
     switch (index) {
+      case 0:
+        setState(() => _currentNavIndex = 0);
+        break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ChapterListScreen()),
-        );
+        _openTab(1, const ChapterListScreen());
         break;
       case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
-        );
+        _openTab(2, const LeaderboardScreen());
         break;
       case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ProfileScreen()),
-        );
+        _openTab(3, const ProfileScreen());
         break;
     }
+  }
+
+  /// Time-aware greeting instead of a fixed "Good morning".
+  String get _greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 5) return 'Still awake';
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    if (hour < 21) return 'Good evening';
+    return 'Good night';
   }
 
   void _startDailyQuiz() {
@@ -84,7 +104,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>().user;
+    final userProvider = context.watch<UserProvider>();
+    final user = userProvider.user;
     final heroAsset = _isFemaleMascot ? AppAssets.heroGirl : AppAssets.heroBoy;
 
     return Scaffold(
@@ -109,11 +130,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       _buildHeader(user),
                       const SizedBox(height: 18),
-                      _buildHeroCard(heroAsset),
+                      _buildHeroCard(heroAsset, userProvider),
                       const SizedBox(height: 14),
-                      _buildStatStrip(user),
+                      _buildStatStrip(user, userProvider),
                       const SizedBox(height: 14),
-                      _buildStreakCard(user),
+                      _buildStreakCard(user, userProvider),
                       const SizedBox(height: 26),
                       _buildSectionHeader(
                         eyebrow: 'PLAY YOUR WAY',
@@ -124,7 +145,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 12),
                       _buildQuickActions(),
                       const SizedBox(height: 28),
-                      _buildChampionCard(),
+                      _buildChampionCard(userProvider),
                       const SizedBox(height: 28),
                       _buildSectionHeader(
                         eyebrow: 'LIVE TODAY',
@@ -133,9 +154,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         onAction: () => _onNavTap(2),
                       ),
                       const SizedBox(height: 12),
-                      _buildLeaderboardPreview(),
+                      _buildLeaderboardPreview(userProvider),
                       const SizedBox(height: 12),
-                      _buildAdminShortcut(),
+                      if (userProvider.isAdmin) _buildAdminShortcut(),
                     ],
                   ),
                 ),
@@ -190,7 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Good morning, ${user.fullName}  👋',
+                    '$_greeting, ${user.fullName}  👋',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -295,7 +316,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHeroCard(String heroAsset) {
+  Widget _buildHeroCard(String heroAsset, UserProvider userProvider) {
+    final config = userProvider.config;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
@@ -388,9 +410,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         const SizedBox(height: 9),
-                        const Text(
-                          '10 questions.\nOne brilliant run.',
-                          style: TextStyle(
+                        Text(
+                          '${config.dailyQuestionCount} questions.\nOne brilliant run.',
+                          style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 20,
                             height: 1.08,
@@ -401,16 +423,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(height: 9),
                         Row(
                           children: [
-                            _buildHeroMeta(Icons.timer_outlined, '03:20'),
+                            _buildHeroMeta(
+                                Icons.timer_outlined, config.dailyDurationLabel),
                             const SizedBox(width: 6),
-                            _buildHeroMeta(Icons.card_giftcard_rounded, '500 coins'),
+                            _buildHeroMeta(Icons.card_giftcard_rounded,
+                                'up to ${config.dailyMaxCoins} coins'),
                           ],
                         ),
                         const SizedBox(height: 14),
                         SizedBox(
                           width: double.infinity,
                           child: NeonButton(
-                            text: 'START QUIZ',
+                            text: userProvider.user.playedTodayDailyQuiz
+                                ? 'PLAY AGAIN'
+                                : 'START QUIZ',
                             height: 43,
                             borderRadius: 14,
                             icon: const Icon(
@@ -467,7 +493,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildStatStrip(UserModel user) {
+  Widget _buildStatStrip(UserModel user, UserProvider userProvider) {
+    final UserStats stats = userProvider.stats;
     return Row(
       children: [
         Expanded(
@@ -476,17 +503,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
             value: '${user.dailyStreak}',
             label: 'day streak',
             color: AppColors.neonGold,
-            detail: 'Keep it alive',
+            detail: user.dailyStreak > 0
+                ? 'Keep it alive'
+                : 'Play today to start',
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _buildStatCard(
             icon: Icons.track_changes_rounded,
-            value: '72%',
+            value: stats.accuracyLabel,
             label: 'accuracy',
             color: AppColors.neonCyan,
-            detail: 'Top 18% today',
+            detail: stats.hasData
+                ? (userProvider.percentileLabel ??
+                    '${stats.totalAnswered} questions answered')
+                : 'No quiz played yet',
           ),
         ),
       ],
@@ -564,8 +596,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildStreakCard(UserModel user) {
-    final completed = user.dailyStreak.clamp(0, 7).toInt();
+  Widget _buildStreakCard(UserModel user, UserProvider userProvider) {
+    final goal = userProvider.config.streakGoalDays;
+    final completed = user.dailyStreak.clamp(0, goal).toInt();
+    final remaining = goal - completed;
     return GlassCard(
       borderRadius: 22,
       padding: const EdgeInsets.fromLTRB(15, 14, 15, 15),
@@ -595,11 +629,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(width: 11),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'YOUR DAILY STREAK',
                       style: TextStyle(
                         color: AppColors.neonGold,
@@ -608,10 +642,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         letterSpacing: 1.1,
                       ),
                     ),
-                    SizedBox(height: 3),
+                    const SizedBox(height: 3),
                     Text(
-                      'One more day to unlock the bonus',
-                      style: TextStyle(
+                      remaining <= 0
+                          ? 'Streak goal complete — bonus unlocked!'
+                          : '$remaining more day${remaining == 1 ? '' : 's'} to unlock the bonus',
+                      style: const TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
@@ -621,7 +657,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               Text(
-                '$completed/7',
+                '$completed/$goal',
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 18,
@@ -634,7 +670,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
-              value: completed / 7,
+              value: goal == 0 ? 0.0 : completed / goal,
               minHeight: 8,
               backgroundColor: Colors.white.withValues(alpha: 0.08),
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.neonGold),
@@ -643,9 +679,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 11),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(7, (index) {
+            children: List.generate(goal, (index) {
               final isDone = index < completed;
-              final label = ['M', 'T', 'W', 'T', 'F', 'S', 'S'][index];
+              final label = _weekdayInitials[index % _weekdayInitials.length];
               return Column(
                 children: [
                   Container(
@@ -812,7 +848,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildChampionCard() {
+  /// Yesterday's champion — real data from Hive/Firestore, or an honest
+  /// empty state while nobody has been crowned yet.
+  Widget _buildChampionCard(UserProvider userProvider) {
+    final ChampionModel? champ = userProvider.yesterdayTopChampion;
+
+    if (champ == null) {
+      return GlassCard(
+        borderRadius: 24,
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+        borderColor: AppColors.neonGold.withValues(alpha: 0.22),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.neonGold.withValues(alpha: 0.12),
+              ),
+              child: const Icon(Icons.workspace_premium_rounded,
+                  color: AppColors.neonGold, size: 24),
+            ),
+            const SizedBox(width: 13),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'No champion yet',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    "Yesterday's winner appears here once results are in.",
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final championAvatar =
+        champ.avatarPath.isNotEmpty ? champ.avatarPath : AppAssets.championBoy;
+    final prizeLabel = _championPrizeLabel(champ);
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
@@ -852,7 +943,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 left: 14,
                 bottom: -5,
                 child: Image.asset(
-                  AppAssets.championBoy,
+                  championAvatar,
                   height: 178,
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => const Icon(
@@ -862,13 +953,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              const Positioned.fill(
+              Positioned.fill(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(148, 17, 16, 14),
+                  padding: const EdgeInsets.fromLTRB(148, 17, 16, 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
                           Icon(Icons.workspace_premium_rounded,
                               color: AppColors.neonGold, size: 17),
@@ -888,44 +979,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 13),
+                      const SizedBox(height: 13),
                       Text(
-                        'Rahul Das',
-                        style: TextStyle(
+                        champ.name.isNotEmpty ? champ.name : champ.username,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        '96 pts  •  Rank #1',
-                        style: TextStyle(
+                        '${champ.score} pts  •  Rank #${champ.rank}',
+                        style: const TextStyle(
                           color: AppColors.neonGold,
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      Spacer(),
-                      Row(
-                        children: [
-                          Icon(Icons.card_giftcard_rounded,
-                              color: AppColors.neonPink, size: 15),
-                          SizedBox(width: 5),
-                          Expanded(
-                            child: Text(
-                              '500 coins + smartwatch',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
+                      const Spacer(),
+                      if (prizeLabel != null)
+                        Row(
+                          children: [
+                            const Icon(Icons.card_giftcard_rounded,
+                                color: AppColors.neonPink, size: 15),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Text(
+                                prizeLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -937,67 +1031,116 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildLeaderboardPreview() {
-    const players = <_Rank>[
-      _Rank('1', 'Liam G.', '1200 pts', AppColors.neonGold, AppAssets.maleAvatar),
-      _Rank('2', 'Sarah K.', '1180 pts', Color(0xFFC7D2E8), AppAssets.femaleAvatar),
-      _Rank('3', 'Ben J.', '1150 pts', Color(0xFFDC9A67), AppAssets.maleAvatar),
-      _Rank('4', 'Maya S.', '1125 pts', AppColors.textSecondary, AppAssets.femaleAvatar),
-    ];
+  /// Builds the prize line only from what the backend actually sent.
+  String? _championPrizeLabel(ChampionModel champ) {
+    final parts = <String>[];
+    if (champ.bonusCoins > 0) parts.add('${champ.bonusCoins} coins');
+    if (champ.giftName.isNotEmpty) parts.add(champ.giftName);
+    return parts.isEmpty ? null : parts.join(' + ');
+  }
+
+  /// Live top-4 straight from the Hive-cached leaderboard.
+  Widget _buildLeaderboardPreview(UserProvider userProvider) {
+    final List<LeaderboardItem> players =
+        userProvider.leaderboard.take(4).toList();
+
+    if (players.isEmpty) {
+      return GlassCard(
+        borderRadius: 22,
+        padding: const EdgeInsets.fromLTRB(14, 18, 14, 18),
+        borderColor: AppColors.neonCyan.withValues(alpha: 0.18),
+        child: Row(
+          children: [
+            const Icon(Icons.leaderboard_rounded,
+                color: AppColors.textMuted, size: 22),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Text(
+                userProvider.isLoading
+                    ? 'Loading today\'s ranking…'
+                    : 'No scores today yet — be the first on the board!',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return GlassCard(
       borderRadius: 22,
       padding: const EdgeInsets.fromLTRB(14, 13, 14, 11),
       borderColor: AppColors.neonCyan.withValues(alpha: 0.22),
       child: Column(
-        children: players
-            .map(
-              (player) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 25,
-                      child: Text(
-                        player.rank,
-                        style: TextStyle(
-                          color: player.color,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
+        children: players.map((player) {
+          final color = _rankColor(player.rank);
+          final avatar = player.avatarPath.isNotEmpty
+              ? player.avatarPath
+              : AppAssets.maleAvatar;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 25,
+                  child: Text(
+                    '${player.rank}',
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
                     ),
-                    CircleAvatar(
-                      radius: 14,
-                      backgroundColor: player.color.withValues(alpha: 0.18),
-                      backgroundImage: AssetImage(player.avatar),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        player.name,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      player.score,
-                      style: TextStyle(
-                        color: player.color,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            )
-            .toList(),
+                CircleAvatar(
+                  radius: 14,
+                  backgroundColor: color.withValues(alpha: 0.18),
+                  backgroundImage: AssetImage(avatar),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    player.name.isNotEmpty ? player.name : player.username,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${player.score} pts',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
+  }
+
+  static Color _rankColor(int rank) {
+    switch (rank) {
+      case 1:
+        return AppColors.neonGold;
+      case 2:
+        return const Color(0xFFC7D2E8);
+      case 3:
+        return const Color(0xFFDC9A67);
+      default:
+        return AppColors.textSecondary;
+    }
   }
 
   Widget _buildAdminShortcut() {
@@ -1123,6 +1266,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
+/// Labels for the streak ring (repeats when the goal is longer than a week).
+const List<String> _weekdayInitials = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
 class _QuickAction {
   final String title;
   final IconData icon;
@@ -1132,12 +1278,3 @@ class _QuickAction {
   const _QuickAction(this.title, this.icon, this.color, this.onTap);
 }
 
-class _Rank {
-  final String rank;
-  final String name;
-  final String score;
-  final Color color;
-  final String avatar;
-
-  const _Rank(this.rank, this.name, this.score, this.color, this.avatar);
-}

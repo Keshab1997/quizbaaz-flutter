@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/providers/auth_provider.dart';
+import '../../../data/models/user_stats.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 
@@ -15,6 +16,7 @@ class ProfileScreen extends StatelessWidget {
     final userProvider = context.watch<UserProvider>();
     final auth = context.watch<AuthProvider>();
     final user = userProvider.user;
+    final stats = userProvider.stats;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -136,53 +138,82 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Stats Grid
+            // Stats Grid — every number comes from Hive-backed UserStats
             Row(
               children: [
                 Expanded(
-                  child: GlassCard(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.local_fire_department,
-                            color: Colors.orangeAccent, size: 28),
-                        const SizedBox(height: 6),
-                        Text('${user.dailyStreak} Days',
-                            style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                        const Text('Current Streak',
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary)),
-                      ],
-                    ),
+                  child: _buildStatTile(
+                    icon: Icons.local_fire_department,
+                    color: Colors.orangeAccent,
+                    value: '${user.dailyStreak}',
+                    label: 'Day Streak',
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: GlassCard(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.emoji_events,
-                            color: AppColors.neonGold, size: 28),
-                        const SizedBox(height: 6),
-                        Text('${user.coins}',
-                            style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                        const Text('Coins Earned',
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textSecondary)),
-                      ],
-                    ),
+                  child: _buildStatTile(
+                    icon: Icons.monetization_on_rounded,
+                    color: AppColors.neonGold,
+                    value: '${user.coins}',
+                    label: 'Coins',
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatTile(
+                    icon: Icons.track_changes_rounded,
+                    color: AppColors.neonCyan,
+                    value: stats.accuracyLabel,
+                    label: 'Accuracy',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatTile(
+                    icon: Icons.quiz_rounded,
+                    color: AppColors.neonPurple,
+                    value: '${stats.totalQuizzes}',
+                    label: 'Quizzes Played',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            GlassCard(
+              borderRadius: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('PERFORMANCE',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary)),
+                  const SizedBox(height: 12),
+                  _buildDetailRow(Icons.check_circle_rounded, 'Correct answers',
+                      '${stats.totalCorrect} / ${stats.totalAnswered}'),
+                  const Divider(color: Colors.white12),
+                  _buildDetailRow(Icons.emoji_events_rounded, 'Best daily score',
+                      stats.bestDailyScore > 0
+                          ? '${stats.bestDailyScore} pts'
+                          : '--'),
+                  const Divider(color: Colors.white12),
+                  _buildDetailRow(Icons.bolt_rounded, 'Battles won',
+                      '${stats.battlesWon} / ${stats.battlesPlayed}'),
+                  const Divider(color: Colors.white12),
+                  _buildDetailRow(Icons.timer_rounded, 'Avg. time / question',
+                      stats.hasData
+                          ? '${stats.averageSecondsPerQuestion.toStringAsFixed(1)}s'
+                          : '--'),
+                  const Divider(color: Colors.white12),
+                  _buildDetailRow(Icons.whatshot_rounded, 'Longest streak',
+                      '${stats.longestStreak} days'),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -246,17 +277,23 @@ class ProfileScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: AppColors.textSecondary)),
                   const SizedBox(height: 14),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildBadge('Top 1 Winner', Icons.military_tech,
-                          AppColors.neonGold),
-                      _buildBadge(
-                          '7 Day Streak', Icons.whatshot, Colors.orangeAccent),
-                      _buildBadge(
-                          'Speed Demon', Icons.bolt, AppColors.neonCyan),
-                    ],
-                  ),
+                  Builder(builder: (context) {
+                    final earned = _earnedBadges(stats, user.dailyStreak);
+                    if (earned.isEmpty) {
+                      return const Text(
+                        'No badges yet — play quizzes to unlock them.',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary),
+                      );
+                    }
+                    return Wrap(
+                      spacing: 18,
+                      runSpacing: 14,
+                      children: earned
+                          .map((b) => _buildBadge(b.title, b.icon, b.color))
+                          .toList(),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -362,13 +399,18 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.all(18),
               child: Column(
                 children: [
-                  _buildSettingRow(Icons.notifications_rounded, 'Notifications', true),
+                  _buildSettingRow(userProvider, Icons.notifications_rounded,
+                      'Notifications', UserProvider.settingNotifications),
                   const Divider(color: Colors.white12),
-                  _buildSettingRow(Icons.music_note_rounded, 'Sound Effects', true),
+                  _buildSettingRow(userProvider, Icons.music_note_rounded,
+                      'Sound Effects', UserProvider.settingSound),
                   const Divider(color: Colors.white12),
-                  _buildSettingRow(Icons.volume_up_rounded, 'Vibration', false),
+                  _buildSettingRow(userProvider, Icons.volume_up_rounded,
+                      'Vibration', UserProvider.settingVibration,
+                      defaultValue: false),
                   const Divider(color: Colors.white12),
-                  _buildSettingRow(Icons.dark_mode_rounded, 'Dark Mode', true),
+                  _buildSettingRow(userProvider, Icons.dark_mode_rounded,
+                      'Dark Mode', UserProvider.settingDarkMode),
                 ],
               ),
             ),
@@ -459,6 +501,62 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           if (trailing != null) trailing,
+        ],
+      ),
+    );
+  }
+
+  /// Badges are derived from real stats — nothing is shown "for free".
+  List<_Badge> _earnedBadges(UserStats stats, int streak) {
+    final badges = <_Badge>[];
+    if (stats.bestDailyScore > 0) {
+      badges.add(const _Badge(
+          'First Score', Icons.flag_rounded, AppColors.neonCyan));
+    }
+    if (streak >= 7 || stats.longestStreak >= 7) {
+      badges.add(const _Badge(
+          '7 Day Streak', Icons.whatshot, Colors.orangeAccent));
+    }
+    if (stats.totalQuizzes >= 10) {
+      badges.add(const _Badge(
+          '10 Quizzes', Icons.school_rounded, AppColors.neonPurple));
+    }
+    if (stats.accuracyPercent >= 80 && stats.totalAnswered >= 20) {
+      badges.add(const _Badge(
+          'Sharp Shooter', Icons.military_tech, AppColors.neonGold));
+    }
+    if (stats.hasData && stats.averageSecondsPerQuestion > 0 &&
+        stats.averageSecondsPerQuestion <= 6) {
+      badges.add(const _Badge('Speed Demon', Icons.bolt, AppColors.neonCyan));
+    }
+    if (stats.battlesWon >= 5) {
+      badges.add(const _Badge(
+          'Battle Master', Icons.sports_mma_rounded, AppColors.neonPink));
+    }
+    return badges;
+  }
+
+  Widget _buildStatTile({
+    required IconData icon,
+    required Color color,
+    required String value,
+    required String label,
+  }) {
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 6),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white)),
+          Text(label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 11, color: AppColors.textSecondary)),
         ],
       ),
     );
@@ -737,7 +835,15 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingRow(IconData icon, String label, bool isOn) {
+  /// Reads and writes the toggle straight through Hive — no dead switches.
+  Widget _buildSettingRow(
+    UserProvider userProvider,
+    IconData icon,
+    String label,
+    String settingKey, {
+    bool defaultValue = true,
+  }) {
+    final isOn = userProvider.setting(settingKey, defaultValue: defaultValue);
     return Row(
       children: [
         Icon(icon, size: 20, color: AppColors.neonCyan),
@@ -751,7 +857,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         Switch(
           value: isOn,
-          onChanged: (val) {},
+          onChanged: (val) => userProvider.setSetting(settingKey, val),
           activeTrackColor: AppColors.neonCyan.withValues(alpha: 0.5),
           activeThumbColor: AppColors.neonCyan,
         ),
@@ -862,4 +968,13 @@ Future<void> _handleGoogleSignIn(BuildContext context) async {
       );
     }
   }
+}
+
+/// A badge the player has actually earned.
+class _Badge {
+  final String title;
+  final IconData icon;
+  final Color color;
+
+  const _Badge(this.title, this.icon, this.color);
 }

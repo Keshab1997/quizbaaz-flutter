@@ -203,7 +203,10 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                 );
               }
             : () {
-                context.read<QuizProvider>().startChapterQuiz(chapter.jsonFile);
+                context.read<QuizProvider>().startChapterQuiz(
+                  chapter.jsonFile,
+                  chapterId: chapter.chapterId,
+                );
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const DailyQuizScreen()),

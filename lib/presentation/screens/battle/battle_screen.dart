@@ -66,10 +66,12 @@ class _SetupViewState extends State<_SetupView> {
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.0),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Face a bot opponent in a 7-question head-to-head duel.',
+        Text(
+          'Face a bot opponent in a '
+          '${context.read<BattleProvider>().battleQuestionCount}-question '
+          'head-to-head duel.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 24),
         const Text(
@@ -81,21 +83,21 @@ class _SetupViewState extends State<_SetupView> {
           context,
           BattleDifficulty.easy,
           '😌 Easy',
-          'Bot answers ~45% correctly',
+          'Relaxed pace — the bot misses often',
           AppColors.neonGreen,
         ),
         _difficultyCard(
           context,
           BattleDifficulty.normal,
           '🙂 Normal',
-          'Bot answers ~62% correctly',
+          'Balanced — the bot keeps up with you',
           AppColors.neonCyan,
         ),
         _difficultyCard(
           context,
           BattleDifficulty.hard,
           '😈 Hard',
-          'Bot answers ~78% correctly',
+          'Ruthless — the bot rarely slips',
           AppColors.neonRed,
         ),
         const SizedBox(height: 24),

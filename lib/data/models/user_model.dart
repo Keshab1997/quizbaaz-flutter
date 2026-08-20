@@ -1,5 +1,3 @@
-import 'shop_item.dart';
-
 enum UserGender { male, female }
 
 class UserModel {
@@ -15,6 +13,14 @@ class UserModel {
   bool isGuest;
   bool playedTodayDailyQuiz;
 
+  /// True when this account may open the admin panel. Set from the Firestore
+  /// user document (or the `admin_user_ids` list in `config/app`).
+  bool isAdmin;
+
+  /// `yyyy-MM-dd` of the last day the streak was credited. Used to grow or
+  /// reset [dailyStreak] without any hardcoded value.
+  String? lastStreakDate;
+
   /// Owned shop items: itemId (ShopItemIds) -> quantity owned.
   Map<String, int> inventory;
 
@@ -25,11 +31,13 @@ class UserModel {
     required this.avatarPath,
     this.avatarUrl,
     this.gender = UserGender.male,
-    this.coins = 1450,
-    this.gems = 45,
-    this.dailyStreak = 6,
+    this.coins = 0,
+    this.gems = 0,
+    this.dailyStreak = 0,
     this.isGuest = false,
     this.playedTodayDailyQuiz = false,
+    this.isAdmin = false,
+    this.lastStreakDate,
     Map<String, int>? inventory,
   }) : inventory = inventory ?? {};
 
@@ -66,6 +74,29 @@ class UserModel {
   String get effectiveAvatar => avatarUrl ?? avatarPath;
   bool get hasGoogleAvatar => avatarUrl != null && avatarUrl!.isNotEmpty;
 
+  /// Grows or resets the daily streak based on the last play date.
+  /// Returns true when the streak changed (so the caller can persist).
+  bool registerPlayOn(DateTime now) {
+    final today = _dateKey(now);
+    if (lastStreakDate == today) return false;
+
+    final yesterday = _dateKey(now.subtract(const Duration(days: 1)));
+    dailyStreak = lastStreakDate == yesterday ? dailyStreak + 1 : 1;
+    lastStreakDate = today;
+    playedTodayDailyQuiz = true;
+    return true;
+  }
+
+  /// Clears [playedTodayDailyQuiz] when the stored streak date is not today.
+  void refreshDailyFlags(DateTime now) {
+    if (lastStreakDate != _dateKey(now)) {
+      playedTodayDailyQuiz = false;
+    }
+  }
+
+  static String _dateKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
   // ----------------------------------------------------------------- JSON --
 
   Map<String, dynamic> toJson() => {
@@ -80,6 +111,8 @@ class UserModel {
         'daily_streak': dailyStreak,
         'is_guest': isGuest,
         'played_today_daily_quiz': playedTodayDailyQuiz,
+        'is_admin': isAdmin,
+        'last_streak_date': lastStreakDate,
         'inventory': inventory,
       };
 
@@ -98,6 +131,8 @@ class UserModel {
       dailyStreak: (json['daily_streak'] as num?)?.toInt() ?? 0,
       isGuest: json['is_guest'] as bool? ?? false,
       playedTodayDailyQuiz: json['played_today_daily_quiz'] as bool? ?? false,
+      isAdmin: json['is_admin'] as bool? ?? false,
+      lastStreakDate: json['last_streak_date'] as String?,
       inventory: (json['inventory'] as Map<String, dynamic>?)
               ?.map((k, v) => MapEntry(k, (v as num).toInt())) ??
           {},
@@ -106,40 +141,62 @@ class UserModel {
 
   // -------------------------------------------------------------- Defaults --
 
-  factory UserModel.defaultUser() {
+  // -------------------------------------------------------------- Factories --
+
+  /// A brand-new local profile. Everything starts at zero — no fake coins,
+  /// no fake streak. Real values come from gameplay (Hive) or Firestore.
+  factory UserModel.newPlayer({bool isGuest = true}) {
     return UserModel(
-      userId: 'usr_keshab_1997',
-      username: 'Keshab1997',
-      fullName: 'Keshab',
+      userId: 'local_${DateTime.now().millisecondsSinceEpoch}',
+      username: isGuest ? 'guest' : 'player',
+      fullName: isGuest ? 'Guest' : 'Player',
       avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png',
       gender: UserGender.male,
-      coins: 1450,
-      gems: 45,
-      dailyStreak: 6,
-      isGuest: false,
-      inventory: {
-        ShopItemIds.fiftyFifty: 3,
-        ShopItemIds.freezeTime: 2,
-        ShopItemIds.streakShield: 1,
-      },
+      coins: 0,
+      gems: 0,
+      dailyStreak: 0,
+      isGuest: isGuest,
+      inventory: const {},
     );
   }
 
-  factory UserModel.guestUser() {
+  /// Kept for backwards compatibility with existing call sites.
+  factory UserModel.defaultUser() => UserModel.newPlayer(isGuest: false);
+
+  factory UserModel.guestUser() => UserModel.newPlayer(isGuest: true);
+
+  /// Copy helper used when merging remote data into the local profile.
+  UserModel copyWith({
+    String? userId,
+    String? username,
+    String? fullName,
+    String? avatarPath,
+    String? avatarUrl,
+    UserGender? gender,
+    int? coins,
+    int? gems,
+    int? dailyStreak,
+    bool? isGuest,
+    bool? playedTodayDailyQuiz,
+    bool? isAdmin,
+    String? lastStreakDate,
+    Map<String, int>? inventory,
+  }) {
     return UserModel(
-      userId: 'guest_${DateTime.now().millisecondsSinceEpoch}',
-      username: 'Guest Explorer',
-      fullName: 'Guest User',
-      avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png',
-      gender: UserGender.male,
-      coins: 100,
-      gems: 5,
-      dailyStreak: 1,
-      isGuest: true,
-      inventory: {
-        ShopItemIds.fiftyFifty: 1,
-        ShopItemIds.freezeTime: 1,
-      },
+      userId: userId ?? this.userId,
+      username: username ?? this.username,
+      fullName: fullName ?? this.fullName,
+      avatarPath: avatarPath ?? this.avatarPath,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      gender: gender ?? this.gender,
+      coins: coins ?? this.coins,
+      gems: gems ?? this.gems,
+      dailyStreak: dailyStreak ?? this.dailyStreak,
+      isGuest: isGuest ?? this.isGuest,
+      playedTodayDailyQuiz: playedTodayDailyQuiz ?? this.playedTodayDailyQuiz,
+      isAdmin: isAdmin ?? this.isAdmin,
+      lastStreakDate: lastStreakDate ?? this.lastStreakDate,
+      inventory: inventory ?? Map<String, int>.from(this.inventory),
     );
   }
 }

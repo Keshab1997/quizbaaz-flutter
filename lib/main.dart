@@ -11,17 +11,18 @@ import 'data/providers/rewards_provider.dart';
 import 'data/providers/user_provider.dart';
 import 'data/services/firebase_options.dart';
 import 'data/services/hive_service.dart';
+import 'data/services/sync_service.dart';
 import 'presentation/screens/dashboard/dashboard_screen.dart';
 import 'presentation/widgets/app_background.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Init Hive for local storage
+  // 1) Hive is the source of truth — it must be ready before anything reads.
   await Hive.initFlutter();
   await HiveService.initialize();
 
-  // Init Firebase (optional)
+  // 2) Firebase is optional: the whole app works offline without it.
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -30,7 +31,19 @@ Future<void> main() async {
     debugPrint('Firebase not configured yet: $e');
   }
 
+  // 3) Replay anything queued while the app was offline, then refresh config.
+  unawaitedSync();
+
   runApp(const QuizBaazApp());
+}
+
+/// Fire-and-forget startup sync (never blocks the first frame).
+void unawaitedSync() {
+  Future(() async {
+    if (!SyncService.isOnline) return;
+    await SyncService.drainPending();
+    await SyncService.pullConfig();
+  });
 }
 
 class QuizBaazApp extends StatelessWidget {

@@ -169,7 +169,7 @@ class QuizResultScreen extends StatelessWidget {
                               Icon(Icons.workspace_premium, color: AppColors.neonCyan, size: 20),
                               SizedBox(width: 8),
                               Text(
-                                'Save Your Score & Win Smartwatch!',
+                                'Save Your Score & Join the Leaderboard!',
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -263,9 +263,11 @@ class QuizResultScreen extends StatelessWidget {
       final user = auth.firebaseUser;
       if (user == null) return;
 
-      userProvider.linkGoogleAccount(
-        user.displayName ?? 'QuizBaaz Player',
-        user.email ?? 'player@quizbaaz.app',
+      await userProvider.linkGoogleAccount(
+        user.displayName ?? user.email ?? 'Player',
+        user.email ?? user.uid,
+        photoURL: user.photoURL,
+        uid: user.uid,
       );
 
       messenger.showSnackBar(

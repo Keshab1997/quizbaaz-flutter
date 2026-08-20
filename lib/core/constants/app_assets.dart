@@ -21,9 +21,8 @@ class AppAssets {
   static const String giftBox = 'assets/icons/gift_box_3d.png';
   static const String shopStall = 'assets/icons/shop_stall_3d.png';
 
-  // JSON Data Paths.
+  // JSON question banks (authored content, cached in Hive after first read).
+  // Ranking data is NEVER bundled — it comes from Firestore via Hive.
   static const String jsonChapters = 'assets/data/chapters_list.json';
   static const String jsonDailyQuiz = 'assets/data/daily_quiz.json';
-  static const String jsonChampions = 'assets/data/yesterday_champions.json';
-  static const String jsonLeaderboard = 'assets/data/live_leaderboard.json';
 }

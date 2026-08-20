@@ -1,59 +1,72 @@
-import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../core/constants/app_assets.dart';
 import '../models/gift_claim.dart';
+import '../services/firestore_service.dart';
+import '../services/hive_service.dart';
+import '../services/sync_service.dart';
 
 /// Manages the player's won prizes and their claim/delivery state.
+///
+/// Gifts are **never** invented locally: they are dispatched by the backend
+/// into `users/{uid}/gifts` and cached in Hive. With no prizes won yet the
+/// screen shows its empty state.
 class RewardsProvider extends ChangeNotifier {
-  static const _kGifts = 'quizbaaz_gift_claims';
+  static const _cacheKey = 'gift_claims';
 
-  List<GiftClaim> _gifts = [];
+  List<GiftClaim> _gifts = const [];
+  bool _isLoading = false;
+  String _userId = '';
 
   List<GiftClaim> get gifts => List.unmodifiable(_gifts);
+  bool get isLoading => _isLoading;
+  bool get hasGifts => _gifts.isNotEmpty;
 
-  /// Default demo prizes (until a real backend dispatches them).
-  static List<GiftClaim> _defaultGifts() {
-    return [
-      GiftClaim(
-        id: 'gift_smartwatch',
-        title: 'Fire-Boltt 3D Smartwatch',
-        type: GiftType.physical,
-        icon: AppAssets.giftBox,
-        date: 'Aug 19',
-      ),
-      GiftClaim(
-        id: 'gift_voucher',
-        title: '₹500 Amazon Gift Voucher',
-        type: GiftType.digital,
-        icon: AppAssets.coinGem,
-        date: 'Aug 15',
-        digitalCode: 'AMZN-QUIZ-9981',
-      ),
-    ];
+  int get unclaimedCount => _gifts.where((g) => !g.isClaimed).length;
+
+  /// Loads gifts from Hive first, then refreshes from Firestore.
+  Future<void> initialize({String userId = ''}) async {
+    if (userId.isNotEmpty) _userId = userId;
+
+    _gifts = _loadFromHive();
+    notifyListeners();
+
+    await refresh();
   }
 
-  /// Loads persisted claim state (called once at app startup).
-  Future<void> initialize() async {
+  /// Pulls the gift list from Firestore into the Hive cache.
+  Future<void> refresh() async {
+    if (_userId.isEmpty || !SyncService.isOnline) return;
+
+    _isLoading = true;
+    notifyListeners();
+
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_kGifts);
-      if (raw != null) {
-        final decoded = jsonDecode(raw) as List<dynamic>;
-        _gifts = decoded
-            .map((e) => GiftClaim.fromJson(e as Map<String, dynamic>))
-            .toList();
-      } else {
-        _gifts = _defaultGifts();
+      final rows = await _fetchRemote();
+      if (rows.isNotEmpty) {
+        _gifts = rows.map(GiftClaim.fromJson).toList();
+        await HiveService.cachePut(_cacheKey, rows);
       }
     } catch (e) {
-      debugPrint('Failed to load gift claims: $e');
-      _gifts = _defaultGifts();
+      debugPrint('RewardsProvider: refresh failed – $e');
     }
+
+    _isLoading = false;
     notifyListeners();
   }
+
+  List<GiftClaim> _loadFromHive() {
+    try {
+      return HiveService.cacheGetList(_cacheKey)
+          .map(GiftClaim.fromJson)
+          .toList();
+    } catch (e) {
+      debugPrint('RewardsProvider: bad cached gifts – $e');
+      return const [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchRemote() =>
+      FirestoreService.getGifts(_userId);
 
   /// Claims a physical gift with the supplied delivery address.
   bool claimPhysicalGift(
@@ -72,7 +85,7 @@ class RewardsProvider extends ChangeNotifier {
     gift.addressLine = address;
     gift.addressPincode = pincode;
     notifyListeners();
-    _persist();
+    _persist(gift);
     return true;
   }
 
@@ -83,7 +96,7 @@ class RewardsProvider extends ChangeNotifier {
 
     gift.status = ClaimStatus.delivered; // digital = instant delivery
     notifyListeners();
-    _persist();
+    _persist(gift);
     return true;
   }
 
@@ -94,15 +107,14 @@ class RewardsProvider extends ChangeNotifier {
     return null;
   }
 
-  Future<void> _persist() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        _kGifts,
-        jsonEncode(_gifts.map((g) => g.toJson()).toList()),
-      );
-    } catch (e) {
-      debugPrint('Failed to persist gift claims: $e');
+  /// Hive first, Firestore second (queued when offline).
+  Future<void> _persist(GiftClaim changed) async {
+    await HiveService.cachePut(
+      _cacheKey,
+      _gifts.map((g) => g.toJson()).toList(),
+    );
+    if (_userId.isNotEmpty) {
+      await SyncService.pushGift(_userId, changed.toJson());
     }
   }
 }

@@ -332,64 +332,6 @@ class HiveService {
     return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
   }
 
-  // ------------------------------------------------- Legacy v1 compat API --
-  // Kept so existing providers keep compiling; they now read/write the new
-  // boxes underneath and will be removed in task T11.
-
-  static Future<void> saveBestScore(int score) async {
-    final stats = loadStats();
-    stats.bestDailyScore = score;
-    await saveStats(stats);
-  }
-
-  static int? loadBestScore() => loadStats().bestDailyScore;
-
-  static Future<void> saveBestTime(double time) async {
-    final stats = loadStats();
-    stats.bestDailyTimeSeconds = time;
-    await saveStats(stats);
-  }
-
-  static double? loadBestTime() => loadStats().bestDailyTimeSeconds;
-
-  static Future<void> saveLastRewardDate(String date) =>
-      setMeta(_lastRewardKey, date);
-
-  static String? loadLastRewardDate() => getMeta<String>(_lastRewardKey);
-
-  static Future<void> saveHasPlayedDaily(bool played) =>
-      setMeta(_playedDailyKey, played);
-
-  static bool? loadHasPlayedDaily() => getMeta<bool>(_playedDailyKey);
-
-  /// Save all game progress at once.
-  static Future<void> saveGameProgress({
-    int? bestScore,
-    double? bestTime,
-    String? lastRewardDate,
-    bool? hasPlayedDaily,
-  }) async {
-    if (bestScore != null || bestTime != null) {
-      final stats = loadStats();
-      if (bestScore != null) stats.bestDailyScore = bestScore;
-      if (bestTime != null) stats.bestDailyTimeSeconds = bestTime;
-      await saveStats(stats);
-    }
-    if (lastRewardDate != null) await saveLastRewardDate(lastRewardDate);
-    if (hasPlayedDaily != null) await saveHasPlayedDaily(hasPlayedDaily);
-  }
-
-  /// Load all game progress.
-  static Map<String, dynamic> loadGameProgress() {
-    final stats = loadStats();
-    return {
-      'bestScore': stats.bestDailyScore,
-      'bestTime': stats.bestDailyTimeSeconds,
-      'lastRewardDate': loadLastRewardDate(),
-      'hasPlayedDaily': loadHasPlayedDaily() ?? false,
-    };
-  }
-
   // --------------------------------------------------------------- General --
 
   /// Wipes user + stats + cache + queue (used on sign-out / reset).

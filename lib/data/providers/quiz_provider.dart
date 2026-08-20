@@ -1,11 +1,15 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../models/answer_record.dart';
 import '../models/question_model.dart';
 import '../models/shop_item.dart';
 import '../repositories/quiz_repository.dart';
 import 'user_provider.dart';
 
+/// Drives a quiz run. All timings and reward amounts come from
+/// [UserProvider.config] (Hive/Firestore), never from magic numbers here.
 class QuizProvider extends ChangeNotifier {
   final QuizRepository _repository = QuizRepository();
   final UserProvider _userProvider;
@@ -20,6 +24,7 @@ class QuizProvider extends ChangeNotifier {
   int? _selectedOptionIndex;
   bool _isAnswerSubmitted = false;
   bool _isQuizCompleted = false;
+  bool _isLoading = false;
 
   // Lifelines
   bool _fiftyFiftyUsed = false;
@@ -28,6 +33,7 @@ class QuizProvider extends ChangeNotifier {
 
   // Quiz type + rewards
   bool _isDailyQuiz = false;
+  String? _chapterId;
   int _earnedCoins = 0;
   int _earnedGems = 0;
   bool _dailyRewardSkipped = false;
@@ -39,10 +45,14 @@ class QuizProvider extends ChangeNotifier {
   double _totalTimeSeconds = 0;
 
   // Timer
-  int _secondsRemaining = 15;
+  int _secondsRemaining = 0;
   Timer? _timer;
 
-  // Getters
+  // ---------------------------------------------------------------- Getters --
+
+  /// Seconds allowed per question (remote-configurable).
+  int get questionTimeSec => _userProvider.config.secondsPerQuestion;
+
   List<QuestionModel> get questions => _questions;
   int get currentIndex => _currentIndex;
   int get score => _score;
@@ -51,8 +61,13 @@ class QuizProvider extends ChangeNotifier {
   int? get selectedOptionIndex => _selectedOptionIndex;
   bool get isAnswerSubmitted => _isAnswerSubmitted;
   bool get isQuizCompleted => _isQuizCompleted;
+  bool get isLoading => _isLoading;
   int get secondsRemaining => _secondsRemaining;
   List<int> get disabledOptionIndices => _disabledOptionIndices;
+
+  /// True when the question bank was empty — the screen shows an empty state
+  /// instead of placeholder questions.
+  bool get hasNoQuestions => !_isLoading && _questions.isEmpty;
 
   /// Remaining stock of the 50-50 lifeline owned by the player.
   int get fiftyFiftyStock => _userProvider.inventoryCount(ShopItemIds.fiftyFifty);
@@ -81,24 +96,35 @@ class QuizProvider extends ChangeNotifier {
           ? _questions[_currentIndex]
           : null;
 
-  // Initialize Daily Quiz
+  // ------------------------------------------------------------- Lifecycle --
+
+  /// Initialize the Daily Quiz.
   Future<void> startDailyQuiz() async {
     _resetQuizState();
     _isDailyQuiz = true;
+    _isLoading = true;
+    notifyListeners();
+
     _questions = await _repository.getDailyQuizQuestions();
-    _startTimer();
+    _isLoading = false;
+    if (_questions.isNotEmpty) _startTimer();
     notifyListeners();
   }
 
-  // Initialize Chapter Quiz
-  Future<void> startChapterQuiz(String jsonFilePath) async {
+  /// Initialize a Chapter Quiz. [chapterId] is used for per-chapter stats.
+  Future<void> startChapterQuiz(
+    String jsonFilePath, {
+    String? chapterId,
+  }) async {
     _resetQuizState();
     _isDailyQuiz = false;
+    _chapterId = chapterId ?? jsonFilePath;
+    _isLoading = true;
+    notifyListeners();
+
     _questions = await _repository.getChapterQuestions(jsonFilePath);
-    if (_questions.isEmpty) {
-      _questions = await _repository.getDailyQuizQuestions();
-    }
-    _startTimer();
+    _isLoading = false;
+    if (_questions.isNotEmpty) _startTimer();
     notifyListeners();
   }
 
@@ -119,12 +145,14 @@ class QuizProvider extends ChangeNotifier {
     _dailyRewardSkipped = false;
     _answerRecords.clear();
     _totalTimeSeconds = 0;
-    _secondsRemaining = 15;
+    _chapterId = null;
+    _questions = [];
+    _secondsRemaining = questionTimeSec;
   }
 
   void _startTimer() {
     _timer?.cancel();
-    _secondsRemaining = 15;
+    _secondsRemaining = questionTimeSec;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
         _secondsRemaining--;
@@ -136,13 +164,15 @@ class QuizProvider extends ChangeNotifier {
     });
   }
 
+  // ---------------------------------------------------------------- Playing --
+
   void selectOption(int index) {
     if (_isAnswerSubmitted || _disabledOptionIndices.contains(index)) return;
 
     _selectedOptionIndex = index;
     _isAnswerSubmitted = true;
     _timer?.cancel();
-    _totalTimeSeconds += 15 - _secondsRemaining;
+    _totalTimeSeconds += questionTimeSec - _secondsRemaining;
 
     final correctIndex = currentQuestion?.correctIndex ?? 0;
     if (index == correctIndex) {
@@ -157,36 +187,40 @@ class QuizProvider extends ChangeNotifier {
     final q = currentQuestion;
     if (q != null) {
       _answerRecords.add(
-        AnswerRecord(question: q, selectedIndex: index, status: AnswerStatus.answered),
+        AnswerRecord(
+          question: q,
+          selectedIndex: index,
+          status: AnswerStatus.answered,
+        ),
       );
     }
 
     notifyListeners();
 
     // Auto next after 1.8 seconds
-    Future.delayed(const Duration(milliseconds: 1800), () {
-      nextQuestion();
-    });
+    Future.delayed(const Duration(milliseconds: 1800), nextQuestion);
   }
 
   void _handleTimeout() {
     if (_isAnswerSubmitted) return;
     _isAnswerSubmitted = true;
     _wrongCount++;
-    _totalTimeSeconds += 15;
+    _totalTimeSeconds += questionTimeSec.toDouble();
 
     final q = currentQuestion;
     if (q != null) {
       _answerRecords.add(
-        AnswerRecord(question: q, selectedIndex: null, status: AnswerStatus.timedOut),
+        AnswerRecord(
+          question: q,
+          selectedIndex: null,
+          status: AnswerStatus.timedOut,
+        ),
       );
     }
 
     notifyListeners();
 
-    Future.delayed(const Duration(milliseconds: 1800), () {
-      nextQuestion();
-    });
+    Future.delayed(const Duration(milliseconds: 1800), nextQuestion);
   }
 
   void nextQuestion() {
@@ -206,32 +240,40 @@ class QuizProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Calculates the coins & gems for the finished quiz and credits them to the
-  /// player's account (once — daily quiz rewards are limited to once per day).
+  /// Calculates coins & gems from the remote config, saves the run into the
+  /// Hive-backed stats and credits the player (daily rewards once per day).
   void _grantRewards() {
+    final config = _userProvider.config;
+    final total = _questions.length;
+    final isPerfect = total > 0 && _correctCount == total;
+
     int coins;
     int gems;
 
     if (_isDailyQuiz) {
-      coins = _correctCount * 50;
-      if (_correctCount == _questions.length) coins += 100; // perfect bonus
-      gems = _correctCount == _questions.length
-          ? 10
-          : (_correctCount >= 8 ? 5 : 0);
+      coins = _correctCount * config.coinsPerCorrectDaily;
+      if (isPerfect) coins += config.perfectBonusCoins;
+      gems = isPerfect
+          ? config.gemsPerfect
+          : (_correctCount >= config.highScoreThreshold
+              ? config.gemsHighScore
+              : 0);
     } else {
       // Chapter quiz = practice mode: smaller rewards, always claimable.
-      coins = _correctCount * 25;
-      gems = _correctCount == _questions.length ? 5 : 0;
+      coins = _correctCount * config.coinsPerCorrectPractice;
+      gems = isPerfect ? config.gemsHighScore : 0;
     }
 
-    // Save a new personal best on the daily leaderboard (independent of the
-    // once-per-day reward limit — replays can still improve your rank).
-    if (_isDailyQuiz) {
-      _userProvider.updateDailyBest(
-        score: _score,
-        timeSeconds: _totalTimeSeconds,
-      );
-    }
+    // Persist accuracy / streak / per-chapter progress to Hive and mirror it
+    // to Firestore (the leaderboard entry is pushed from there too).
+    _userProvider.recordQuizResult(
+      answered: _answerRecords.length,
+      correct: _correctCount,
+      timeSeconds: _totalTimeSeconds,
+      isDaily: _isDailyQuiz,
+      score: _score,
+      chapterId: _isDailyQuiz ? null : _chapterId,
+    );
 
     final granted = _userProvider.grantQuizRewards(
       coins: coins,
@@ -250,7 +292,7 @@ class QuizProvider extends ChangeNotifier {
     }
   }
 
-  // Lifelines
+  // -------------------------------------------------------------- Lifelines --
 
   /// Uses the 50-50 lifeline. Consumes one unit from the player's inventory.
   /// Returns false if it can't be used (already used this question, no stock,
@@ -264,16 +306,15 @@ class QuizProvider extends ChangeNotifier {
     }
     _fiftyFiftyUsed = true;
     final correct = currentQuestion!.correctIndex;
-    List<int> wrongOptions = [0, 1, 2, 3]..remove(correct);
+    final wrongOptions = <int>[0, 1, 2, 3]..remove(correct);
     wrongOptions.shuffle();
     _disabledOptionIndices = wrongOptions.take(2).toList();
     notifyListeners();
     return true;
   }
 
-  /// Adds 10 seconds to the timer. Consumes one unit from the player's
+  /// Adds extra seconds to the timer. Consumes one unit from the player's
   /// inventory. Can be used once per question.
-  /// Returns false if it can't be used.
   bool useFreezeTime() {
     if (_freezeUsed || _isAnswerSubmitted || currentQuestion == null) {
       return false;
@@ -290,12 +331,16 @@ class QuizProvider extends ChangeNotifier {
   /// Skips the current question without scoring. Free to use.
   void useSkipQuestion() {
     _timer?.cancel();
-    _totalTimeSeconds += 15 - _secondsRemaining;
+    _totalTimeSeconds += questionTimeSec - _secondsRemaining;
 
     final q = currentQuestion;
     if (q != null) {
       _answerRecords.add(
-        AnswerRecord(question: q, selectedIndex: null, status: AnswerStatus.skipped),
+        AnswerRecord(
+          question: q,
+          selectedIndex: null,
+          status: AnswerStatus.skipped,
+        ),
       );
     }
 

@@ -66,15 +66,38 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  Widget _buildTodayLeaderboardTab(List<LeaderboardItem> list, UserProvider userProvider) {
+  Widget _buildTodayLeaderboardTab(
+      List<LeaderboardItem> list, UserProvider userProvider) {
     if (list.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.neonCyan));
+      return RefreshIndicator(
+        color: AppColors.neonCyan,
+        onRefresh: () => userProvider.refreshRankings(force: true),
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            const SizedBox(height: 80),
+            _buildEmptyState(
+              icon: Icons.leaderboard_rounded,
+              title: userProvider.isLoading
+                  ? 'Loading today\'s ranking…'
+                  : 'No scores yet today',
+              message: userProvider.isLoading
+                  ? 'Fetching the latest results.'
+                  : 'Play the Daily Quiz and your score appears here instantly.',
+            ),
+          ],
+        ),
+      );
     }
 
     final top3 = list.take(3).toList();
     final rest = list.skip(3).toList();
 
-    return SingleChildScrollView(
+    return RefreshIndicator(
+      color: AppColors.neonCyan,
+      onRefresh: () => userProvider.refreshRankings(force: true),
+      child: SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         children: [
@@ -95,6 +118,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           const SizedBox(height: 10),
           _buildYourPositionCard(userProvider),
         ],
+      ),
       ),
     );
   }
@@ -271,7 +295,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         ),
         const SizedBox(height: 6),
         Text(
-          item.name.split(' ').first,
+          (item.name.isNotEmpty ? item.name : item.username).split(' ').first,
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         Text(
@@ -293,6 +317,34 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String message,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, size: 46, color: AppColors.textMuted),
+        const SizedBox(height: 14),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
       ],
     );
@@ -327,11 +379,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.name,
+                    item.name.isNotEmpty ? item.name : item.username,
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   Text(
-                    item.username,
+                    '@${item.username}',
                     style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                   ),
                 ],
@@ -358,7 +410,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildYesterdayWinnersTab(List<ChampionModel> champions) {
     if (champions.isEmpty) {
-      return const Center(child: Text('No champion archive found'));
+      return ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          const SizedBox(height: 80),
+          _buildEmptyState(
+            icon: Icons.card_giftcard_rounded,
+            title: 'No champions published yet',
+            message:
+                "Yesterday's winners and their prizes show up here once the results are declared.",
+          ),
+        ],
+      );
     }
 
     return ListView.builder(
@@ -403,7 +466,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       Row(
                         children: [
                           Text(
-                            champ.name,
+                            champ.name.isNotEmpty
+                                ? champ.name
+                                : champ.username,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -411,14 +476,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            champ.badgeTitle,
-                            style: const TextStyle(fontSize: 11, color: AppColors.neonCyan),
-                          ),
+                          if (champ.badgeTitle.isNotEmpty)
+                            Text(
+                              champ.badgeTitle,
+                              style: const TextStyle(
+                                  fontSize: 11, color: AppColors.neonCyan),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Row(
+                      if (champ.giftName.isNotEmpty)
+                        Row(
                         children: [
                           const Icon(Icons.card_giftcard, size: 14, color: AppColors.neonPink),
                           const SizedBox(width: 4),

@@ -22,8 +22,9 @@ class BattleProvider extends ChangeNotifier {
 
   BattleProvider(this._userProvider);
 
-  static const int _battleQuestionCount = 7;
-  static const int _questionTimeSec = 15;
+  /// Battle length and per-question time come from the remote/Hive config.
+  int get _battleQuestionCount => _userProvider.config.battleQuestionCount;
+  int get _questionTimeSec => _userProvider.config.secondsPerQuestion;
 
   final Random _rng = Random();
 
@@ -49,7 +50,7 @@ class BattleProvider extends ChangeNotifier {
   String _botName = 'QuizBot X';
 
   int _countdownValue = 3;
-  int _secondsRemaining = _questionTimeSec;
+  int _secondsRemaining = 0;
 
   int _earnedCoins = 0;
   int _earnedGems = 0;
@@ -96,6 +97,15 @@ class BattleProvider extends ChangeNotifier {
 
   bool get isBotCorrect =>
       _botSelected != null && _botSelected == currentQuestion?.correctIndex;
+
+  /// Total questions in this battle (config-driven).
+  int get battleQuestionCount => _battleQuestionCount;
+
+  /// Seconds allowed per battle question (config-driven).
+  int get questionTimeSec => _questionTimeSec;
+
+  /// True when no question bank was available for the battle.
+  bool get hasNoQuestions => _questions.isEmpty;
 
   bool get isPlayerWin => _playerScore > _botScore;
   bool get isDraw => _playerScore == _botScore;
@@ -290,14 +300,15 @@ class BattleProvider extends ChangeNotifier {
     _revealTimer?.cancel();
     _phase = BattlePhase.finished;
 
+    final config = _userProvider.config;
     if (isPlayerWin) {
-      _earnedCoins = 50;
-      _earnedGems = 5;
+      _earnedCoins = config.coinsPerCorrectPractice * 2;
+      _earnedGems = config.gemsHighScore;
     } else if (isDraw) {
-      _earnedCoins = 25;
+      _earnedCoins = config.coinsPerCorrectPractice;
       _earnedGems = 0;
     } else {
-      _earnedCoins = 10;
+      _earnedCoins = (config.coinsPerCorrectPractice / 2).round();
       _earnedGems = 0;
     }
 
@@ -305,6 +316,16 @@ class BattleProvider extends ChangeNotifier {
       coins: _earnedCoins,
       gems: _earnedGems,
       isDailyQuiz: false,
+    );
+
+    // Persist the battle into the Hive-backed stats (win rate, accuracy) and
+    // mirror it to Firestore.
+    _userProvider.recordBattleResult(won: isPlayerWin);
+    _userProvider.recordQuizResult(
+      answered: _questions.length,
+      correct: _playerCorrect,
+      timeSeconds: (_questions.length * _questionTimeSec).toDouble(),
+      isDaily: false,
     );
     notifyListeners();
   }

@@ -61,7 +61,36 @@ class DailyQuizScreen extends StatelessWidget {
         ],
       ),
       body: currentQ == null
-          ? const Center(child: CircularProgressIndicator(color: AppColors.neonCyan))
+          ? Center(
+              child: quiz.hasNoQuestions
+                  ? const Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.inbox_rounded,
+                              size: 44, color: AppColors.textMuted),
+                          SizedBox(height: 14),
+                          Text(
+                            'No questions available',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            'This question bank is empty. Please try another '
+                            'chapter or check back later.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const CircularProgressIndicator(color: AppColors.neonCyan),
+            )
           : SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12),
@@ -98,7 +127,9 @@ class DailyQuizScreen extends StatelessWidget {
   }
 
   Widget _buildProgressAndTimer(QuizProvider quiz) {
-    final timerPercent = quiz.secondsRemaining / 15.0;
+    final timerPercent = quiz.questionTimeSec == 0
+        ? 0.0
+        : quiz.secondsRemaining / quiz.questionTimeSec;
 
     return Column(
       children: [
