@@ -132,11 +132,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(Icons.person_pin_circle, size: 15, color: AppColors.neonCyan),
-              const SizedBox(width: 6),
-              const Text(
+              Icon(Icons.person_pin_circle, size: 15, color: AppColors.neonCyan),
+              SizedBox(width: 6),
+              Text(
                 'YOUR POSITION',
                 style: TextStyle(
                   fontSize: 11,
