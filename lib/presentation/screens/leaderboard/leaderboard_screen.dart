@@ -179,7 +179,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             CircleAvatar(
               radius: 18,
               backgroundImage: AssetImage(
-                item.avatarPath.isNotEmpty ? item.avatarPath : AppAssets.userAvatarBoy,
+                item.avatarPath.isNotEmpty ? item.avatarPath : AppAssets.maleAvatar,
               ),
             ),
             const SizedBox(width: 12),
