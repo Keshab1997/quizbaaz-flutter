@@ -13,28 +13,28 @@ class AppAssets {
   static const String userAvatarBoy = maleAvatar; // Backwards compatibility.
 
   // ═══════════════════════════════════════════════════════════════════════
-  // 🎨 NEW 3D AVATARS - Male
+  // 🎨 3D AVATARS - Male
   // ═══════════════════════════════════════════════════════════════════════
-  static const String maleAvatar1 = 'assets/images/avatars/new/male_avatar_1.png';
-  static const String maleAvatar2 = 'assets/images/avatars/new/male_avatar_2.png';
-  static const String maleAvatar3 = 'assets/images/avatars/new/male_avatar_3.png';
-  static const String maleAvatar4 = 'assets/images/avatars/new/male_avatar_4.png';
+  static const String maleAvatar1 = 'assets/images/avatars/male_avatar_1.png';
+  static const String maleAvatar2 = 'assets/images/avatars/male_avatar_2.png';
+  static const String maleAvatar3 = 'assets/images/avatars/male_avatar_3.png';
+  static const String maleAvatar4 = 'assets/images/avatars/male_avatar_4.png';
 
   // ═══════════════════════════════════════════════════════════════════════
-  // 🎨 NEW 3D AVATARS - Female
+  // 🎨 3D AVATARS - Female
   // ═══════════════════════════════════════════════════════════════════════
-  static const String femaleAvatar1 = 'assets/images/avatars/new/female_avatar_1.png';
-  static const String femaleAvatar2 = 'assets/images/avatars/new/female_avatar_2.png';
-  static const String femaleAvatar3 = 'assets/images/avatars/new/female_avatar_3.png';
-  static const String femaleAvatar4 = 'assets/images/avatars/new/female_avatar_4.png';
+  static const String femaleAvatar1 = 'assets/images/avatars/female_avatar_1.png';
+  static const String femaleAvatar2 = 'assets/images/avatars/female_avatar_2.png';
+  static const String femaleAvatar3 = 'assets/images/avatars/female_avatar_3.png';
+  static const String femaleAvatar4 = 'assets/images/avatars/female_avatar_4.png';
 
   // ═══════════════════════════════════════════════════════════════════════
   // 👑 PREMIUM SHOP AVATARS
   // ═══════════════════════════════════════════════════════════════════════
-  static const String vipAvatar = 'assets/images/avatars/new/vip_avatar.png';
-  static const String goldenKnightAvatar = 'assets/images/avatars/new/golden_knight_avatar.png';
-  static const String neonCyberAvatar = 'assets/images/avatars/new/neon_cyber_avatar.png';
-  static const String royalCrownAvatar = 'assets/images/avatars/new/royal_crown_avatar.png';
+  static const String vipAvatar = 'assets/images/avatars/vip_avatar.png';
+  static const String goldenKnightAvatar = 'assets/images/avatars/golden_knight_avatar.png';
+  static const String neonCyberAvatar = 'assets/images/avatars/neon_cyber_avatar.png';
+  static const String royalCrownAvatar = 'assets/images/avatars/royal_crown_avatar.png';
 
   // ═══════════════════════════════════════════════════════════════════════
   // 📋 AVATAR LISTS (for selection screens)
