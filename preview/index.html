@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuizCraft 3D - Live Interactive Prototype</title>
+  <title>QuizCraft 3D - Class 10 Board Exam Edition</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Hind+Siliguri:wght@500;600;700&display=swap" rel="stylesheet">
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Canvas Confetti -->
@@ -15,13 +15,23 @@
 
   <style>
     body {
-      font-family: 'Poppins', 'Hind Siliguri', sans-serif;
-      background: #060913;
+      font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
+      background: radial-gradient(circle at 50% 0%, #15103a 0%, #08061a 50%, #03020a 100%);
       color: #f8fafc;
       overflow-x: hidden;
     }
 
-    /* Seamless Glassmorphism */
+    .ambient-glow-purple {
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.35) 0%, rgba(168, 85, 247, 0) 70%);
+    }
+    .ambient-glow-cyan {
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.25) 0%, rgba(0, 240, 255, 0) 70%);
+    }
+    .ambient-glow-gold {
+      background: radial-gradient(circle, rgba(255, 184, 0, 0.25) 0%, rgba(255, 184, 0) 70%);
+    }
+
+    /* Glassmorphism */
     .glass-card {
       background: rgba(30, 41, 59, 0.45);
       backdrop-filter: blur(16px);
@@ -44,30 +54,34 @@
       border-radius: 20px;
     }
 
-    /* Neon Shadows */
-    .neon-gold-glow {
-      box-shadow: 0 4px 20px rgba(255, 184, 0, 0.45);
+    /* 3D Gold Button */
+    .game-button-3d-gold {
+      background: linear-gradient(180deg, #FFE066 0%, #FFB800 60%, #E68A00 100%);
+      color: #1A0D00;
+      font-weight: 900;
+      border-radius: 16px;
+      border: 1px solid #FFF3B0;
+      box-shadow: 0 5px 0 #9E5C00, 0 10px 20px rgba(255, 184, 0, 0.45);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+      transition: all 0.12s ease;
     }
-    .neon-purple-glow {
-      box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
-    }
-    .neon-cyan-glow {
-      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.35);
+    .game-button-3d-gold:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #9E5C00, 0 4px 10px rgba(255, 184, 0, 0.3);
     }
 
-    /* Mobile Frame */
+    /* Device Mockup */
     .mobile-frame {
-      width: 410px;
-      height: 850px;
+      width: 414px;
+      height: 855px;
       border-radius: 48px;
       border: 8px solid #1e293b;
-      box-shadow: 0 25px 60px -15px rgba(0, 240, 255, 0.15), 0 0 40px rgba(168, 85, 247, 0.15);
+      box-shadow: 0 25px 80px -15px rgba(0, 240, 255, 0.2), 0 0 50px rgba(168, 85, 247, 0.25);
       position: relative;
       overflow: hidden;
-      background: #0A0E21;
+      background: #080A1A;
     }
 
-    /* Dynamic Island */
     .dynamic-island {
       width: 110px;
       height: 24px;
@@ -88,46 +102,44 @@
       scrollbar-width: none;
     }
 
-    /* Floating Animation */
-    @keyframes float {
+    @keyframes floatMascot {
       0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
+      50% { transform: translateY(-7px); }
     }
-    .animate-floating {
-      animation: float 3s ease-in-out infinite;
+    .animate-mascot {
+      animation: floatMascot 3.2s ease-in-out infinite;
     }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-3 md:p-6">
 
-  <!-- Main Wrapper -->
   <div class="flex flex-col xl:flex-row items-center gap-8 max-w-6xl w-full justify-center">
 
     <!-- Left Controls Panel -->
     <div class="flex flex-col text-center xl:text-left max-w-md">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold w-fit mx-auto xl:mx-0 mb-3">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        TRANSPARENT 3D ASSETS &amp; GENDER TOGGLE
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold w-fit mx-auto xl:mx-0 mb-3">
+        <span>🎓</span>
+        CLASS 10 BOARD EXAMINATION CURRICULUM
       </div>
-      <h1 class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-purple-400 to-cyan-400">
+      <h1 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-purple-300 to-cyan-300">
         QuizCraft 3D
       </h1>
-      <p class="text-slate-400 text-sm mt-2">
-        সকল ৩D ক্যারেক্টার ও আইকনের ব্যাকগ্রাউন্ড রিমুভ করে সম্পূর্ণ ট্র্যান্সপারেন্ট করা হয়েছে যাতে অ্যাপের ডার্ক নেভি ও পার্পল থিমের সাথে ১০০% নিখুঁতভাবে মিশে যায়!
+      <p class="text-slate-300 text-sm mt-2 leading-relaxed">
+        ১০ম শ্রেণির বোর্ড পরীক্ষার জন্য চ্যাপ্টারভিত্তিক প্রশ্নব্যাংক যুক্ত করা হয়েছে: ভৌতবিজ্ঞান, জীবনবিজ্ঞান, গণিত ও কম্পিউটার সায়েন্স (Bilingual: English + বাংলা)।
       </p>
 
-      <!-- Character Gender Switcher Controls -->
-      <div class="mt-4 p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+      <!-- Mascot Switcher -->
+      <div class="mt-4 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between shadow-xl">
         <div class="text-xs text-left">
-          <span class="font-bold text-white block">3D Mascot Gender Switcher:</span>
-          <span class="text-slate-400 text-[11px]">Toggle between Male &amp; Female Character</span>
+          <span class="font-extrabold text-white block">3D Mascot Switcher:</span>
+          <span class="text-slate-400 text-[11px]">Alex (Boy) ⟷ Maya (Girl)</span>
         </div>
         <div class="flex gap-1.5">
-          <button onclick="setGender('male')" id="btn-gender-male" class="px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 font-extrabold text-xs shadow">
-            👦 Male
+          <button onclick="setGender('male')" id="btn-gender-male" class="px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 font-black text-xs shadow-md transition">
+            👦 Alex
           </button>
-          <button onclick="setGender('female')" id="btn-gender-female" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs hover:text-white">
-            👧 Female
+          <button onclick="setGender('female')" id="btn-gender-female" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs hover:text-white transition">
+            👧 Maya
           </button>
         </div>
       </div>
@@ -137,11 +149,11 @@
         <button onclick="switchScreen('dashboard')" class="px-3.5 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/40">
           🏠 Home Dashboard
         </button>
+        <button onclick="switchScreen('chapters')" class="px-3.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 text-xs font-bold border border-cyan-500/40">
+          📚 Class 10 Chapters
+        </button>
         <button onclick="startQuiz('daily')" class="px-3.5 py-1.5 rounded-xl bg-purple-500/20 text-purple-300 text-xs font-bold border border-purple-500/40">
           ⚡ Start Live Quiz
-        </button>
-        <button onclick="switchScreen('chapters')" class="px-3.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 text-xs font-bold border border-cyan-500/40">
-          📚 Chapter Bank
         </button>
         <button onclick="switchScreen('admin')" class="px-3.5 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/40">
           🛡️ Admin Panel
@@ -149,87 +161,78 @@
       </div>
     </div>
 
-    <!-- Mobile Device Mockup Frame -->
+    <!-- Mobile Device Frame -->
     <div class="mobile-frame flex flex-col relative select-none">
-      <!-- Dynamic Island -->
       <div class="dynamic-island"></div>
 
       <!-- Background Glow Orbs -->
-      <div class="absolute -top-16 -right-16 w-60 h-60 bg-purple-600/25 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute top-1/3 -left-20 w-64 h-64 bg-cyan-600/15 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute bottom-10 right-0 w-60 h-60 bg-amber-600/15 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -top-16 -right-16 w-60 h-60 ambient-glow-purple pointer-events-none"></div>
+      <div class="absolute top-1/3 -left-20 w-64 h-64 ambient-glow-cyan pointer-events-none"></div>
+      <div class="absolute bottom-16 right-0 w-60 h-60 ambient-glow-gold pointer-events-none"></div>
 
-      <!-- ================= SCREEN 1: EXACT HOME DASHBOARD ================= -->
+      <!-- ================= SCREEN 1: HOME DASHBOARD ================= -->
       <div id="screen-dashboard" class="flex-1 flex flex-col h-full overflow-y-auto no-scrollbar pt-11 pb-24 px-3.5">
         
         <!-- 1. TOP HEADER -->
-        <div class="flex items-center justify-between mt-1">
-          <!-- Left: 3D Character Avatar + Greeting -->
+        <div class="flex items-center justify-between mt-1 px-1">
           <div class="flex items-center gap-2.5">
-            <button onclick="toggleGender()" class="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-r from-cyan-400 via-purple-500 to-amber-400 shadow-lg cursor-pointer">
-              <img id="user-header-avatar" src="/assets/images/avatars/user_boy_avatar.png" alt="Avatar" class="w-full h-full rounded-full object-cover">
-              <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+            <button onclick="toggleGender()" class="relative w-11 h-11 rounded-full p-[2px] bg-gradient-to-tr from-cyan-400 via-purple-500 to-amber-400 shadow-xl cursor-pointer">
+              <img id="user-header-avatar" src="/assets/images/avatars/user_boy_avatar.png" alt="Avatar" class="w-full h-full rounded-full object-cover bg-slate-900">
+              <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full"></span>
             </button>
             <div>
-              <h2 class="text-sm font-extrabold text-white leading-tight">
+              <h2 class="text-sm font-black text-white leading-tight">
                 Hi, Keshab! 👋
               </h2>
-              <p class="text-[10px] text-slate-400 font-medium">Let's test your knowledge</p>
+              <p class="text-[10px] text-slate-300 font-medium">Class 10 Board Prep 🎓</p>
             </div>
           </div>
 
-          <!-- Right: Coins + Purple Gem + Notification Bell -->
           <div class="flex items-center gap-1.5">
-            <!-- Gold Coins -->
-            <div class="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-800/90 border border-amber-500/40 text-amber-400 text-[11px] font-bold">
+            <div class="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/80 border border-amber-400/40 text-amber-300 text-[11px] font-black shadow-lg">
               <img src="/assets/icons/coin_and_gem_3d.png" class="w-3.5 h-3.5 object-contain">
               <span id="header-coins">1,450</span>
             </div>
-            <!-- Purple Gem -->
-            <div class="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-800/90 border border-purple-500/40 text-purple-400 text-[11px] font-bold">
+            <div class="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/80 border border-purple-400/40 text-purple-300 text-[11px] font-black shadow-lg">
               <span class="text-xs">💎</span>
               <span id="header-gems">45</span>
             </div>
-            <!-- Notification Bell with Red Dot -->
-            <div class="relative w-7 h-7 rounded-full bg-slate-800/90 border border-white/10 flex items-center justify-center text-slate-300">
+            <div class="relative w-7 h-7 rounded-full bg-slate-900/80 border border-white/15 flex items-center justify-center text-slate-200">
               <span class="text-xs">🔔</span>
-              <span class="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full"></span>
+              <span class="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
             </div>
           </div>
         </div>
 
-        <!-- 2. MAIN HERO TODAY'S QUIZ CARD -->
+        <!-- 2. HERO TODAY'S QUIZ CARD -->
         <div class="glass-card-purple p-4 mt-3.5 relative overflow-hidden">
-          <div class="flex items-center justify-between">
-            <!-- Mascot on Left Side holding Golden Trophy -->
-            <div class="w-[40%] flex justify-start z-10">
-              <img id="hero-mascot-img" src="/assets/images/characters/hero_boy_3d.png" class="h-36 object-contain animate-floating filter drop-shadow-2xl" alt="Quiz Mascot 3D">
+          <div class="flex items-center justify-between relative z-10">
+            <div class="w-[40%] flex justify-start">
+              <img id="hero-mascot-img" src="/assets/images/characters/hero_boy_3d.png" class="h-36 object-contain animate-mascot filter drop-shadow-2xl" alt="Quiz Mascot 3D">
             </div>
 
-            <!-- Details on Right Side -->
-            <div class="max-w-[58%] z-10">
-              <span class="inline-block px-2 py-0.5 rounded bg-cyan-400/20 text-cyan-300 text-[10px] font-black tracking-wider border border-cyan-400/30">
+            <div class="max-w-[58%]">
+              <div class="inline-block px-2 py-0.5 rounded bg-cyan-400/20 text-cyan-300 text-[10px] font-black tracking-wider border border-cyan-400/40">
                 TODAY'S QUIZ
-              </span>
-              <h3 class="text-lg font-black text-white mt-1 leading-tight tracking-wide">
+              </div>
+              <h3 class="text-lg font-black text-white mt-1 leading-tight tracking-tight">
                 10 QUESTIONS
               </h3>
               
-              <!-- Timer & Reward Chest -->
               <div class="flex items-center gap-2 mt-1.5">
-                <div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-900/60 text-[10px] font-bold text-amber-300 border border-amber-500/20">
+                <div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-950/60 text-[10px] font-bold text-amber-300 border border-amber-400/30">
                   <span>⏱️</span>
                   <span>03:20 MIN</span>
                 </div>
-                <div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-900/60 text-[10px] font-bold text-slate-200 border border-white/10">
+                <div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-950/60 text-[10px] font-bold text-white border border-purple-400/30">
                   <span>🎁</span>
                   <span>500 Coins</span>
                 </div>
               </div>
               
-              <!-- Large Yellow/Orange START QUIZ → Button -->
-              <button onclick="startQuiz('daily')" class="mt-3.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-400 to-amber-500 text-slate-950 font-black text-xs tracking-wider neon-gold-glow hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 shadow-lg">
-                <span>START QUIZ  →</span>
+              <button onclick="startQuiz('daily')" class="game-button-3d-gold w-full mt-3.5 py-2 px-3 flex items-center justify-center gap-2 text-xs tracking-wider cursor-pointer">
+                <span>START QUIZ</span>
+                <span class="text-sm font-black">→</span>
               </button>
             </div>
           </div>
@@ -241,16 +244,15 @@
             <div class="flex items-center gap-2">
               <span class="relative flex h-2.5 w-2.5">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
               </span>
               <span class="text-xs font-black text-white">1,284 Online</span>
             </div>
-            <button onclick="alert('⚡ 1,284 active quiz players online!')" class="text-[10px] font-extrabold text-cyan-300 hover:underline">
+            <button onclick="alert('⚡ 1,284 students preparing online!')" class="text-[10px] font-black text-cyan-300 hover:underline">
               VIEW ALL
             </button>
           </div>
 
-          <!-- Sample Live Players -->
           <div class="grid grid-cols-2 gap-2 text-[11px]">
             <div class="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-slate-800/60">
               <img src="/assets/images/characters/champion_boy_3d.png" class="w-5 h-5 rounded-full object-cover">
@@ -261,16 +263,6 @@
               <img src="/assets/images/avatars/user_boy_avatar.png" class="w-5 h-5 rounded-full object-cover">
               <span class="font-bold text-white">Amit</span>
               <span class="text-[10px] text-emerald-400 font-semibold ml-auto">Q. 7/10 🟢</span>
-            </div>
-            <div class="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-slate-800/60">
-              <img src="/assets/images/avatars/female_avatar_3d.png" class="w-5 h-5 rounded-full object-cover">
-              <span class="font-bold text-white">Suman</span>
-              <span class="text-[10px] text-emerald-400 font-semibold ml-auto">Q. 9/10 🟢</span>
-            </div>
-            <div class="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-slate-800/60">
-              <img src="/assets/images/avatars/female_avatar_3d.png" class="w-5 h-5 rounded-full object-cover">
-              <span class="font-bold text-white">Priya</span>
-              <span class="text-[10px] text-cyan-400 font-semibold ml-auto">Finished 🟢</span>
             </div>
           </div>
         </div>
@@ -287,36 +279,31 @@
           </div>
 
           <div class="flex items-center gap-3">
-            <!-- 3D Winner on Podium with Golden Trophy -->
             <div class="w-16 h-18 rounded-xl bg-purple-900/40 p-1 border border-amber-400/40 flex-shrink-0 relative flex items-center justify-center">
               <img src="/assets/images/characters/champion_boy_3d.png" class="w-full h-full object-contain">
               <span class="absolute -bottom-1 -right-1 px-1.5 py-0.2 bg-amber-400 text-slate-950 text-[9px] font-black rounded-full">#1</span>
             </div>
-
-            <!-- Details: Rahul Das, Score: 96/100, Rank #1, Reward: 500 Coins -->
             <div class="flex-1 min-w-0">
               <h4 class="text-sm font-black text-white truncate">Rahul Das</h4>
               <p class="text-[11px] text-amber-300 font-bold mt-0.5">Score: 96/100 • Rank #1 🏆</p>
-              
               <div class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-900/80 border border-amber-500/30 text-[10px] font-bold text-slate-200">
                 <span>🎁 Reward:</span>
-                <span class="text-amber-300 font-extrabold">500 Coins + Prize</span>
+                <span class="text-amber-300 font-extrabold">500 Coins + Smartwatch</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 5. DAILY STREAK CARD -->
+        <!-- 5. DAILY STREAK -->
         <div class="glass-card p-3 mt-3 border-amber-500/30">
           <div class="flex items-center gap-2.5 mb-2">
             <img src="/assets/icons/streak_fire_3d.png" class="w-8 h-8 object-contain">
             <div>
-              <div class="text-[11px] font-extrabold text-amber-400 tracking-wider">🔥 DAILY STREAK</div>
+              <div class="text-[10px] font-extrabold text-amber-400 tracking-wider">🔥 DAILY STREAK</div>
               <div class="text-lg font-black text-white leading-tight">6 DAYS</div>
             </div>
           </div>
 
-          <!-- 7-day progress indicator: ✓ ✓ ✓ ✓ ✓ ✓ ○ -->
           <div class="flex justify-between items-center px-1 my-1">
             <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400 text-amber-400 flex items-center justify-center text-[9px] font-bold">✓</div>
             <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400 text-amber-400 flex items-center justify-center text-[9px] font-bold">✓</div>
@@ -329,7 +316,7 @@
           <p class="text-[10px] text-slate-400 mt-1">Complete 7 days streak to get 500 bonus coins!</p>
         </div>
 
-        <!-- 6. LEADERBOARD PREVIEW CARD -->
+        <!-- 6. LEADERBOARD PREVIEW -->
         <div class="glass-card p-3 mt-3 border-cyan-500/30">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-1.5">
@@ -342,7 +329,6 @@
           </div>
 
           <div class="space-y-1 text-xs">
-            <!-- 🥇 Rahul 96 -->
             <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-800/50">
               <div class="flex items-center gap-2">
                 <span class="text-sm">🥇</span>
@@ -350,7 +336,6 @@
               </div>
               <span class="font-black text-amber-400 text-[11px]">96</span>
             </div>
-            <!-- 🥈 Amit 91 -->
             <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-800/50">
               <div class="flex items-center gap-2">
                 <span class="text-sm">🥈</span>
@@ -358,60 +343,31 @@
               </div>
               <span class="font-black text-slate-300 text-[11px]">91</span>
             </div>
-            <!-- 🥉 Suman 89 -->
-            <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-800/50">
-              <div class="flex items-center gap-2">
-                <span class="text-sm">🥉</span>
-                <span class="font-bold text-white text-[11px]">Suman</span>
-              </div>
-              <span class="font-black text-amber-600 text-[11px]">89</span>
-            </div>
-            <!-- 4. Arjun 87 -->
-            <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-800/50">
-              <div class="flex items-center gap-2">
-                <span class="text-slate-400 font-bold text-[10px] w-4 text-center">4.</span>
-                <span class="font-bold text-slate-300 text-[11px]">Arjun</span>
-              </div>
-              <span class="font-bold text-slate-400 text-[11px]">87</span>
-            </div>
-            <!-- 5. Priya 82 -->
-            <div class="flex items-center justify-between py-1 px-2 rounded-lg bg-slate-800/50">
-              <div class="flex items-center gap-2">
-                <span class="text-slate-400 font-bold text-[10px] w-4 text-center">5.</span>
-                <span class="font-bold text-slate-300 text-[11px]">Priya</span>
-              </div>
-              <span class="font-bold text-slate-400 text-[11px]">82</span>
-            </div>
           </div>
         </div>
 
-        <!-- 7. QUICK ACTIONS (5 3D SHORTCUT CARDS) -->
+        <!-- 7. QUICK ACTIONS (5 3D SHORTCUTS) -->
         <div class="mt-4">
           <div class="text-[11px] font-extrabold text-slate-400 tracking-wider mb-2">
             QUICK ACTIONS
           </div>
           <div class="grid grid-cols-5 gap-1.5">
-            <!-- 1. Chapter Quiz -->
             <button onclick="switchScreen('chapters')" class="glass-card p-2 flex flex-col items-center justify-center text-center hover:scale-105 transition active:scale-95 border-cyan-500/30">
               <img src="/assets/icons/chapter_quiz_3d.png" class="w-8 h-8 object-contain mb-1">
               <span class="text-[9px] font-bold text-slate-100 leading-tight">Chapter Quiz</span>
             </button>
-            <!-- 2. Practice -->
             <button onclick="startQuiz('practice')" class="glass-card p-2 flex flex-col items-center justify-center text-center hover:scale-105 transition active:scale-95 border-emerald-500/30">
               <img src="/assets/icons/practice_target_3d.png" class="w-8 h-8 object-contain mb-1">
               <span class="text-[9px] font-bold text-slate-100 leading-tight">Practice</span>
             </button>
-            <!-- 3. 1 vs 1 Battle -->
             <button onclick="alert('⚔️ 1 vs 1 Battle Arena is ready!')" class="glass-card p-2 flex flex-col items-center justify-center text-center hover:scale-105 transition active:scale-95 border-pink-500/30">
               <img src="/assets/icons/battle_swords_3d.png" class="w-8 h-8 object-contain mb-1">
               <span class="text-[9px] font-bold text-slate-100 leading-tight">1 vs 1 Battle</span>
             </button>
-            <!-- 4. Rewards -->
             <button onclick="switchScreen('rewards')" class="glass-card p-2 flex flex-col items-center justify-center text-center hover:scale-105 transition active:scale-95 border-amber-500/30">
               <img src="/assets/icons/gift_box_3d.png" class="w-8 h-8 object-contain mb-1">
               <span class="text-[9px] font-bold text-slate-100 leading-tight">Rewards</span>
             </button>
-            <!-- 5. Shop -->
             <button onclick="switchScreen('shop')" class="glass-card p-2 flex flex-col items-center justify-center text-center hover:scale-105 transition active:scale-95 border-purple-500/30">
               <img src="/assets/icons/shop_stall_3d.png" class="w-8 h-8 object-contain mb-1">
               <span class="text-[9px] font-bold text-slate-100 leading-tight">Shop</span>
@@ -427,7 +383,7 @@
           <button onclick="switchScreen('dashboard')" class="text-slate-400 hover:text-white p-1 text-sm font-bold">
             ← Exit
           </button>
-          <span class="text-xs font-bold text-slate-200">Daily Live Quiz</span>
+          <span class="text-xs font-bold text-slate-200">Class 10 Board Quiz</span>
           <div class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-xs border border-amber-500/40">
             <span id="quiz-live-score">0</span> pts
           </div>
@@ -457,10 +413,10 @@
 
         <div class="glass-card-purple p-4 mt-3">
           <h3 id="quiz-question-text" class="text-base font-bold text-white leading-snug">
-            Which planet is famously known as the 'Red Planet'?
+            What is the chemical formula of rust on iron?
           </h3>
           <p id="quiz-question-bn" class="text-xs text-slate-300 mt-1 font-medium">
-            কোন গ্রহটি 'লাল গ্রহ' নামে পরিচিত?
+            লোহায় মরিচা পড়ার রাসায়নিক সংকেত কোনটি?
           </p>
         </div>
 
@@ -470,9 +426,9 @@
       <!-- ================= SCREEN 3: QUIZ RESULT ================= -->
       <div id="screen-result" class="flex-1 flex-col h-full overflow-y-auto no-scrollbar pt-11 pb-8 px-4 text-center hidden">
         <div class="mt-2">
-          <img id="result-mascot-img" src="/assets/images/characters/hero_boy_3d.png" class="w-32 h-32 mx-auto object-contain animate-floating">
-          <h2 class="text-2xl font-black text-amber-400 mt-1">QUIZ COMPLETED! 🎉</h2>
-          <p class="text-xs text-slate-300">Great effort! Here is your result:</p>
+          <img id="result-mascot-img" src="/assets/images/characters/hero_boy_3d.png" class="w-32 h-32 mx-auto object-contain animate-mascot">
+          <h2 class="text-2xl font-black text-amber-400 mt-1">CHAPTER EXAM DONE! 🎉</h2>
+          <p class="text-xs text-slate-300">Great effort! Here is your performance:</p>
         </div>
 
         <div class="glass-card-purple p-4 mt-3">
@@ -496,8 +452,8 @@
         </div>
 
         <div class="mt-4 space-y-2">
-          <button onclick="switchScreen('leaderboard')" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-xs tracking-wide neon-gold-glow">
-            CHECK LEADERBOARD 🏆
+          <button onclick="switchScreen('chapters')" class="game-button-3d-gold w-full py-3 text-xs tracking-wider">
+            CHOOSE NEXT CHAPTER 📚
           </button>
           <button onclick="switchScreen('dashboard')" class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-xs hover:bg-slate-700">
             Back to Home Dashboard
@@ -505,26 +461,128 @@
         </div>
       </div>
 
-      <!-- ================= SCREEN 4: CHAPTERS ================= -->
-      <div id="screen-chapters" class="flex-1 flex-col h-full overflow-y-auto no-scrollbar pt-11 pb-20 px-4 hidden">
-        <div class="flex items-center gap-2 mt-1 mb-3">
-          <button onclick="switchScreen('dashboard')" class="text-slate-400 hover:text-white p-1 text-sm font-bold">
-            ←
-          </button>
-          <h2 class="text-base font-bold text-white">Chapter Question Bank</h2>
+      <!-- ================= SCREEN 4: CLASS 10 BOARD CHAPTER BANK ================= -->
+      <div id="screen-chapters" class="flex-1 flex-col h-full overflow-y-auto no-scrollbar pt-11 pb-20 px-3.5 hidden">
+        <div class="flex items-center justify-between mt-1 mb-2">
+          <div class="flex items-center gap-2">
+            <button onclick="switchScreen('dashboard')" class="text-slate-400 hover:text-white p-1 text-sm font-bold">
+              ←
+            </button>
+            <h2 class="text-sm font-black text-white">Class 10 Board Chapters</h2>
+          </div>
+          <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px]">
+            10th Exam 🎓
+          </span>
         </div>
 
-        <div class="text-xs font-extrabold text-cyan-400 uppercase tracking-wider mb-2">General Science (বিজ্ঞান)</div>
-        <div onclick="startQuiz('chapter_1')" class="glass-card p-3 mb-2 flex items-center gap-3 cursor-pointer hover:border-cyan-400 transition">
-          <div class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center font-bold text-amber-400 text-sm">
-            1
-          </div>
-          <div class="flex-1 min-w-0">
-            <h4 class="text-xs font-bold text-white truncate">Solar System &amp; Space</h4>
-            <p class="text-[10px] text-slate-300">10 Questions • ⭐⭐⭐</p>
-          </div>
-          <span class="text-amber-400 text-xs font-bold">&gt;</span>
+        <!-- Subject Filters -->
+        <div class="flex gap-1.5 overflow-x-auto no-scrollbar py-1 mb-2.5">
+          <button onclick="filterChapters('all')" id="tab-sub-all" class="px-2.5 py-1 rounded-xl bg-purple-600 text-white font-bold text-[10px] whitespace-nowrap">All Subjects</button>
+          <button onclick="filterChapters('phys')" id="tab-sub-phys" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">Physical Science</button>
+          <button onclick="filterChapters('bio')" id="tab-sub-bio" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">Life Science</button>
+          <button onclick="filterChapters('math')" id="tab-sub-math" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">Mathematics</button>
+          <button onclick="filterChapters('cs')" id="tab-sub-cs" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">Computer &amp; IT</button>
         </div>
+
+        <!-- Subject 1: Physical Science -->
+        <div id="group-phys" class="mb-3">
+          <div class="text-[11px] font-black text-blue-400 mb-1.5 flex items-center gap-1">
+            <span>⚛️</span>
+            <span>Physical Science (ভৌতবিজ্ঞান ও রসায়ন)</span>
+          </div>
+          <!-- Ch 1 -->
+          <div onclick="startQuiz('phys_1')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition">
+            <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-400/50 flex items-center justify-center font-black text-blue-300 text-xs">
+              Ch 1
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">Chemical Reactions &amp; Equations</h4>
+              <p class="text-[10px] text-slate-300 truncate">রাসায়নিক বিক্রিয়া ও সমীকরণ • 10 Qs</p>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
+            </div>
+            <span class="text-blue-400 text-sm font-black">&gt;</span>
+          </div>
+          <!-- Ch 2 -->
+          <div onclick="startQuiz('phys_2')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition">
+            <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-400/50 flex items-center justify-center font-black text-blue-300 text-xs">
+              Ch 2
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">Acids, Bases &amp; Salts</h4>
+              <p class="text-[10px] text-slate-300 truncate">অ্যাসিড, ক্ষারক ও লবণ • 10 Qs</p>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐☆ (Score: 80/100)</div>
+            </div>
+            <span class="text-blue-400 text-sm font-black">&gt;</span>
+          </div>
+          <!-- Ch 3 (Locked) -->
+          <div class="glass-card p-2.5 mb-2 flex items-center gap-3 opacity-60">
+            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 text-xs">
+              🔒
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-slate-400 truncate">Light: Reflection &amp; Refraction</h4>
+              <p class="text-[10px] text-slate-500">Complete Ch 2 to unlock</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subject 2: Life Science -->
+        <div id="group-bio" class="mb-3">
+          <div class="text-[11px] font-black text-emerald-400 mb-1.5 flex items-center gap-1">
+            <span>🌿</span>
+            <span>Life Science &amp; Biology (জীবনবিজ্ঞান)</span>
+          </div>
+          <div onclick="startQuiz('bio_1')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-emerald-400 transition">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600/20 border border-emerald-400/50 flex items-center justify-center font-black text-emerald-300 text-xs">
+              Ch 1
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">Life Processes</h4>
+              <p class="text-[10px] text-slate-300 truncate">জীবনের মৌলিক প্রক্রিয়া • 10 Qs</p>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 90/100)</div>
+            </div>
+            <span class="text-emerald-400 text-sm font-black">&gt;</span>
+          </div>
+        </div>
+
+        <!-- Subject 3: Mathematics -->
+        <div id="group-math" class="mb-3">
+          <div class="text-[11px] font-black text-amber-400 mb-1.5 flex items-center gap-1">
+            <span>📐</span>
+            <span>Mathematics (গণিত)</span>
+          </div>
+          <div onclick="startQuiz('math_1')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-amber-400 transition">
+            <div class="w-10 h-10 rounded-xl bg-amber-600/20 border border-amber-400/50 flex items-center justify-center font-black text-amber-300 text-xs">
+              Ch 1
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">Quadratic Equations &amp; Polynomials</h4>
+              <p class="text-[10px] text-slate-300 truncate">দ্বিঘাত সমীকরণ ও বহুপদী • 10 Qs</p>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
+            </div>
+            <span class="text-amber-400 text-sm font-black">&gt;</span>
+          </div>
+        </div>
+
+        <!-- Subject 4: Computer Science & IT -->
+        <div id="group-cs" class="mb-3">
+          <div class="text-[11px] font-black text-purple-400 mb-1.5 flex items-center gap-1">
+            <span>💻</span>
+            <span>Computer Science &amp; IT (কম্পিউটার অ্যাপ্লিকেশন)</span>
+          </div>
+          <div onclick="startQuiz('cs_1')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-purple-400 transition">
+            <div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-400/50 flex items-center justify-center font-black text-purple-300 text-xs">
+              Ch 1
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">HTML, Web Design &amp; Networking</h4>
+              <p class="text-[10px] text-slate-300 truncate">এইচটিএমএল ও ওয়েব প্রযুক্তি • 10 Qs</p>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
+            </div>
+            <span class="text-purple-400 text-sm font-black">&gt;</span>
+          </div>
+        </div>
+
       </div>
 
       <!-- ================= SCREEN 5: LEADERBOARD ================= -->
@@ -606,24 +664,24 @@
         </div>
         <div class="glass-card p-3 mb-2">
           <h4 class="text-xs font-bold text-white mb-1">📁 Bulk Question Uploader</h4>
-          <button onclick="alert('Parsed 50 questions!')" class="w-full py-1.5 rounded bg-purple-600 text-white font-bold text-xs">Import JSON</button>
+          <button onclick="alert('Parsed Class 10 Board question batch!')" class="w-full py-1.5 rounded bg-purple-600 text-white font-bold text-xs">Import JSON</button>
         </div>
       </div>
 
-      <!-- ================= 8. BOTTOM NAVIGATION (Home, Quiz, Ranking, Profile) ================= -->
+      <!-- ================= 8. BOTTOM NAVIGATION ================= -->
       <div id="bottom-nav-bar" class="absolute bottom-0 left-0 right-0 h-20 px-4 pb-3 flex items-end justify-center pointer-events-auto">
         <div class="glass-card w-full h-14 rounded-full px-5 flex items-center justify-between relative shadow-2xl border-white/20">
           
-          <!-- 1. 🏠 Home (Glowing Gold Highlight) -->
+          <!-- 1. 🏠 Home -->
           <button onclick="switchScreen('dashboard')" class="flex flex-col items-center text-amber-400">
             <span class="text-lg">🏠</span>
             <span class="text-[10px] font-black tracking-tight text-amber-400">Home</span>
           </button>
 
-          <!-- 2. ❓ Quiz -->
+          <!-- 2. ❓ Quiz (Chapters) -->
           <button onclick="switchScreen('chapters')" class="flex flex-col items-center text-slate-400 hover:text-slate-200">
-            <span class="text-lg">❓</span>
-            <span class="text-[10px] font-bold">Quiz</span>
+            <span class="text-lg">📚</span>
+            <span class="text-[10px] font-bold">Chapters</span>
           </button>
 
           <!-- 3. 🏆 Ranking -->
@@ -669,59 +727,137 @@
         if (heroMascot) heroMascot.src = '/assets/images/characters/hero_girl_3d.png';
         if (resultMascot) resultMascot.src = '/assets/images/characters/hero_girl_3d.png';
         if (userHeader) userHeader.src = '/assets/images/avatars/female_avatar_3d.png';
-        if (btnFemale) {
-          btnFemale.className = "px-3 py-1.5 rounded-xl bg-purple-500 text-white font-extrabold text-xs shadow";
-        }
-        if (btnMale) {
-          btnMale.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs hover:text-white";
-        }
+        if (btnFemale) btnFemale.className = "px-3 py-1.5 rounded-xl bg-purple-500 text-white font-extrabold text-xs shadow";
+        if (btnMale) btnMale.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs hover:text-white";
       } else {
         if (heroMascot) heroMascot.src = '/assets/images/characters/hero_boy_3d.png';
         if (resultMascot) resultMascot.src = '/assets/images/characters/hero_boy_3d.png';
         if (userHeader) userHeader.src = '/assets/images/avatars/user_boy_avatar.png';
-        if (btnMale) {
-          btnMale.className = "px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 font-extrabold text-xs shadow";
-        }
-        if (btnFemale) {
-          btnFemale.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs hover:text-white";
-        }
+        if (btnMale) btnMale.className = "px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 font-extrabold text-xs shadow";
+        if (btnFemale) btnFemale.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs hover:text-white";
       }
     }
 
-    const dailyQuestions = [
-      {
-        q: "Which planet is famously known as the 'Red Planet'?",
-        qBn: "কোন গ্রহটি 'লাল গ্রহ' নামে পরিচিত?",
-        options: ["Venus (শুক্র)", "Mars (মঙ্গল)", "Jupiter (বৃহস্পতি)", "Mercury (বুধ)"],
-        correct: 1
-      },
-      {
-        q: "What is the powerhouse of the cell?",
-        qBn: "কোষের শক্তিঘর কাকে বলা হয়?",
-        options: ["Nucleus", "Mitochondria", "Ribosome", "Golgi apparatus"],
-        correct: 1
-      },
-      {
-        q: "Which programming language powers Flutter apps?",
-        qBn: "ফ্লাটার অ্যাপ মূলত কোন ভাষায় লেখা হয়?",
-        options: ["Kotlin", "Swift", "Dart", "TypeScript"],
-        correct: 2
-      },
-      {
-        q: "What is the chemical formula of pure water?",
-        qBn: "বিশুদ্ধ পানির রাসায়নিক সংকেত কোনটি?",
-        options: ["H2O", "CO2", "NaCl", "O2"],
-        correct: 0
-      },
-      {
-        q: "Who formulated the law of universal gravity?",
-        qBn: "মাধ্যাকর্ষণ শক্তির সূত্র কে আবিষ্কার করেছিলেন?",
-        options: ["Albert Einstein", "Sir Isaac Newton", "Galileo Galilei", "Nikola Tesla"],
-        correct: 1
-      }
-    ];
+    function filterChapters(sub) {
+      const groups = ['phys', 'bio', 'math', 'cs'];
+      const tabs = ['all', 'phys', 'bio', 'math', 'cs'];
 
-    let currentQuestions = [...dailyQuestions];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-sub-${t}`);
+        if (btn) {
+          if (t === sub) {
+            btn.className = "px-2.5 py-1 rounded-xl bg-purple-600 text-white font-bold text-[10px] whitespace-nowrap";
+          } else {
+            btn.className = "px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap";
+          }
+        }
+      });
+
+      groups.forEach(g => {
+        const el = document.getElementById(`group-${g}`);
+        if (el) {
+          if (sub === 'all' || sub === g) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        }
+      });
+    }
+
+    // Question Banks for Class 10
+    const class10QuestionsMap = {
+      daily: [
+        {
+          q: "What is the chemical formula of rust on iron?",
+          qBn: "লোহায় মরিচা পড়ার রাসায়নিক সংকেত কোনটি? (Class 10 Board)",
+          options: ["Fe2O3.xH2O", "FeO", "Fe3O4", "Fe(OH)3"],
+          correct: 0
+        },
+        {
+          q: "Which enzyme in human saliva breaks down starch?",
+          qBn: "লালারসে উপস্থিত কোন উৎসেচক শ্বেতসারকে পাচিত করে?",
+          options: ["Pepsin", "Salivary Amylase (Ptyalin)", "Trypsin", "Lipase"],
+          correct: 1
+        },
+        {
+          q: "For quadratic equation ax² + bx + c = 0, what is discriminant (D)?",
+          qBn: "ax² + bx + c = 0 দ্বিঘাত সমীকরণের নিরূপক কোনটি?",
+          options: ["b² - 4ac", "b² + 4ac", "4ac - b²", "√b² - 4ac"],
+          correct: 0
+        },
+        {
+          q: "Which HTML tag is used to create a hyperlink?",
+          qBn: "এইচটিএমএল-এ হাইপারলিঙ্ক যুক্ত করার জন্য কোন ট্যাগ ব্যবহার করা হয়?",
+          options: ["<a href='url'>", "<link href='url'>", "<hyperlink>", "<url>"],
+          correct: 0
+        },
+        {
+          q: "What gas is released when zinc reacts with dilute HCl?",
+          qBn: "জিঙ্কের সাথে লঘু হাইড্রোক্লোরিক অ্যাসিডের বিক্রিয়ায় কোন গ্যাস উৎপন্ন হয়?",
+          options: ["Oxygen (O2)", "Hydrogen (H2)", "Chlorine (Cl2)", "Carbon Dioxide (CO2)"],
+          correct: 1
+        }
+      ],
+      phys_1: [
+        {
+          q: "What is the chemical formula of rust on iron?",
+          qBn: "লোহায় মরিচা পড়ার রাসায়নিক সংকেত কোনটি? (ভৌতবিজ্ঞান)",
+          options: ["Fe2O3.xH2O", "FeO", "Fe3O4", "Fe(OH)3"],
+          correct: 0
+        },
+        {
+          q: "Which of the following is an exothermic reaction?",
+          qBn: "নিচের কোনটি তাপমোচী (Exothermic) বিক্রিয়ার উদাহরণ?",
+          options: ["Respiration (শ্বসন)", "Photosynthesis (সালোকসংশ্লেষ)", "Electrolysis of water", "Melting of ice"],
+          correct: 0
+        }
+      ],
+      bio_1: [
+        {
+          q: "Which blood vessel carries oxygenated blood from lungs to heart?",
+          qBn: "ফুসফুস থেকে হৃদপিণ্ডে অক্সিজেনযুক্ত রক্ত বহন করে কোন রক্তনালী?",
+          options: ["Pulmonary Artery", "Pulmonary Vein (ফুসফুসীয় শিরা)", "Aorta", "Vena Cava"],
+          correct: 1
+        },
+        {
+          q: "What is the structural and functional unit of kidney?",
+          qBn: "বৃক্কের (Kidney) গঠনগত ও কার্যগত একক কোনটি?",
+          options: ["Neuron", "Nephron (নেফ্রন)", "Alveoli", "Glomerulus"],
+          correct: 1
+        }
+      ],
+      math_1: [
+        {
+          q: "If discriminant D > 0, what are the nature of roots?",
+          qBn: "যদি নিরূপক D > 0 হয়, তবে সমীকরণের বীজদ্বয় কেমন হবে?",
+          options: ["Real and Distinct (বাস্তব ও অসমান)", "Real and Equal", "Imaginary", "Zero"],
+          correct: 0
+        },
+        {
+          q: "Sum of roots (α + β) for 2x² - 8x + 6 = 0 is:",
+          qBn: "2x² - 8x + 6 = 0 সমীকরণের বীজদ্বয়ের সমষ্টি কত?",
+          options: ["4", "-4", "3", "8"],
+          correct: 0
+        }
+      ],
+      cs_1: [
+        {
+          q: "Which protocol encrypts data transmission over web?",
+          qBn: "ইন্টারনেটে সুরক্ষিত যোগাযোগের জন্য কোন প্রোটোকল ব্যবহৃত হয়?",
+          options: ["HTTPS", "HTTP", "FTP", "SMTP"],
+          correct: 0
+        },
+        {
+          q: "What does CSS stand for in web design?",
+          qBn: "ওয়েব ডিজাইনে CSS এর পূর্ণরূপ কী?",
+          options: ["Cascading Style Sheets", "Creative Style System", "Computer Style Sheet", "Color Syntax"],
+          correct: 0
+        }
+      ]
+    };
+
+    let currentQuestions = [...class10QuestionsMap.daily];
     let currentQIndex = 0;
     let score = 0;
     let correctCount = 0;
@@ -731,7 +867,7 @@
     let answerSubmitted = false;
     let fiftyFiftyUsed = false;
 
-    function switchScreen(screenName, tabIndex = 0) {
+    function switchScreen(screenName) {
       const screens = ['dashboard', 'quiz', 'result', 'chapters', 'leaderboard', 'rewards', 'shop', 'admin'];
       screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
@@ -750,6 +886,7 @@
     }
 
     function startQuiz(type) {
+      currentQuestions = class10QuestionsMap[type] || class10QuestionsMap.daily;
       currentQIndex = 0;
       score = 0;
       correctCount = 0;

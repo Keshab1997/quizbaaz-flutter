@@ -1,0 +1,48 @@
+{
+  "chapter_id": "math_ch_01",
+  "chapter_title": "Quadratic Equations & Polynomials",
+  "chapter_title_bn": "দ্বিঘাত সমীকরণ ও বহুপদী (Class 10 Board)",
+  "class_standard": "Class 10",
+  "questions": [
+    {
+      "id": "c10_m1_01",
+      "question": "For a quadratic equation ax² + bx + c = 0, what is the discriminant (D)?",
+      "question_bn": "ax² + bx + c = 0 সমীকরণের নিরূপক (Discriminant) কোনটি?",
+      "options": ["b² - 4ac", "b² + 4ac", "4ac - b²", "√b² - 4ac"],
+      "correct_index": 0,
+      "explanation": "The discriminant D = b² - 4ac determines the nature of the roots.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "c10_m1_02",
+      "question": "If the discriminant D > 0, what are the nature of the roots?",
+      "question_bn": "যদি D > 0 হয়, তবে সমীকরণের বীজদ্বয় কেমন হবে?",
+      "options": ["Real and Distinct (বাস্তব ও অসমান)", "Real and Equal (বাস্তব ও সমান)", "Imaginary / No real roots", "Zero"],
+      "correct_index": 0,
+      "explanation": "When D > 0, the equation has two distinct real roots.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "c10_m1_03",
+      "question": "What is the sum of the roots (α + β) of the quadratic equation 2x² - 8x + 6 = 0?",
+      "question_bn": "2x² - 8x + 6 = 0 সমীকরণের বীজদ্বয়ের সমষ্টি (α + β) কত?",
+      "options": ["4", "-4", "3", "8"],
+      "correct_index": 0,
+      "explanation": "Sum of roots α + β = -b/a = -(-8)/2 = 8/2 = 4.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "c10_m1_04",
+      "question": "What is the product of roots (α · β) of the equation 3x² + 5x - 12 = 0?",
+      "question_bn": "3x² + 5x - 12 = 0 সমীকরণের বীজদ্বয়ের গুণফল (α · β) কত?",
+      "options": ["-4", "4", "-5/3", "12"],
+      "correct_index": 0,
+      "explanation": "Product of roots α · β = c/a = -12/3 = -4.",
+      "points": 10,
+      "time_limit_sec": 15
+    }
+  ]
+}

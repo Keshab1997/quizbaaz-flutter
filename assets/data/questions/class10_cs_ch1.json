@@ -1,0 +1,48 @@
+{
+  "chapter_id": "cs_ch_01",
+  "chapter_title": "HTML, Web Design & Networking",
+  "chapter_title_bn": "এইচটিএমএল ও ওয়েব প্রযুক্তি (Class 10 Board)",
+  "class_standard": "Class 10",
+  "questions": [
+    {
+      "id": "c10_cs1_01",
+      "question": "What is the correct HTML tag to insert a hyperlink?",
+      "question_bn": "এইচটিএমএল-এ হাইপারলিঙ্ক যুক্ত করার জন্য সঠিক ট্যাগ কোনটি?",
+      "options": ["<a href='url'>", "<link href='url'>", "<hyperlink>", "<url>"],
+      "correct_index": 0,
+      "explanation": "The <a> (anchor) tag with the 'href' attribute creates hyperlinks in HTML.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "c10_cs1_02",
+      "question": "Which HTML tag is an empty/void tag that does not require a closing tag?",
+      "question_bn": "নিচের কোনটি এম্পটি বা ভয়েড ট্যাগ (যার ক্লোজিং ট্যাগের প্রয়োজন নেই)?",
+      "options": ["<img>", "<p>", "<table>", "<h1>"],
+      "correct_index": 0,
+      "explanation": "The <img> tag is self-closing and has no end tag.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "c10_cs1_03",
+      "question": "Which protocol provides encrypted secure transmission over the World Wide Web?",
+      "question_bn": "ইন্টারনেটে সুরক্ষিত ও এনক্রিপ্টেড যোগাযোগের জন্য কোন প্রোটোকল ব্যবহৃত হয়?",
+      "options": ["HTTPS", "HTTP", "FTP", "SMTP"],
+      "correct_index": 0,
+      "explanation": "HTTPS (Hypertext Transfer Protocol Secure) encrypts data via SSL/TLS.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "c10_cs1_04",
+      "question": "What does CSS stand for in web development?",
+      "question_bn": "ওয়েব ডিজাইনে CSS এর পূর্ণরূপ কী?",
+      "options": ["Cascading Style Sheets", "Creative Style System", "Computer Style Sheet", "Color Style Syntax"],
+      "correct_index": 0,
+      "explanation": "Cascading Style Sheets (CSS) styles the presentation of HTML elements.",
+      "points": 10,
+      "time_limit_sec": 15
+    }
+  ]
+}
