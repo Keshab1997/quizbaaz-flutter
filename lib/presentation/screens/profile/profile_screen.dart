@@ -40,45 +40,56 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 children: [
                   GestureDetector(
-                    onTap: () => _showGenderPicker(context, userProvider),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AvatarSelectionScreen()),
+                      );
+                    },
                     child: Container(
-                      width: 90,
-                      height: 90,
+                      width: 140,
+                      height: 140,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border:
-                            Border.all(color: AppColors.neonCyan, width: 3),
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: AppColors.primaryGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.neonCyan.withValues(alpha: 0.4),
-                            blurRadius: 16,
+                            color: AppColors.neonPurple.withValues(alpha: 0.4),
+                            blurRadius: 25,
+                            spreadRadius: 3,
                           ),
                         ],
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(45),
-                        child: user.hasGoogleAvatar
-                            ? Image.network(
-                                user.avatarUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Image.asset(
+                      child: Container(
+                        margin: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(21),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(21),
+                          child: user.hasGoogleAvatar
+                              ? Image.network(
+                                  user.avatarUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Image.asset(
+                                    user.effectiveAvatar,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  loadingBuilder: (ctx, child, progress) =>
+                                      progress == null
+                                          ? child
+                                          : const Center(
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2)),
+                                )
+                              : Image.asset(
                                   user.effectiveAvatar,
                                   fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.person,
+                                          size: 60, color: Colors.white),
                                 ),
-                                loadingBuilder: (ctx, child, progress) =>
-                                    progress == null
-                                        ? child
-                                        : const Center(
-                                            child: CircularProgressIndicator(
-                                                strokeWidth: 2)),
-                              )
-                            : Image.asset(
-                                user.effectiveAvatar,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.person,
-                                        size: 50, color: Colors.white),
-                              ),
+                        ),
                       ),
                     ),
                   ),

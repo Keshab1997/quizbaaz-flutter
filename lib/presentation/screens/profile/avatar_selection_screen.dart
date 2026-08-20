@@ -94,12 +94,12 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Current Avatar (larger circular)
+              // Current Avatar (larger, rounded rectangle)
               Container(
-                width: 80,
-                height: 80,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(18),
                   gradient: AppColors.primaryGradient,
                   boxShadow: [
                     BoxShadow(
@@ -111,15 +111,16 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                 ),
                 child: Container(
                   margin: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                  child: ClipOval(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
                     child: Image.asset(
                       currentAvatar,
                       fit: BoxFit.cover,
-                      width: 74,
-                      height: 74,
+                      width: 84,
+                      height: 84,
                       errorBuilder: (_, __, ___) => const Icon(
                         Icons.person_rounded,
                         color: Colors.white,
@@ -321,7 +322,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? AppColors.neonCyan.withValues(alpha: 0.8)
@@ -341,42 +342,20 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               : null,
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(18),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Avatar Image (circular crop)
-              Container(
-                color: Colors.white.withValues(alpha: 0.03),
-                child: Center(
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.neonCyan.withValues(alpha: 0.5)
-                            : Colors.white.withValues(alpha: 0.1),
-                        width: 2,
-                      ),
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        avatar,
-                        fit: BoxFit.cover,
-                        width: 120,
-                        height: 120,
-                        errorBuilder: (_, __, ___) => Container(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            color: AppColors.textMuted,
-                            size: 50,
-                          ),
-                        ),
-                      ),
-                    ),
+              // Avatar Image (full image, no circle crop)
+              Image.asset(
+                avatar,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: AppColors.textMuted,
+                    size: 50,
                   ),
                 ),
               ),
