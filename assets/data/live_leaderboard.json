@@ -6,7 +6,7 @@
       "rank": 1,
       "name": "Ananya Roy",
       "username": "@ananya_r",
-      "avatar_path": "assets/images/avatars/user_boy_avatar.png",
+      "avatar_path": "assets/images/avatars/quizbaaz_avatar_boy.png",
       "score": 100,
       "time_seconds": 32.2,
       "streak": 14
@@ -15,7 +15,7 @@
       "rank": 2,
       "name": "Keshab Sarkar",
       "username": "@Keshab1997",
-      "avatar_path": "assets/images/characters/hero_boy_3d.png",
+      "avatar_path": "assets/images/characters/quizbaaz_mascot_boy.png",
       "score": 100,
       "time_seconds": 35.8,
       "streak": 6
@@ -24,7 +24,7 @@
       "rank": 3,
       "name": "Rahul Banerjee",
       "username": "@rahul_b",
-      "avatar_path": "assets/images/characters/champion_boy_3d.png",
+      "avatar_path": "assets/images/characters/quizbaaz_champion.png",
       "score": 90,
       "time_seconds": 40.1,
       "streak": 9
@@ -33,7 +33,7 @@
       "rank": 4,
       "name": "Sneha Das",
       "username": "@sneha_d",
-      "avatar_path": "assets/images/avatars/user_boy_avatar.png",
+      "avatar_path": "assets/images/avatars/quizbaaz_avatar_boy.png",
       "score": 90,
       "time_seconds": 44.5,
       "streak": 3
@@ -42,7 +42,7 @@
       "rank": 5,
       "name": "Amitava Ghosh",
       "username": "@amit_g",
-      "avatar_path": "assets/images/avatars/user_boy_avatar.png",
+      "avatar_path": "assets/images/avatars/quizbaaz_avatar_boy.png",
       "score": 80,
       "time_seconds": 48.0,
       "streak": 5

@@ -155,7 +155,7 @@
       "user_id": "user_123",
       "name": "Keshab Sarkar",
       "username": "@Keshab1997",
-      "avatar_url": "assets/images/avatars/hero_boy_3d.png",
+      "avatar_url": "assets/images/avatars/quizbaaz_avatar_boy.png",
       "score": 90,
       "completion_time_sec": 51.2,
       "gift_title": "Pro Badge + 300 Coins",
@@ -187,7 +187,7 @@
     {
       "rank": 2,
       "name": "Keshab Sarkar",
-      "avatar": "assets/images/avatars/hero_boy_3d.png",
+      "avatar": "assets/images/avatars/quizbaaz_avatar_boy.png",
       "score": 98,
       "time_taken": "01:18s",
       "streak": 6
@@ -205,7 +205,7 @@
   "user_id": "usr_keshab_01",
   "username": "Keshab1997",
   "full_name": "Keshab Sarkar",
-  "avatar": "assets/images/avatars/hero_boy_3d.png",
+  "avatar": "assets/images/avatars/quizbaaz_avatar_boy.png",
   "coins": 2450,
   "gems": 85,
   "daily_streak": 6,

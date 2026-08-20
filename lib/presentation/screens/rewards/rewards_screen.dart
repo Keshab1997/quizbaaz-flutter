@@ -18,7 +18,7 @@ class RewardsScreen extends StatelessWidget {
     final gifts = rewards.gifts;
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('My Rewards & Gifts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       ),
@@ -32,7 +32,17 @@ class RewardsScreen extends StatelessWidget {
             backgroundColor: const Color(0x33281E48),
             child: Row(
               children: [
-                Image.asset(AppAssets.giftBox, width: 70, height: 70),
+                Image.asset(
+                  AppAssets.rewardGirl,
+                  width: 84,
+                  height: 84,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Image.asset(
+                    AppAssets.giftBox,
+                    width: 70,
+                    height: 70,
+                  ),
+                ),
                 const SizedBox(width: 14),
                 const Expanded(
                   child: Column(

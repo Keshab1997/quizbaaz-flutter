@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![QuizBaaz 3D Banner](assets/images/characters/hero_boy_3d.png)
+![QuizBaaz 3D Banner](assets/images/characters/quizbaaz_mascot_boy.png)
 
 ### **A Next-Gen 3D Gamified Quiz Platform built with Flutter**
 *Chapter-Wise Question Bank • Daily 10-Question Live Quiz • Live Leaderboard • Yesterday's Champion Gifts • 3D Streaks • Zero-Friction Guest Trial • Central Admin Panel*

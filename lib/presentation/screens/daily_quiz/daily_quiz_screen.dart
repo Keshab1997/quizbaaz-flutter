@@ -24,7 +24,7 @@ class DailyQuizScreen extends StatelessWidget {
     final currentQ = quiz.currentQuestion;
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
           'Daily Live Quiz',

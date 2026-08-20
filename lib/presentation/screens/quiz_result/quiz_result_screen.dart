@@ -32,7 +32,7 @@ class QuizResultScreen extends StatelessWidget {
     final isPerfect = correct == totalQuestions && totalQuestions > 0;
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // Background Glows

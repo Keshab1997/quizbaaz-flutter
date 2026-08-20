@@ -20,7 +20,7 @@ class ReviewAnswersScreen extends StatelessWidget {
         records.where((r) => r.status == AnswerStatus.skipped).length;
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Review Answers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       ),

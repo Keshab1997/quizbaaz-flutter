@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
+
 import '../../../core/constants/app_assets.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../data/models/user_model.dart';
-import '../../../data/providers/user_provider.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/rewards_provider.dart';
+import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
-import '../daily_quiz/daily_quiz_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
 import '../battle/battle_screen.dart';
 import '../chapter_quiz/chapter_list_screen.dart';
+import '../daily_quiz/daily_quiz_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
+import '../profile/profile_screen.dart';
 import '../rewards/rewards_screen.dart';
 import '../shop/shop_screen.dart';
-import '../profile/profile_screen.dart';
-import '../admin/admin_dashboard_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -37,17 +38,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  void _onNavTap(int index) {
-    setState(() {
-      _currentNavIndex = index;
-    });
+  Future<void> _refresh() async {
+    await Future.wait([
+      context.read<UserProvider>().loadInitialData(),
+      context.read<RewardsProvider>().initialize(),
+    ]);
+  }
 
-    if (index == 1) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const ChapterListScreen()));
-    } else if (index == 2) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const LeaderboardScreen()));
-    } else if (index == 3) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+  void _onNavTap(int index) {
+    setState(() => _currentNavIndex = index);
+    switch (index) {
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ChapterListScreen()),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+        );
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        );
+        break;
     }
   }
 
@@ -60,534 +78,225 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _toggleMascotGender() {
-    setState(() {
-      _isFemaleMascot = !_isFemaleMascot;
-    });
-    final user = context.read<UserProvider>().user;
-    user.toggleGender();
-    setState(() {});
+    setState(() => _isFemaleMascot = !_isFemaleMascot);
+    context.read<UserProvider>().toggleGender();
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.watch<UserProvider>();
-    final user = userProvider.user;
-
-    final heroMascotAsset = _isFemaleMascot ? AppAssets.heroGirl : AppAssets.heroBoy;
-    final userAvatarAsset = _isFemaleMascot ? AppAssets.femaleAvatar : AppAssets.maleAvatar;
+    final user = context.watch<UserProvider>().user;
+    final heroAsset = _isFemaleMascot ? AppAssets.heroGirl : AppAssets.heroBoy;
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
-      body: Stack(
-        children: [
-          // Background Gradient Glow Orbs (Seamless Dark Navy & Purple)
-          Positioned(
-            top: -70,
-            right: -50,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.neonPurple.withValues(alpha: 0.22),
-              ),
+      backgroundColor: Colors.transparent,
+      extendBody: true,
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          color: AppColors.neonCyan,
+          backgroundColor: AppColors.surfaceElevated,
+          onRefresh: _refresh,
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
             ),
-          ),
-          Positioned(
-            top: 320,
-            left: -80,
-            child: Container(
-              width: 280,
-              height: 280,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.neonCyan.withValues(alpha: 0.14),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 120,
-            right: -60,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.neonGold.withValues(alpha: 0.12),
-              ),
-            ),
-          ),
-
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 120),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ================= 1. TOP HEADER =================
-                  _buildTopHeader(user, userAvatarAsset),
-                  const SizedBox(height: 16),
-
-                  // ================= 2. MAIN HERO TODAY'S QUIZ CARD =================
-                  _buildMainHeroCard(heroMascotAsset),
-                  const SizedBox(height: 14),
-
-                  // ================= 3. LIVE PLAYERS CARD =================
-                  _buildLivePlayersCard(),
-                  const SizedBox(height: 14),
-
-                  // ================= 4. YESTERDAY'S CHAMPION =================
-                  _buildYesterdayChampionCard(),
-                  const SizedBox(height: 14),
-
-                  // ================= 5. DAILY STREAK =================
-                  _buildDailyStreakCard(),
-                  const SizedBox(height: 14),
-
-                  // ================= 6. LEADERBOARD PREVIEW =================
-                  _buildLeaderboardPreviewCard(),
-                  const SizedBox(height: 20),
-
-                  // ================= 7. QUICK ACTIONS (5 3D SHORTCUTS) =================
-                  const Text(
-                    'QUICK ACTIONS',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildQuickActionsGrid(),
-                  const SizedBox(height: 18),
-
-                  // Admin Web Shortcut
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
-                        );
-                      },
-                      icon: const Icon(Icons.shield_rounded, size: 16, color: AppColors.neonCyan),
-                      label: const Text(
-                        'Open Admin Web Control Panel',
-                        style: TextStyle(color: AppColors.neonCyan, fontSize: 12, fontWeight: FontWeight.bold),
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(18, 12, 18, 132),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(user),
+                      const SizedBox(height: 18),
+                      _buildHeroCard(heroAsset),
+                      const SizedBox(height: 14),
+                      _buildStatStrip(user),
+                      const SizedBox(height: 14),
+                      _buildStreakCard(user),
+                      const SizedBox(height: 26),
+                      _buildSectionHeader(
+                        eyebrow: 'PLAY YOUR WAY',
+                        title: 'Quick actions',
+                        actionLabel: 'See all',
+                        onAction: () => _onNavTap(1),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      _buildQuickActions(),
+                      const SizedBox(height: 28),
+                      _buildSectionHeader(
+                        eyebrow: 'SMART REVISION',
+                        title: 'Continue learning',
+                        actionLabel: 'All chapters',
+                        onAction: () => _onNavTap(1),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildContinueLearning(),
+                      const SizedBox(height: 28),
+                      _buildChampionCard(),
+                      const SizedBox(height: 28),
+                      _buildSectionHeader(
+                        eyebrow: 'LIVE TODAY',
+                        title: 'Leaderboard',
+                        actionLabel: 'View full',
+                        onAction: () => _onNavTap(2),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildLeaderboardPreview(),
+                      const SizedBox(height: 12),
+                      _buildAdminShortcut(),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-
-          // ================= 8. BOTTOM NAVIGATION =================
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: _buildBottomNav(),
-          ),
-        ],
+        ),
       ),
+      bottomNavigationBar: _buildBottomNavigation(),
     );
   }
 
-  // --- 1. TOP HEADER ---
-  Widget _buildTopHeader(UserModel user, String avatarAsset) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Left: Circular 3D Avatar (Tap to toggle Boy/Girl) + Greeting
-        Expanded(
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: _toggleMascotGender,
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: AppColors.primaryGradient,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.neonPurple.withValues(alpha: 0.5),
-                        blurRadius: 12,
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(2),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      avatarAsset,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, color: Colors.white),
+  Widget _buildHeader(UserModel user) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 365;
+        return Row(
+          children: [
+            GestureDetector(
+              onTap: _toggleMascotGender,
+              child: Container(
+                width: 52,
+                height: 52,
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppColors.primaryGradient,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonPurple.withValues(alpha: 0.36),
+                      blurRadius: 18,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    _isFemaleMascot ? AppAssets.femaleAvatar : AppAssets.maleAvatar,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.person_rounded,
+                      color: Colors.white,
+                      size: 28,
                     ),
                   ),
                 ),
               ),
-            const SizedBox(width: 10),
+            ),
+            const SizedBox(width: 11),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Hi, ${user.fullName}! 👋',
+                    'Good morning, ${user.fullName}  👋',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
                       color: AppColors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
+                  const SizedBox(height: 3),
                   const Text(
-                    "Let's test your knowledge",
+                    'Ready to beat your best score?',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
                       color: AppColors.textSecondary,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-        ),
-
-        // Right: Coins + Purple Gem + Notification Bell with Red Dot
-        Row(
-          children: [
-            // Gold Coins
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.4)),
-              ),
-              child: Row(
-                children: [
-                  Image.asset(AppAssets.coinGem, width: 16, height: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${user.coins}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.neonGold,
-                    ),
-                  ),
-                ],
-              ),
+            const SizedBox(width: 8),
+            _buildCurrencyPill(
+              icon: Icons.monetization_on_rounded,
+              value: '${user.coins}',
+              color: AppColors.neonGold,
             ),
-            const SizedBox(width: 6),
-            // Purple Diamond / Gem
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.4)),
+            if (!compact) ...[
+              const SizedBox(width: 6),
+              _buildCurrencyPill(
+                icon: Icons.diamond_rounded,
+                value: '${user.gems}',
+                color: AppColors.neonPurple,
               ),
-              child: Row(
-                children: [
-                  const Text('💎', style: TextStyle(fontSize: 12)),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${user.gems}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.neonPurple,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 6),
-            // Notification Bell with Red Indicator
+            ],
+            const SizedBox(width: 7),
             Stack(
+              clipBehavior: Clip.none,
               children: [
                 Container(
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                    color: Colors.white.withValues(alpha: 0.055),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
                   ),
-                  child: const Icon(Icons.notifications_none_rounded, size: 18, color: Colors.white),
+                  child: const Icon(
+                    Icons.notifications_none_rounded,
+                    color: AppColors.textPrimary,
+                    size: 19,
+                  ),
                 ),
                 Positioned(
-                  top: 7,
-                  right: 7,
+                  top: 5,
+                  right: 5,
                   child: Container(
                     width: 7,
                     height: 7,
                     decoration: const BoxDecoration(
                       color: AppColors.neonRed,
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(color: AppColors.neonRed, blurRadius: 4),
-                      ],
                     ),
                   ),
                 ),
               ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
-  // --- 2. MAIN HERO TODAY'S QUIZ CARD ---
-  Widget _buildMainHeroCard(String heroMascotAsset) {
-    return GlassCard(
-      borderRadius: 24,
-      borderColor: AppColors.neonPurple.withValues(alpha: 0.4),
-      backgroundColor: const Color(0x332E1065),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Row(
-            children: [
-              // Mascot on Left Side holding Golden Trophy
-              Expanded(
-                flex: 4,
-                child: Image.asset(
-                  heroMascotAsset,
-                  height: 155,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.military_tech,
-                    size: 90,
-                    color: AppColors.neonGold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Details on Right Side
-              Expanded(
-                flex: 6,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.neonCyan.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.neonCyan.withValues(alpha: 0.4)),
-                      ),
-                      child: const Text(
-                        "TODAY'S QUIZ",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.neonCyan,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      '10 QUESTIONS',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    // Timer & Rewards
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.timer_outlined, size: 12, color: AppColors.neonGold),
-                              SizedBox(width: 4),
-                              Text(
-                                '03:20 MIN',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.neonGold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Row(
-                            children: [
-                              Text('🎁', style: TextStyle(fontSize: 10)),
-                              SizedBox(width: 4),
-                              Text(
-                                '500 Coins',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    // Premium Yellow/Orange START QUIZ → Button
-                    NeonButton(
-                      text: 'START QUIZ  →',
-                      height: 44,
-                      glowColor: AppColors.neonGold,
-                      gradient: AppColors.goldGradient,
-                      onPressed: _startDailyQuiz,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+  Widget _buildCurrencyPill({
+    required IconData icon,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
-    );
-  }
-
-  // --- 3. LIVE PLAYERS CARD ---
-  Widget _buildLivePlayersCard() {
-    final sampleLivePlayers = [
-      {'name': 'Rahul', 'status': 'Playing 🟢', 'avatar': AppAssets.championBoy},
-      {'name': 'Amit', 'status': 'Q. 7/10 🟢', 'avatar': AppAssets.maleAvatar},
-      {'name': 'Suman', 'status': 'Q. 9/10 🟢', 'avatar': AppAssets.femaleAvatar},
-      {'name': 'Priya', 'status': 'Finished 🟢', 'avatar': AppAssets.femaleAvatar},
-    ];
-
-    return GlassCard(
-      padding: const EdgeInsets.all(14),
-      borderRadius: 20,
-      borderColor: AppColors.neonGreen.withValues(alpha: 0.35),
-      child: Column(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.neonGreen,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.neonGreen,
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    '1,284 Online',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('⚡ 1,284 active quiz players online!')),
-                  );
-                },
-                child: const Text(
-                  'VIEW ALL',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.neonCyan,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // Horizontal scrolling mini player cards
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: sampleLivePlayers.map((player) {
-                return Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 12,
-                        backgroundImage: AssetImage(player['avatar'] as String),
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            player['name'] as String,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            player['status'] as String,
-                            style: const TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.neonGreen,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 4),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ],
@@ -595,421 +304,139 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // --- 4. YESTERDAY'S CHAMPION CARD ---
-  Widget _buildYesterdayChampionCard() {
-    return GlassCard(
-      borderRadius: 20,
-      borderColor: AppColors.neonGold.withValues(alpha: 0.4),
-      backgroundColor: const Color(0x33281E48),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Row(
-                children: [
-                  Text('👑', style: TextStyle(fontSize: 14)),
-                  SizedBox(width: 6),
-                  Text(
-                    "YESTERDAY'S CHAMPION",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.neonGold,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                ],
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LeaderboardScreen(initialTabIndex: 1)),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.neonGold.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.4)),
-                  ),
-                  child: const Text(
-                    'VIEW PROFILE',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.neonGold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              // 3D Winner on Podium with Golden Trophy
-              Container(
-                width: 75,
-                height: 85,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.neonPurple.withValues(alpha: 0.4),
-                      AppColors.neonGold.withValues(alpha: 0.2),
-                    ],
-                  ),
-                ),
-                child: Image.asset(
-                  AppAssets.championBoy,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(width: 14),
-              // Rahul Das, Score: 96/100, Rank #1, Reward: 500 Coins
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Rahul Das',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Score: 96/100  •  Rank #1 🏆',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.neonGold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.card_giftcard, size: 14, color: AppColors.neonPink),
-                        SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            'Reward: 500 Coins + Smartwatch',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+  Widget _buildHeroCard(String heroAsset) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2D1C68), Color(0xFF162D67)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.42)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.neonPurple.withValues(alpha: 0.20),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
-    );
-  }
-
-  // --- 5. DAILY STREAK CARD ---
-  Widget _buildDailyStreakCard() {
-    final streakDaysList = [true, true, true, true, true, true, false]; // 6 days completed
-
-    return GlassCard(
-      borderRadius: 20,
-      borderColor: AppColors.neonGold.withValues(alpha: 0.35),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Image.asset(AppAssets.streakFire, width: 34, height: 34),
-                  const SizedBox(width: 10),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'DAILY STREAK',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.neonGold,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                      Text(
-                        '6 DAYS',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // 7-day progress indicator: ✓ ✓ ✓ ✓ ✓ ✓ ○
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: streakDaysList.map((isDone) {
-              return Container(
-                width: 32,
-                height: 32,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -60,
+              right: -45,
+              child: Container(
+                width: 190,
+                height: 190,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDone ? AppColors.neonGold.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
-                  border: Border.all(
-                    color: isDone ? AppColors.neonGold : Colors.white.withValues(alpha: 0.2),
-                    width: 1.5,
-                  ),
+                  color: AppColors.neonCyan.withValues(alpha: 0.10),
                 ),
-                child: Center(
-                  child: isDone
-                      ? const Icon(Icons.check, size: 16, color: AppColors.neonGold)
-                      : const Text('○', style: TextStyle(color: AppColors.textMuted, fontSize: 16)),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Complete 7 days streak to get 500 bonus coins!',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- 6. LEADERBOARD PREVIEW CARD ---
-  Widget _buildLeaderboardPreviewCard() {
-    final topRanks = [
-      {'rank': '🥇', 'name': 'Rahul', 'score': 96, 'color': AppColors.neonGold},
-      {'rank': '🥈', 'name': 'Amit', 'score': 91, 'color': const Color(0xFFC0C0C0)},
-      {'rank': '🥉', 'name': 'Suman', 'score': 89, 'color': const Color(0xFFCD7F32)},
-      {'rank': '4.', 'name': 'Arjun', 'score': 87, 'color': AppColors.textSecondary},
-      {'rank': '5.', 'name': 'Priya', 'score': 82, 'color': AppColors.textSecondary},
-    ];
-
-    return GlassCard(
-      borderRadius: 20,
-      borderColor: AppColors.neonCyan.withValues(alpha: 0.35),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Row(
-                children: [
-                  Text('🏆', style: TextStyle(fontSize: 14)),
-                  SizedBox(width: 6),
-                  Text(
-                    'LEADERBOARD',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.neonCyan,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                ],
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
-                  );
-                },
-                child: const Text(
-                  'VIEW FULL',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.neonCyan,
-                    letterSpacing: 0.8,
-                  ),
+            Positioned(
+              bottom: -55,
+              left: -40,
+              child: Container(
+                width: 170,
+                height: 170,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.neonPink.withValues(alpha: 0.09),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...topRanks.map((p) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(15, 16, 16, 17),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 28,
-                    child: Text(
-                      p['rank'] as String,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      p['name'] as String,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                    width: 126,
+                    height: 182,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Image.asset(
+                        heroAsset,
+                        height: 181,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.emoji_events_rounded,
+                          color: AppColors.neonGold,
+                          size: 78,
+                        ),
                       ),
                     ),
                   ),
-                  Text(
-                    '${p['score']}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: p['color'] as Color,
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppColors.neonCyan.withValues(alpha: 0.13),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppColors.neonCyan.withValues(alpha: 0.32),
+                            ),
+                          ),
+                          child: const Text(
+                            'DAILY CHALLENGE',
+                            style: TextStyle(
+                              color: AppColors.neonCyan,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 9),
+                        const Text(
+                          '10 questions.\nOne brilliant run.',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 20,
+                            height: 1.08,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 9),
+                        Row(
+                          children: [
+                            _buildHeroMeta(Icons.timer_outlined, '03:20'),
+                            const SizedBox(width: 6),
+                            _buildHeroMeta(Icons.card_giftcard_rounded, '500 coins'),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          width: double.infinity,
+                          child: NeonButton(
+                            text: 'START QUIZ',
+                            height: 43,
+                            borderRadius: 14,
+                            icon: const Icon(
+                              Icons.bolt_rounded,
+                              color: Color(0xFF191126),
+                              size: 18,
+                            ),
+                            gradient: AppColors.goldGradient,
+                            glowColor: AppColors.neonGold,
+                            onPressed: _startDailyQuiz,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  // --- 7. QUICK ACTIONS (5 3D SHORTCUT CARDS) ---
-  Widget _buildQuickActionsGrid() {
-    final actions = [
-      {
-        'title': 'Chapter Quiz',
-        'icon': AppAssets.chapterQuiz,
-        'color': AppColors.neonCyan,
-        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChapterListScreen())),
-      },
-      {
-        'title': 'Practice',
-        'icon': AppAssets.practiceTarget,
-        'color': AppColors.neonGreen,
-        'onTap': _startDailyQuiz,
-      },
-      {
-        'title': '1 vs 1 Battle',
-        'icon': AppAssets.battleSwords,
-        'color': AppColors.neonPink,
-        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BattleScreen())),
-      },
-      {
-        'title': 'Rewards',
-        'icon': AppAssets.giftBox,
-        'color': AppColors.neonGold,
-        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RewardsScreen())),
-      },
-      {
-        'title': 'Shop',
-        'icon': AppAssets.shopStall,
-        'color': AppColors.neonPurple,
-        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShopScreen())),
-      },
-    ];
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: actions.map((act) {
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0),
-            child: GlassCard(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-              borderRadius: 16,
-              borderColor: (act['color'] as Color).withValues(alpha: 0.35),
-              onTap: act['onTap'] as VoidCallback,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    act['icon'] as String,
-                    width: 38,
-                    height: 38,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    act['title'] as String,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                    maxLines: 2,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  // --- 8. BOTTOM NAVIGATION (Home, Quiz, Ranking, Profile) ---
-  Widget _buildBottomNav() {
-    return Container(
-      height: 80,
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-      child: GlassCard(
-        borderRadius: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // 🏠 Home (Glowing Gold Highlight)
-            _buildBottomNavItem(
-              icon: Icons.home_rounded,
-              label: 'Home',
-              isActive: _currentNavIndex == 0,
-              onTap: () => _onNavTap(0),
-            ),
-            // ❓ Quiz
-            _buildBottomNavItem(
-              icon: Icons.help_outline_rounded,
-              label: 'Quiz',
-              isActive: _currentNavIndex == 1,
-              onTap: () => _onNavTap(1),
-            ),
-            // 🏆 Ranking
-            _buildBottomNavItem(
-              icon: Icons.emoji_events_rounded,
-              label: 'Ranking',
-              isActive: _currentNavIndex == 2,
-              onTap: () => _onNavTap(2),
-            ),
-            // 👤 Profile (Tap to toggle Boy/Girl Avatar)
-            _buildBottomNavItem(
-              icon: Icons.person_rounded,
-              label: 'Profile',
-              isActive: _currentNavIndex == 3,
-              onTap: () => _onNavTap(3),
             ),
           ],
         ),
@@ -1017,34 +444,810 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildBottomNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 22,
-            color: isActive ? AppColors.neonGold : AppColors.textSecondary,
+  Widget _buildHeroMeta(IconData icon, String label) {
+    return Flexible(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.20),
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppColors.neonGold, size: 12),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatStrip(UserModel user) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            icon: Icons.local_fire_department_rounded,
+            value: '${user.dailyStreak}',
+            label: 'day streak',
+            color: AppColors.neonGold,
+            detail: 'Keep it alive',
           ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
-              color: isActive ? AppColors.neonGold : AppColors.textMuted,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildStatCard(
+            icon: Icons.track_changes_rounded,
+            value: '72%',
+            label: 'accuracy',
+            color: AppColors.neonCyan,
+            detail: 'Top 18% today',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+    required String detail,
+  }) {
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+      borderRadius: 19,
+      borderColor: color.withValues(alpha: 0.24),
+      child: Row(
+        children: [
+          Container(
+            width: 35,
+            height: 35,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.13),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  detail,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildStreakCard(UserModel user) {
+    final completed = user.dailyStreak.clamp(0, 7).toInt();
+    return GlassCard(
+      borderRadius: 22,
+      padding: const EdgeInsets.fromLTRB(15, 14, 15, 15),
+      borderColor: AppColors.neonGold.withValues(alpha: 0.28),
+      backgroundColor: const Color(0x54291E2D),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppColors.fireGradient,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonGold.withValues(alpha: 0.22),
+                      blurRadius: 16,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.local_fire_department_rounded,
+                  color: Color(0xFF551F05),
+                  size: 26,
+                ),
+              ),
+              const SizedBox(width: 11),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'YOUR DAILY STREAK',
+                      style: TextStyle(
+                        color: AppColors.neonGold,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'One more day to unlock the bonus',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '$completed/7',
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: completed / 7,
+              minHeight: 8,
+              backgroundColor: Colors.white.withValues(alpha: 0.08),
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.neonGold),
+            ),
+          ),
+          const SizedBox(height: 11),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(7, (index) {
+              final isDone = index < completed;
+              final label = ['M', 'T', 'W', 'T', 'F', 'S', 'S'][index];
+              return Column(
+                children: [
+                  Container(
+                    width: 27,
+                    height: 27,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isDone
+                          ? AppColors.neonGold.withValues(alpha: 0.18)
+                          : Colors.white.withValues(alpha: 0.045),
+                      border: Border.all(
+                        color: isDone
+                            ? AppColors.neonGold.withValues(alpha: 0.75)
+                            : Colors.white.withValues(alpha: 0.10),
+                      ),
+                    ),
+                    child: Icon(
+                      isDone ? Icons.check_rounded : Icons.circle_outlined,
+                      size: 14,
+                      color: isDone ? AppColors.neonGold : AppColors.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader({
+    required String eyebrow,
+    required String title,
+    required String actionLabel,
+    required VoidCallback onAction,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                eyebrow,
+                style: const TextStyle(
+                  color: AppColors.neonCyan,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.35,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.25,
+                ),
+              ),
+            ],
+          ),
+        ),
+        TextButton(
+          onPressed: onAction,
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.textSecondary,
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                actionLabel,
+                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(width: 3),
+              const Icon(Icons.arrow_forward_rounded, size: 13),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActions() {
+    final actions = [
+      _QuickAction('Chapters', Icons.menu_book_rounded, AppColors.neonCyan,
+          () => _onNavTap(1)),
+      _QuickAction('Practice', Icons.track_changes_rounded, AppColors.neonGreen,
+          _startDailyQuiz),
+      _QuickAction('Battle', Icons.bolt_rounded, AppColors.neonPink,
+          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BattleScreen()))),
+      _QuickAction('Rewards', Icons.card_giftcard_rounded, AppColors.neonGold,
+          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RewardsScreen()))),
+      _QuickAction('Shop', Icons.storefront_rounded, AppColors.neonPurple,
+          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShopScreen()))),
+    ];
+
+    return SizedBox(
+      height: 116,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: actions.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          final action = actions[index];
+          return GlassCard(
+            width: 91,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            borderRadius: 19,
+            borderColor: action.color.withValues(alpha: 0.26),
+            onTap: action.onTap,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        action.color.withValues(alpha: 0.28),
+                        action.color.withValues(alpha: 0.08),
+                      ],
+                    ),
+                    border: Border.all(color: action.color.withValues(alpha: 0.38)),
+                  ),
+                  child: Icon(action.icon, color: action.color, size: 23),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  action.title,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildContinueLearning() {
+    final lessons = [
+      _Lesson('Mathematics', 'Real Numbers', 0.72, Icons.functions_rounded, AppColors.neonCyan),
+      _Lesson('General Science', 'Life Processes', 0.45, Icons.science_rounded, AppColors.neonGreen),
+    ];
+
+    return Column(
+      children: lessons
+          .map(
+            (lesson) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: GlassCard(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                borderRadius: 19,
+                borderColor: lesson.color.withValues(alpha: 0.24),
+                onTap: () => _onNavTap(1),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        color: lesson.color.withValues(alpha: 0.13),
+                        border: Border.all(color: lesson.color.withValues(alpha: 0.25)),
+                      ),
+                      child: Icon(lesson.icon, color: lesson.color, size: 22),
+                    ),
+                    const SizedBox(width: 11),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            lesson.subject,
+                            style: TextStyle(
+                              color: lesson.color,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.65,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            lesson.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(5),
+                            child: LinearProgressIndicator(
+                              value: lesson.progress,
+                              minHeight: 5,
+                              backgroundColor: Colors.white.withValues(alpha: 0.08),
+                              valueColor: AlwaysStoppedAnimation(lesson.color),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '${(lesson.progress * 100).round()}%',
+                      style: TextStyle(
+                        color: lesson.color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(width: 3),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textMuted,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Widget _buildChampionCard() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF33240F), Color(0xFF251B33)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.32)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.neonGold.withValues(alpha: 0.10),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: SizedBox(
+          height: 186,
+          child: Stack(
+            children: [
+              Positioned(
+                right: -22,
+                bottom: -44,
+                child: Container(
+                  width: 175,
+                  height: 175,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.neonGold.withValues(alpha: 0.10),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 14,
+                bottom: -5,
+                child: Image.asset(
+                  AppAssets.championBoy,
+                  height: 178,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.emoji_events_rounded,
+                    color: AppColors.neonGold,
+                    size: 90,
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(148, 17, 16, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.workspace_premium_rounded,
+                              color: AppColors.neonGold, size: 17),
+                          const SizedBox(width: 6),
+                          const Expanded(
+                            child: Text(
+                              "YESTERDAY'S CHAMPION",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: AppColors.neonGold,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.9,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 13),
+                      const Text(
+                        'Rahul Das',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '96 pts  •  Rank #1',
+                        style: TextStyle(
+                          color: AppColors.neonGold,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          const Icon(Icons.card_giftcard_rounded,
+                              color: AppColors.neonPink, size: 15),
+                          const SizedBox(width: 5),
+                          const Expanded(
+                            child: Text(
+                              '500 coins + smartwatch',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLeaderboardPreview() {
+    final players = [
+      _Rank('1', 'Liam G.', '1200 pts', AppColors.neonGold, AppAssets.maleAvatar),
+      _Rank('2', 'Sarah K.', '1180 pts', const Color(0xFFC7D2E8), AppAssets.femaleAvatar),
+      _Rank('3', 'Ben J.', '1150 pts', const Color(0xFFDC9A67), AppAssets.maleAvatar),
+      _Rank('4', 'Maya S.', '1125 pts', AppColors.textSecondary, AppAssets.femaleAvatar),
+    ];
+
+    return GlassCard(
+      borderRadius: 22,
+      padding: const EdgeInsets.fromLTRB(14, 13, 14, 11),
+      borderColor: AppColors.neonCyan.withValues(alpha: 0.22),
+      child: Column(
+        children: players
+            .map(
+              (player) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 25,
+                      child: Text(
+                        player.rank,
+                        style: TextStyle(
+                          color: player.color,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: player.color.withValues(alpha: 0.18),
+                      backgroundImage: AssetImage(player.avatar),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        player.name,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      player.score,
+                      style: TextStyle(
+                        color: player.color,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildAdminShortcut() {
+    return Center(
+      child: TextButton.icon(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+          );
+        },
+        icon: const Icon(Icons.shield_rounded, size: 15, color: AppColors.textMuted),
+        label: const Text(
+          'Admin control panel',
+          style: TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigation() {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 9),
+        child: GlassCard(
+          borderRadius: 27,
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 8),
+          borderColor: Colors.white.withValues(alpha: 0.14),
+          backgroundColor: const Color(0xB3141A32),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.home_rounded,
+                  label: 'Home',
+                  index: 0,
+                ),
+              ),
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.menu_book_rounded,
+                  label: 'Explore',
+                  index: 1,
+                ),
+              ),
+              SizedBox(
+                width: 66,
+                height: 60,
+                child: GestureDetector(
+                  onTap: _startDailyQuiz,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: AppColors.goldGradient,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.42)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.neonGold.withValues(alpha: 0.38),
+                          blurRadius: 20,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.bolt_rounded,
+                      color: Color(0xFF211326),
+                      size: 30,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.emoji_events_rounded,
+                  label: 'Ranking',
+                  index: 2,
+                ),
+              ),
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.person_rounded,
+                  label: 'Profile',
+                  index: 3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+  }) {
+    final selected = _currentNavIndex == index;
+    final color = selected ? AppColors.neonGold : AppColors.textMuted;
+    return GestureDetector(
+      onTap: () => _onNavTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 21),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 9,
+              fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickAction {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickAction(this.title, this.icon, this.color, this.onTap);
+}
+
+class _Lesson {
+  final String subject;
+  final String title;
+  final double progress;
+  final IconData icon;
+  final Color color;
+
+  const _Lesson(this.subject, this.title, this.progress, this.icon, this.color);
+}
+
+class _Rank {
+  final String rank;
+  final String name;
+  final String score;
+  final Color color;
+  final String avatar;
+
+  const _Rank(this.rank, this.name, this.score, this.color, this.avatar);
 }

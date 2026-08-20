@@ -41,7 +41,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
         : [_categories[_selectedCategoryIndex - 1]];
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
           'Class 10 Board Chapter Bank',

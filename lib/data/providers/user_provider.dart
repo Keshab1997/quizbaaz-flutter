@@ -188,6 +188,12 @@ class UserProvider extends ChangeNotifier {
     return true;
   }
 
+  /// Switches the profile mascot and keeps every screen in sync.
+  void toggleGender() {
+    _user.toggleGender();
+    notifyListeners();
+  }
+
   void setGuestMode(bool isGuest) {
     if (isGuest) {
       _user = UserModel.guestUser();
@@ -209,7 +215,7 @@ class UserProvider extends ChangeNotifier {
       userId: email,
       username: email.split('@').first,
       fullName: fullName,
-      avatarPath: 'assets/images/characters/hero_boy_3d.png',
+      avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png',
       coins: _user.coins + (wasGuest ? 500 : 0), // Welcome bonus
       gems: _user.gems + (wasGuest ? 20 : 0),
       dailyStreak: _user.dailyStreak,

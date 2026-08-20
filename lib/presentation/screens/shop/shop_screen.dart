@@ -32,7 +32,7 @@ class ShopScreen extends StatelessWidget {
     final user = userProvider.user;
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Power-Up Shop', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       ),

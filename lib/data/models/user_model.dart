@@ -37,10 +37,10 @@ class UserModel {
   void toggleGender() {
     if (gender == UserGender.male) {
       gender = UserGender.female;
-      avatarPath = 'assets/images/avatars/female_avatar_3d.png';
+      avatarPath = 'assets/images/avatars/quizbaaz_avatar_girl.png';
     } else {
       gender = UserGender.male;
-      avatarPath = 'assets/images/avatars/user_boy_avatar.png';
+      avatarPath = 'assets/images/avatars/quizbaaz_avatar_boy.png';
     }
   }
 
@@ -49,7 +49,7 @@ class UserModel {
       userId: 'usr_keshab_1997',
       username: 'Keshab1997',
       fullName: 'Keshab',
-      avatarPath: 'assets/images/avatars/user_boy_avatar.png',
+      avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png',
       gender: UserGender.male,
       coins: 1450,
       gems: 45,
@@ -68,7 +68,7 @@ class UserModel {
       userId: 'guest_${DateTime.now().millisecondsSinceEpoch}',
       username: 'Guest Explorer',
       fullName: 'Guest User',
-      avatarPath: 'assets/images/avatars/user_boy_avatar.png',
+      avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png',
       gender: UserGender.male,
       coins: 100,
       gems: 5,

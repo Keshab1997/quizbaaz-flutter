@@ -18,7 +18,7 @@ class BattleScreen extends StatelessWidget {
     final battle = context.watch<BattleProvider>();
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('1 vs 1 Battle', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       ),
@@ -49,7 +49,16 @@ class _SetupViewState extends State<_SetupView> {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        Image.asset(AppAssets.battleSwords, height: 90, fit: BoxFit.contain),
+        Image.asset(
+          AppAssets.battleDuo,
+          height: 150,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => Image.asset(
+            AppAssets.battleSwords,
+            height: 90,
+            fit: BoxFit.contain,
+          ),
+        ),
         const SizedBox(height: 12),
         const Text(
           '⚔️ BATTLE ARENA',

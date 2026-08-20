@@ -37,7 +37,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     final champions = userProvider.champions;
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
           'Hall of Fame & Rankings',

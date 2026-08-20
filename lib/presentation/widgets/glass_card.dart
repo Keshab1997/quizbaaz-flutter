@@ -1,7 +1,10 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
 import '../../core/constants/app_colors.dart';
 
+/// A soft glass surface used by cards across the app.
 class GlassCard extends StatelessWidget {
   final Widget child;
   final double borderRadius;
@@ -18,12 +21,12 @@ class GlassCard extends StatelessWidget {
   const GlassCard({
     super.key,
     required this.child,
-    this.borderRadius = 20.0,
+    this.borderRadius = 22.0,
     this.padding = const EdgeInsets.all(16.0),
     this.margin,
     this.borderColor,
     this.backgroundColor,
-    this.blur = 15.0,
+    this.blur = 18.0,
     this.onTap,
     this.width,
     this.height,
@@ -32,38 +35,39 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget cardContent = Container(
+    final radius = BorderRadius.circular(borderRadius);
+    final card = Container(
       width: width,
       height: height,
       margin: margin,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: radius,
         boxShadow: shadows ??
             [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              )
+                blurRadius: 24,
+                offset: const Offset(0, 12),
+              ),
             ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: radius,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
               color: backgroundColor ?? AppColors.bgCardGlass,
-              borderRadius: BorderRadius.circular(borderRadius),
+              borderRadius: radius,
               border: Border.all(
-                color: borderColor ?? Colors.white.withValues(alpha: 0.12),
-                width: 1.2,
+                color: borderColor ?? AppColors.outline,
+                width: 1,
               ),
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withValues(alpha: 0.08),
-                  Colors.white.withValues(alpha: 0.02),
+                  Colors.white.withValues(alpha: 0.075),
+                  Colors.white.withValues(alpha: 0.018),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -75,12 +79,17 @@ class GlassCard extends StatelessWidget {
       ),
     );
 
-    if (onTap != null) {
-      return GestureDetector(
+    if (onTap == null) return card;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         onTap: onTap,
-        child: cardContent,
-      );
-    }
-    return cardContent;
+        borderRadius: radius,
+        splashColor: AppColors.neonCyan.withValues(alpha: 0.10),
+        highlightColor: Colors.white.withValues(alpha: 0.025),
+        child: card,
+      ),
+    );
   }
 }
