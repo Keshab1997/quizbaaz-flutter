@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_assets.dart';
+import '../../../data/models/shop_item.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({Key? key}) : super(key: key);
 
+  IconData _iconFor(String itemId) {
+    switch (itemId) {
+      case ShopItemIds.fiftyFifty:
+        return Icons.filter_2;
+      case ShopItemIds.freezeTime:
+        return Icons.ac_unit;
+      case ShopItemIds.streakShield:
+        return Icons.shield_moon;
+      case ShopItemIds.vipAvatar:
+        return Icons.workspace_premium;
+      default:
+        return Icons.card_giftcard;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>().user;
-
-    final shopItems = [
-      {'name': '50-50 Lifeline (x3)', 'desc': 'Eliminates 2 wrong options', 'cost': 150, 'currency': 'Coins', 'icon': Icons.filter_2},
-      {'name': '+10s Freeze Time (x2)', 'desc': 'Freezes the clock during quiz', 'cost': 200, 'currency': 'Coins', 'icon': Icons.ac_unit},
-      {'name': 'Streak Freeze Shield', 'desc': 'Protects streak if you miss a day', 'cost': 20, 'currency': 'Gems', 'icon': Icons.shield_moon},
-      {'name': 'Exclusive VIP Golden Avatar', 'desc': 'Unlocks 3D glowing character', 'cost': 50, 'currency': 'Gems', 'icon': Icons.workspace_premium},
-    ];
+    final userProvider = context.watch<UserProvider>();
+    final user = userProvider.user;
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
@@ -58,59 +68,166 @@ class ShopScreen extends StatelessWidget {
             'AVAILABLE POWER-UPS & ITEMS',
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
           ),
+          const SizedBox(height: 4),
+          const Text(
+            'Lifelines you buy appear instantly in the quiz.',
+            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+          ),
           const SizedBox(height: 12),
 
-          ...shopItems.map((item) {
-            final isGems = item['currency'] == 'Gems';
+          ...ShopCatalog.items.map((item) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
-              child: GlassCard(
-                borderRadius: 18,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: isGems ? AppColors.neonPurple.withOpacity(0.2) : AppColors.neonGold.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(item['icon'] as IconData, color: isGems ? AppColors.neonPurple : AppColors.neonGold),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(item['name'] as String, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-                          const SizedBox(height: 2),
-                          Text(item['desc'] as String, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isGems ? AppColors.neonPurple : AppColors.neonGold,
-                        foregroundColor: isGems ? Colors.white : Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      ),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('✨ Purchased ${item['name']}!')),
-                        );
-                      },
-                      child: Text(
-                        '${item['cost']} ${item['currency']}',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
+              child: _ShopItemCard(
+                item: item,
+                icon: _iconFor(item.id),
+                owned: userProvider.inventoryCount(item.id),
+                affordable: userProvider.canAfford(item),
+                onBuy: () => _handleBuy(context, userProvider, item),
               ),
             );
           }).toList(),
         ],
+      ),
+    );
+  }
+
+  void _handleBuy(BuildContext context, UserProvider userProvider, ShopItem item) {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = userProvider.purchaseItem(item);
+
+    switch (result) {
+      case PurchaseStatus.success:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('✨ Purchased ${item.name} (x${item.quantity})!'),
+            backgroundColor: Colors.green.shade800,
+          ),
+        );
+        break;
+      case PurchaseStatus.alreadyOwned:
+        messenger.showSnackBar(
+          const SnackBar(content: Text('You already own this item!')),
+        );
+        break;
+      case PurchaseStatus.insufficientFunds:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Not enough ${item.currencyLabel}! Earn more by playing quizzes.'),
+            backgroundColor: Colors.red.shade800,
+          ),
+        );
+        break;
+    }
+  }
+}
+
+class _ShopItemCard extends StatelessWidget {
+  final ShopItem item;
+  final IconData icon;
+  final int owned;
+  final bool affordable;
+  final VoidCallback onBuy;
+
+  const _ShopItemCard({
+    required this.item,
+    required this.icon,
+    required this.owned,
+    required this.affordable,
+    required this.onBuy,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isGems = !item.costsCoins;
+    final isOwnedCosmetic = item.isCosmetic && owned > 0;
+
+    final Color accent = isGems ? AppColors.neonPurple : AppColors.neonGold;
+
+    return GlassCard(
+      borderRadius: 18,
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: accent),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                const SizedBox(height: 2),
+                Text(item.description, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                const SizedBox(height: 4),
+                Text(
+                  _ownedLabel(),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: owned > 0 ? AppColors.neonCyan : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _buildButton(accent),
+        ],
+      ),
+    );
+  }
+
+  String _ownedLabel() {
+    if (item.isCosmetic) {
+      return owned > 0 ? 'OWNED ✓' : 'NOT OWNED';
+    }
+    return 'OWNED: x$owned';
+  }
+
+  Widget _buildButton(Color accent) {
+    // Cosmetic already owned -> show a static owned badge.
+    if (item.isCosmetic && owned > 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.neonCyan.withOpacity(0.5)),
+        ),
+        child: const Text(
+          'OWNED ✓',
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.neonCyan),
+        ),
+      );
+    }
+
+    final Color bg = affordable ? accent : Colors.white.withOpacity(0.08);
+    final Color fg = affordable
+        ? (item.costsCoins ? Colors.black : Colors.white)
+        : AppColors.textSecondary;
+
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: bg,
+        foregroundColor: fg,
+        disabledBackgroundColor: Colors.white.withOpacity(0.08),
+        disabledForegroundColor: AppColors.textSecondary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      ),
+      // Still tappable when unaffordable so the user gets a helpful
+      // "not enough coins/gems" message instead of a dead button.
+      onPressed: onBuy,
+      child: Text(
+        '${item.cost} ${item.currencyLabel}',
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
       ),
     );
   }

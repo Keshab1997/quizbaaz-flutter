@@ -1,3 +1,5 @@
+import 'shop_item.dart';
+
 enum UserGender { male, female }
 
 class UserModel {
@@ -12,6 +14,9 @@ class UserModel {
   bool isGuest;
   bool playedTodayDailyQuiz;
 
+  /// Owned shop items: itemId (ShopItemIds) -> quantity owned.
+  Map<String, int> inventory;
+
   UserModel({
     required this.userId,
     required this.username,
@@ -23,7 +28,11 @@ class UserModel {
     this.dailyStreak = 6,
     this.isGuest = false,
     this.playedTodayDailyQuiz = false,
-  });
+    Map<String, int>? inventory,
+  }) : inventory = inventory ?? {};
+
+  /// How many units of [itemId] this user owns.
+  int inventoryCount(String itemId) => inventory[itemId] ?? 0;
 
   void toggleGender() {
     if (gender == UserGender.male) {
@@ -46,6 +55,11 @@ class UserModel {
       gems: 45,
       dailyStreak: 6,
       isGuest: false,
+      inventory: {
+        ShopItemIds.fiftyFifty: 3,
+        ShopItemIds.freezeTime: 2,
+        ShopItemIds.streakShield: 1,
+      },
     );
   }
 
@@ -60,6 +74,10 @@ class UserModel {
       gems: 5,
       dailyStreak: 1,
       isGuest: true,
+      inventory: {
+        ShopItemIds.fiftyFifty: 1,
+        ShopItemIds.freezeTime: 1,
+      },
     );
   }
 }

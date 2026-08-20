@@ -157,12 +157,14 @@ class DailyQuizScreen extends StatelessWidget {
         _buildLifelineBtn(
           label: '50-50',
           icon: Icons.filter_2,
-          onTap: () => quiz.useFiftyFifty(),
+          count: quiz.fiftyFiftyStock,
+          onTap: () => _useFiftyFifty(context, quiz),
         ),
         _buildLifelineBtn(
           label: '+10s Freeze',
           icon: Icons.ac_unit,
-          onTap: () => quiz.useFreezeTime(),
+          count: quiz.freezeTimeStock,
+          onTap: () => _useFreezeTime(context, quiz),
         ),
         _buildLifelineBtn(
           label: 'Skip',
@@ -173,30 +175,54 @@ class DailyQuizScreen extends StatelessWidget {
     );
   }
 
+  void _useFiftyFifty(BuildContext context, QuizProvider quiz) {
+    if (quiz.useFiftyFifty()) return;
+
+    final message = quiz.fiftyFiftyStock <= 0
+        ? 'No 50-50 lifelines left! Buy more in the Shop. 🛒'
+        : 'Already used 50-50 on this question.';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _useFreezeTime(BuildContext context, QuizProvider quiz) {
+    if (quiz.useFreezeTime()) return;
+
+    final message = quiz.freezeTimeStock <= 0
+        ? 'No +10s Freeze left! Buy more in the Shop. 🛒'
+        : 'Freeze already used on this question.';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Widget _buildLifelineBtn({
     required String label,
     required IconData icon,
     required VoidCallback onTap,
+    int? count, // null = free / unlimited (e.g. Skip)
   }) {
+    final bool outOfStock = count != null && count <= 0;
+    final String displayLabel = count != null ? '$label ($count)' : label;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
+          color: outOfStock ? Colors.white.withOpacity(0.03) : Colors.white.withOpacity(0.06),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withOpacity(0.15)),
+          border: Border.all(
+            color: outOfStock ? Colors.white.withOpacity(0.06) : Colors.white.withOpacity(0.15),
+          ),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 14, color: AppColors.neonCyan),
+            Icon(icon, size: 14, color: outOfStock ? AppColors.textSecondary : AppColors.neonCyan),
             const SizedBox(width: 6),
             Text(
-              label,
-              style: const TextStyle(
+              displayLabel,
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: outOfStock ? AppColors.textSecondary : AppColors.textPrimary,
               ),
             ),
           ],

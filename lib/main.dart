@@ -18,7 +18,7 @@ class QuizCraftApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => QuizProvider()),
+        ChangeNotifierProvider(create: (ctx) => QuizProvider(ctx.read<UserProvider>())),
       ],
       child: MaterialApp(
         title: 'QuizCraft 3D',

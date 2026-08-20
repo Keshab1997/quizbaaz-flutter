@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/question_model.dart';
+import '../models/shop_item.dart';
 import '../repositories/quiz_repository.dart';
+import 'user_provider.dart';
 
 class QuizProvider extends ChangeNotifier {
   final QuizRepository _repository = QuizRepository();
+  final UserProvider _userProvider;
+
+  QuizProvider(this._userProvider);
 
   List<QuestionModel> _questions = [];
   int _currentIndex = 0;
@@ -17,6 +22,7 @@ class QuizProvider extends ChangeNotifier {
 
   // Lifelines
   bool _fiftyFiftyUsed = false;
+  bool _freezeUsed = false;
   List<int> _disabledOptionIndices = [];
 
   // Timer
@@ -34,6 +40,13 @@ class QuizProvider extends ChangeNotifier {
   bool get isQuizCompleted => _isQuizCompleted;
   int get secondsRemaining => _secondsRemaining;
   List<int> get disabledOptionIndices => _disabledOptionIndices;
+
+  /// Remaining stock of the 50-50 lifeline owned by the player.
+  int get fiftyFiftyStock => _userProvider.inventoryCount(ShopItemIds.fiftyFifty);
+
+  /// Remaining stock of the +10s freeze lifeline owned by the player.
+  int get freezeTimeStock => _userProvider.inventoryCount(ShopItemIds.freezeTime);
+
   QuestionModel? get currentQuestion =>
       _questions.isNotEmpty && _currentIndex < _questions.length
           ? _questions[_currentIndex]
@@ -68,6 +81,7 @@ class QuizProvider extends ChangeNotifier {
     _isAnswerSubmitted = false;
     _isQuizCompleted = false;
     _fiftyFiftyUsed = false;
+    _freezeUsed = false;
     _disabledOptionIndices = [];
     _secondsRemaining = 15;
   }
@@ -128,6 +142,8 @@ class QuizProvider extends ChangeNotifier {
       _selectedOptionIndex = null;
       _isAnswerSubmitted = false;
       _disabledOptionIndices = [];
+      _fiftyFiftyUsed = false;
+      _freezeUsed = false;
       _startTimer();
     } else {
       _isQuizCompleted = true;
@@ -137,21 +153,43 @@ class QuizProvider extends ChangeNotifier {
   }
 
   // Lifelines
-  void useFiftyFifty() {
-    if (_fiftyFiftyUsed || _isAnswerSubmitted || currentQuestion == null) return;
+
+  /// Uses the 50-50 lifeline. Consumes one unit from the player's inventory.
+  /// Returns false if it can't be used (already used this question, no stock,
+  /// or answer already submitted).
+  bool useFiftyFifty() {
+    if (_fiftyFiftyUsed || _isAnswerSubmitted || currentQuestion == null) {
+      return false;
+    }
+    if (!_userProvider.consumeItem(ShopItemIds.fiftyFifty)) {
+      return false;
+    }
     _fiftyFiftyUsed = true;
     final correct = currentQuestion!.correctIndex;
     List<int> wrongOptions = [0, 1, 2, 3]..remove(correct);
     wrongOptions.shuffle();
     _disabledOptionIndices = wrongOptions.take(2).toList();
     notifyListeners();
+    return true;
   }
 
-  void useFreezeTime() {
+  /// Adds 10 seconds to the timer. Consumes one unit from the player's
+  /// inventory. Can be used once per question.
+  /// Returns false if it can't be used.
+  bool useFreezeTime() {
+    if (_freezeUsed || _isAnswerSubmitted || currentQuestion == null) {
+      return false;
+    }
+    if (!_userProvider.consumeItem(ShopItemIds.freezeTime)) {
+      return false;
+    }
+    _freezeUsed = true;
     _secondsRemaining += 10;
     notifyListeners();
+    return true;
   }
 
+  /// Skips the current question without scoring. Free to use.
   void useSkipQuestion() {
     _timer?.cancel();
     nextQuestion();

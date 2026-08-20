@@ -30,7 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserProvider>().loadInitialData();
+      context.read<UserProvider>().initialize();
     });
   }
 
