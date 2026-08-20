@@ -59,7 +59,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
       debugPrint('Google Sign-In error: ${e.code} - ${e.description}');
-      _lastError = 'Google Sign-In failed. Please try again.';
+      _lastError = _friendlyGoogleSignInError(e);
       throw AuthException(_lastError!);
     } on FirebaseAuthException catch (e) {
       _lastError = _friendlyAuthError(e);
@@ -99,5 +99,36 @@ class AuthProvider extends ChangeNotifier {
       default:
         return 'Sign-in failed (${e.code}).';
     }
+  }
+
+  String _friendlyGoogleSignInError(GoogleSignInException e) {
+    final code = e.code;
+
+    if (code == GoogleSignInExceptionCode.canceled ||
+        code == GoogleSignInExceptionCode.interrupted ||
+        code == GoogleSignInExceptionCode.uiUnavailable) {
+      return 'Google Sign-In was cancelled. Please try again.';
+    }
+
+    // Android returns status_code inside description for DEVELOPER_ERROR /
+    // permission errors. Surface a useful hint when present.
+    final description = (e.description ?? '').toLowerCase();
+    if (description.contains('permission') ||
+        description.contains('not authorized') ||
+        description.contains('access_denied') ||
+        description.contains('10: developer error')) {
+      return 'Google permission was not granted. Make sure Google Sign-In is '
+          'enabled in Firebase and the app is registered with the correct '
+          'SHA-1 fingerprint, then try again.';
+    }
+
+    if (description.contains('network') ||
+        description.contains('connection') ||
+        description.contains('offline')) {
+      return 'Network error. Check your internet connection and try again.';
+    }
+
+    debugPrint('GoogleSignInException: $code - ${e.description}');
+    return 'Google Sign-In failed (${e.code}). Please try again.';
   }
 }
