@@ -9,22 +9,144 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/purchase_celebration.dart';
 import 'purchase_history_screen.dart';
 
-class ShopScreen extends StatelessWidget {
+class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
+
+  @override
+  State<ShopScreen> createState() => _ShopScreenState();
+}
+
+class _ShopScreenState extends State<ShopScreen> {
+  String _selectedCategory = 'all';
 
   IconData _iconFor(String itemId) {
     switch (itemId) {
+      // Power-ups
       case ShopItemIds.fiftyFifty:
         return Icons.filter_2;
       case ShopItemIds.freezeTime:
         return Icons.ac_unit;
+      case ShopItemIds.skipQuestion:
+        return Icons.skip_next_rounded;
+      case ShopItemIds.doublePoints:
+        return Icons.double_arrow_rounded;
+      case ShopItemIds.extraLife:
+        return Icons.favorite_rounded;
+      case ShopItemIds.hintReveal:
+        return Icons.lightbulb_rounded;
+      case ShopItemIds.audiencePoll:
+        return Icons.people_rounded;
+
+      // Shields
       case ShopItemIds.streakShield:
         return Icons.shield_moon;
+      case ShopItemIds.scoreShield:
+        return Icons.security_rounded;
+
+      // Boosters
+      case ShopItemIds.coinBooster:
+        return Icons.monetization_on_rounded;
+      case ShopItemIds.xpBooster:
+        return Icons.trending_up_rounded;
+
+      // Avatars
       case ShopItemIds.vipAvatar:
         return Icons.workspace_premium;
+      case ShopItemIds.goldenAvatar:
+        return Icons.military_tech_rounded;
+      case ShopItemIds.neonAvatar:
+        return Icons.auto_awesome_rounded;
+      case ShopItemIds.royalAvatar:
+        return Icons.diamond_rounded;
+
+      // Badges
+      case ShopItemIds.championBadge:
+        return Icons.emoji_events_rounded;
+      case ShopItemIds.scholarBadge:
+        return Icons.school_rounded;
+      case ShopItemIds.legendBadge:
+        return Icons.stars_rounded;
+
+      // Effects
+      case ShopItemIds.fireName:
+        return Icons.local_fire_department_rounded;
+      case ShopItemIds.rainbowName:
+        return Icons.palette_rounded;
+      case ShopItemIds.goldName:
+        return Icons.auto_fix_high_rounded;
+
+      // Packs
+      case ShopItemIds.starterPack:
+        return Icons.card_giftcard_rounded;
+      case ShopItemIds.megaPack:
+        return Icons.inventory_2_rounded;
+      case ShopItemIds.legendPack:
+        return Icons.workspace_premium_rounded;
+
       default:
         return Icons.card_giftcard;
     }
+  }
+
+  Color _accentFor(String itemId) {
+    switch (itemId) {
+      // Power-ups - Cyan
+      case ShopItemIds.fiftyFifty:
+      case ShopItemIds.freezeTime:
+      case ShopItemIds.skipQuestion:
+      case ShopItemIds.doublePoints:
+      case ShopItemIds.extraLife:
+      case ShopItemIds.hintReveal:
+      case ShopItemIds.audiencePoll:
+        return AppColors.neonCyan;
+
+      // Shields - Green
+      case ShopItemIds.streakShield:
+      case ShopItemIds.scoreShield:
+        return AppColors.neonGreen;
+
+      // Boosters - Pink
+      case ShopItemIds.coinBooster:
+      case ShopItemIds.xpBooster:
+        return AppColors.neonPink;
+
+      // Avatars - Purple
+      case ShopItemIds.vipAvatar:
+      case ShopItemIds.goldenAvatar:
+      case ShopItemIds.neonAvatar:
+      case ShopItemIds.royalAvatar:
+        return AppColors.neonPurple;
+
+      // Badges - Gold
+      case ShopItemIds.championBadge:
+      case ShopItemIds.scholarBadge:
+      case ShopItemIds.legendBadge:
+        return AppColors.neonGold;
+
+      // Effects - Rainbow/Red
+      case ShopItemIds.fireName:
+        return AppColors.neonRed;
+      case ShopItemIds.rainbowName:
+        return AppColors.neonPink;
+      case ShopItemIds.goldName:
+        return AppColors.neonGold;
+
+      // Packs - Gold
+      case ShopItemIds.starterPack:
+      case ShopItemIds.megaPack:
+      case ShopItemIds.legendPack:
+        return AppColors.neonGold;
+
+      default:
+        return AppColors.neonCyan;
+    }
+  }
+
+  List<ShopItem> get _filteredItems {
+    if (_selectedCategory == 'all') {
+      return ShopCatalog.items;
+    }
+    return ShopCatalog.itemsByCategory(_selectedCategory);
   }
 
   @override
@@ -35,84 +157,182 @@ class ShopScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Power-Up Shop', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text('Power-Up Shop',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.history_rounded, color: AppColors.neonGold),
+            icon:
+                const Icon(Icons.history_rounded, color: AppColors.neonGold),
             tooltip: 'Purchase History',
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()),
+                MaterialPageRoute(
+                    builder: (_) => const PurchaseHistoryScreen()),
               );
             },
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(18),
+      body: Column(
         children: [
           // Balance Bar
-          GlassCard(
-            borderRadius: 20,
-            borderColor: AppColors.neonCyan.withValues(alpha: 0.4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+            child: GlassCard(
+              borderRadius: 20,
+              borderColor: AppColors.neonCyan.withValues(alpha: 0.4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.monetization_on,
+                          color: AppColors.neonGold, size: 24),
+                      const SizedBox(width: 8),
+                      Text('${user.coins} Coins',
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.neonGold)),
+                    ],
+                  ),
+                  Container(height: 30, width: 1, color: Colors.white24),
+                  Row(
+                    children: [
+                      const Icon(Icons.diamond,
+                          color: AppColors.neonPurple, size: 24),
+                      const SizedBox(width: 8),
+                      Text('${user.gems} Gems',
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.neonPurple)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Category Filter
+          _buildCategoryFilter(),
+
+          // Items List
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 100),
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.monetization_on, color: AppColors.neonGold, size: 24),
-                    const SizedBox(width: 8),
-                    Text('${user.coins} Coins', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.neonGold)),
-                  ],
+                // Section Header
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      Text(
+                        _selectedCategory == 'all'
+                            ? 'ALL ITEMS'
+                            : ShopCatalog.categoryName(_selectedCategory),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${_filteredItems.length} items',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Container(height: 30, width: 1, color: Colors.white24),
-                Row(
-                  children: [
-                    const Icon(Icons.diamond, color: AppColors.neonPurple, size: 24),
-                    const SizedBox(width: 8),
-                    Text('${user.gems} Gems', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.neonPurple)),
-                  ],
-                ),
+
+                // Items
+                ..._filteredItems.map((item) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: _ShopItemCard(
+                      item: item,
+                      icon: _iconFor(item.id),
+                      accent: _accentFor(item.id),
+                      owned: userProvider.inventoryCount(item.id),
+                      affordable: userProvider.canAfford(item),
+                      onBuy: () => _handleBuy(context, userProvider, item),
+                    ),
+                  );
+                }),
               ],
             ),
           ),
-          const SizedBox(height: 20),
-
-          const Text(
-            'AVAILABLE POWER-UPS & ITEMS',
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Lifelines you buy appear instantly in the quiz.',
-            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 12),
-
-          ...ShopCatalog.items.map((item) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: _ShopItemCard(
-                item: item,
-                icon: _iconFor(item.id),
-                owned: userProvider.inventoryCount(item.id),
-                affordable: userProvider.canAfford(item),
-                onBuy: () => _handleBuy(context, userProvider, item),
-              ),
-            );
-          }),
         ],
       ),
     );
   }
 
-  void _handleBuy(BuildContext context, UserProvider userProvider, ShopItem item) {
+  Widget _buildCategoryFilter() {
+    final categories = ['all', ...ShopCatalog.categories];
+
+    return SizedBox(
+      height: 45,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final cat = categories[index];
+          final isSelected = _selectedCategory == cat;
+          final label = cat == 'all'
+              ? '🏪 All'
+              : ShopCatalog.categoryName(cat).split(' ').skip(1).join(' ');
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedCategory = cat),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.neonGold.withValues(alpha: 0.2)
+                      : Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.neonGold.withValues(alpha: 0.5)
+                        : Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight:
+                        isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isSelected
+                        ? AppColors.neonGold
+                        : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _handleBuy(
+      BuildContext context, UserProvider userProvider, ShopItem item) {
     final result = userProvider.purchaseItem(item);
 
     switch (result) {
       case PurchaseStatus.success:
-        // Instant 3D-character celebration instead of the slow SnackBar.
         PurchaseCelebration.show(
           context,
           itemName: item.name,
@@ -136,7 +356,8 @@ class ShopScreen extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: const Duration(milliseconds: 1200),
-            content: Text('Not enough ${item.currencyLabel}! Earn more by playing quizzes.'),
+            content: Text(
+                'Not enough ${item.currencyLabel}! Earn more by playing quizzes.'),
             backgroundColor: Colors.red.shade800,
           ),
         );
@@ -148,6 +369,7 @@ class ShopScreen extends StatelessWidget {
 class _ShopItemCard extends StatelessWidget {
   final ShopItem item;
   final IconData icon;
+  final Color accent;
   final int owned;
   final bool affordable;
   final VoidCallback onBuy;
@@ -155,6 +377,7 @@ class _ShopItemCard extends StatelessWidget {
   const _ShopItemCard({
     required this.item,
     required this.icon,
+    required this.accent,
     required this.owned,
     required this.affordable,
     required this.onBuy,
@@ -162,45 +385,79 @@ class _ShopItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isGems = !item.costsCoins;
-
-    final Color accent = isGems ? AppColors.neonPurple : AppColors.neonGold;
-
     return GlassCard(
       borderRadius: 18,
+      borderColor: accent.withValues(alpha: 0.3),
       child: Row(
         children: [
+          // Icon
           Container(
-            width: 48,
-            height: 48,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.2),
+              color: accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: accent.withValues(alpha: 0.4)),
             ),
-            child: Icon(icon, color: accent),
+            child: Icon(icon, color: accent, size: 26),
           ),
           const SizedBox(width: 14),
+
+          // Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(item.name,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
+                    ),
+                    if (item.category == 'packs')
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.neonGold.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'BEST VALUE',
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.neonGold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
                 const SizedBox(height: 2),
-                Text(item.description, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(item.description,
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.textSecondary)),
                 const SizedBox(height: 4),
                 Text(
                   _ownedLabel(),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: owned > 0 ? AppColors.neonCyan : AppColors.textSecondary,
+                    color: owned > 0
+                        ? AppColors.neonCyan
+                        : AppColors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          _buildButton(accent),
+
+          // Buy Button
+          _buildButton(),
         ],
       ),
     );
@@ -213,8 +470,7 @@ class _ShopItemCard extends StatelessWidget {
     return 'OWNED: x$owned';
   }
 
-  Widget _buildButton(Color accent) {
-    // Cosmetic already owned -> show a static owned badge.
+  Widget _buildButton() {
     if (item.isCosmetic && owned > 0) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -225,7 +481,10 @@ class _ShopItemCard extends StatelessWidget {
         ),
         child: const Text(
           'OWNED ✓',
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.neonCyan),
+          style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: AppColors.neonCyan),
         ),
       );
     }
@@ -244,12 +503,22 @@ class _ShopItemCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       ),
-      // Still tappable when unaffordable so the user gets a helpful
-      // "not enough coins/gems" message instead of a dead button.
       onPressed: onBuy,
-      child: Text(
-        '${item.cost} ${item.currencyLabel}',
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            item.costsCoins
+                ? Icons.monetization_on_rounded
+                : Icons.diamond_rounded,
+            size: 14,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${item.cost}',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }
