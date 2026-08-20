@@ -38,6 +38,7 @@ class HiveService {
   static const _userKey = 'current_user';
   static const _statsKey = 'user_stats';
   static const _quizHistoryKey = 'quiz_history';
+  static const _purchaseHistoryKey = 'purchase_history';
 
   // Legacy keys (v1 schema, single box).
   static const _bestScoreKey = 'best_daily_score';
@@ -225,6 +226,40 @@ class HiveService {
     await _statsBox.delete(_quizHistoryKey);
   }
 
+  // ------------------------------------------------------ Purchase History --
+
+  /// Saves a purchase to the history list (newest first, max 100 entries).
+  static Future<void> savePurchaseHistory(Map<String, dynamic> purchase) async {
+    final List<dynamic> existing = _statsBox.get(_purchaseHistoryKey) != null
+        ? List<dynamic>.from(
+            jsonDecode(_statsBox.get(_purchaseHistoryKey) as String) as List)
+        : [];
+    existing.insert(0, purchase); // newest first
+    if (existing.length > 100) existing.removeLast(); // keep max 100
+    await _statsBox.put(_purchaseHistoryKey, jsonEncode(existing));
+  }
+
+  /// Loads all purchase history entries (newest first).
+  static List<Map<String, dynamic>> loadPurchaseHistory() {
+    final raw = _statsBox.get(_purchaseHistoryKey);
+    if (raw is! String) return const [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (e) {
+      debugPrint('Hive: failed to decode purchase history – $e');
+      return const [];
+    }
+  }
+
+  /// Clears all purchase history.
+  static Future<void> clearPurchaseHistory() async {
+    await _statsBox.delete(_purchaseHistoryKey);
+  }
+
   // ------------------------------------------------------------ TTL cache --
 
   /// Stores [value] (any JSON-encodable structure) under [key] with the
@@ -379,8 +414,9 @@ class HiveService {
     // Meta keeps schema info, only sync markers are reset.
     await _metaBox.delete(metaLastSyncAt);
     await _metaBox.delete(metaLastPullAt);
-    // Clear quiz history
+    // Clear quiz and purchase history
     await clearQuizHistory();
+    await clearPurchaseHistory();
   }
 
   /// Debug helper: a snapshot of what is currently stored.

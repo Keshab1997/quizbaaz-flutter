@@ -320,6 +320,53 @@ class FirestoreService {
     }
   }
 
+  // --------------------------------------------------- Purchase History --
+
+  /// Saves a purchase to the user's purchase history subcollection.
+  static Future<bool> savePurchaseHistory(
+    String userId,
+    Map<String, dynamic> purchase,
+  ) async {
+    if (!isReady || userId.isEmpty) return false;
+    try {
+      final id = purchase['id'] as String? ?? DateTime.now().millisecondsSinceEpoch.toString();
+      await _db
+          .collection(_users)
+          .doc(userId)
+          .collection('purchase_history')
+          .doc(id)
+          .set({...purchase, 'timestamp': FieldValue.serverTimestamp()},
+              SetOptions(merge: true));
+      return true;
+    } catch (e) {
+      debugPrint('Firestore: savePurchaseHistory error – $e');
+      return false;
+    }
+  }
+
+  /// Fetches the user's purchase history (newest first).
+  static Future<List<Map<String, dynamic>>> getPurchaseHistory(
+    String userId, {
+    int limit = 50,
+  }) async {
+    if (!isReady || userId.isEmpty) return const [];
+    try {
+      final snapshot = await _db
+          .collection(_users)
+          .doc(userId)
+          .collection('purchase_history')
+          .orderBy('purchased_at', descending: true)
+          .limit(limit)
+          .get();
+      return snapshot.docs
+          .map((d) => Map<String, dynamic>.from(d.data())..remove('timestamp'))
+          .toList();
+    } catch (e) {
+      debugPrint('Firestore: getPurchaseHistory error – $e');
+      return const [];
+    }
+  }
+
   // --------------------------------------------------------------- Gifts --
 
   static Future<List<Map<String, dynamic>>> getGifts(String userId) async {

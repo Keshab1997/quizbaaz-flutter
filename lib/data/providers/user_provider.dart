@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/app_config.dart';
 import '../models/champion_model.dart';
 import '../models/leaderboard_model.dart';
+import '../models/purchase_history.dart';
 import '../models/quiz_result_history.dart';
 import '../models/shop_item.dart';
 import '../models/user_model.dart';
@@ -204,7 +205,49 @@ class UserProvider extends ChangeNotifier {
 
     notifyListeners();
     _persistUser();
+    _savePurchaseHistory(item);
     return PurchaseStatus.success;
+  }
+
+  /// Saves purchase history to Hive and mirrors to Firestore.
+  Future<void> _savePurchaseHistory(ShopItem item) async {
+    final history = PurchaseHistory(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userId: _user.userId,
+      itemId: item.id,
+      itemName: item.name,
+      quantity: item.quantity,
+      cost: item.cost,
+      currency: item.costsCoins ? 'coins' : 'gems',
+      purchasedAt: DateTime.now(),
+    );
+    final json = history.toJson();
+    await HiveService.savePurchaseHistory(json);
+    if (!_user.isGuest) {
+      await SyncService.pushPurchaseHistory(_user.userId, json);
+    }
+  }
+
+  /// Loads purchase history from Hive (instant) then refreshes from Firestore.
+  Future<List<PurchaseHistory>> loadPurchaseHistory({int limit = 50}) async {
+    // Load from Hive first (instant)
+    final localData = HiveService.loadPurchaseHistory();
+    var history = localData.map(PurchaseHistory.fromJson).toList();
+
+    // Refresh from Firestore if online
+    if (!_user.isGuest && SyncService.isOnline) {
+      try {
+        final remoteData =
+            await SyncService.pullPurchaseHistory(_user.userId, limit: limit);
+        if (remoteData.isNotEmpty) {
+          history = remoteData.map(PurchaseHistory.fromJson).toList();
+        }
+      } catch (e) {
+        debugPrint('UserProvider: purchase history refresh failed – $e');
+      }
+    }
+
+    return history;
   }
 
   bool consumeItem(String itemId) {
