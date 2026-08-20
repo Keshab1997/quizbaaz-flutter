@@ -96,7 +96,6 @@ class _QuestionReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final q = record.question;
-    final correct = q.correctIndex;
 
     return GlassCard(
       borderRadius: 18,
