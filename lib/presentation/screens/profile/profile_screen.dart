@@ -352,10 +352,87 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
+          const SizedBox(height: 24),
+
+            // Settings Section
+            _buildSectionTitle(Icons.settings_rounded, 'Settings'),
+            const SizedBox(height: 12),
+            GlassCard(
+              borderRadius: 20,
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                children: [
+                  _buildSettingRow(Icons.notifications_rounded, 'Notifications', true),
+                  const Divider(color: Colors.white12),
+                  _buildSettingRow(Icons.music_note_rounded, 'Sound Effects', true),
+                  const Divider(color: Colors.white12),
+                  _buildSettingRow(Icons.volume_up_rounded, 'Vibration', false),
+                  const Divider(color: Colors.white12),
+                  _buildSettingRow(Icons.dark_mode_rounded, 'Dark Mode', true),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // About Section
+            _buildSectionTitle(Icons.info_outline_rounded, 'About'),
+            const SizedBox(height: 12),
+            GlassCard(
+              borderRadius: 20,
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                children: [
+                  _buildAppInfoRow(Icons.star_rounded, 'Rate the App', () {}),
+                  const Divider(color: Colors.white12),
+                  _buildAppInfoRow(Icons.share_social_rounded, 'Share with Friends', () {}),
+                  const Divider(color: Colors.white12),
+                  _buildAppInfoRow(Icons.policy_rounded, 'Privacy Policy', () {}),
+                  const Divider(color: Colors.white12),
+                  _buildAppInfoRow(Icons.description_rounded, 'Terms & Conditions', () {}),
+                  const Divider(color: Colors.white12),
+                  _buildAppInfoRow(Icons.info_rounded, 'Version 1.0.0', null),
+                  if (auth.isSignedIn) ...[
+                    const Divider(color: Colors.white12),
+                    _buildAppInfoRow(Icons.logout_rounded, 'Sign Out',
+                        () => _confirmSignOut(context, auth),
+                        color: AppColors.neonRed),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 100),
           ],
         ),
       ),
     );
+  }
+
+  void _confirmSignOut(BuildContext context, AuthProvider auth) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surfaceElevated,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'Are you sure you want to sign out? Your local data will be kept.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Sign Out', style: TextStyle(color: AppColors.neonRed)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await auth.signOut();
+    }
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value,
@@ -660,7 +737,102 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _handleGoogleSignIn(BuildContext context) async {
+  Widget _buildSettingRow(IconData icon, String label, bool isOn) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.neonCyan),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(label,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white)),
+        ),
+        Switch(
+          value: isOn,
+          onChanged: (val) {},
+          activeTrackColor: AppColors.neonCyan.withValues(alpha: 0.5),
+          activeThumbColor: AppColors.neonCyan,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(IconData icon, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.neonCyan),
+          const SizedBox(width: 8),
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGameStatCard(IconData icon, String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(value,
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppInfoRow(IconData icon, String label, VoidCallback? onTap, {Color? color}) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: color ?? AppColors.neonCyan),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(label,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: color ?? Colors.white)),
+            ),
+            if (onTap != null)
+              const Icon(Icons.chevron_right_rounded,
+                  size: 18, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+
+Future<void> _handleGoogleSignIn(BuildContext context) async {
     final auth = context.read<AuthProvider>();
     final userProvider = context.read<UserProvider>();
     final messenger = ScaffoldMessenger.of(context);
