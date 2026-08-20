@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../models/answer_record.dart';
 import '../models/question_model.dart';
 import '../models/shop_item.dart';
 import '../repositories/quiz_repository.dart';
@@ -30,6 +31,9 @@ class QuizProvider extends ChangeNotifier {
   int _earnedCoins = 0;
   int _earnedGems = 0;
   bool _dailyRewardSkipped = false;
+
+  // Answer history (for the review screen)
+  final List<AnswerRecord> _answerRecords = [];
 
   // Timer
   int _secondsRemaining = 15;
@@ -62,6 +66,9 @@ class QuizProvider extends ChangeNotifier {
   /// True when this daily quiz earned nothing because today's reward was
   /// already claimed.
   bool get dailyRewardSkipped => _dailyRewardSkipped;
+
+  /// The player's answer history for the finished quiz (for the review screen).
+  List<AnswerRecord> get answerRecords => List.unmodifiable(_answerRecords);
 
   QuestionModel? get currentQuestion =>
       _questions.isNotEmpty && _currentIndex < _questions.length
@@ -104,6 +111,7 @@ class QuizProvider extends ChangeNotifier {
     _earnedCoins = 0;
     _earnedGems = 0;
     _dailyRewardSkipped = false;
+    _answerRecords.clear();
     _secondsRemaining = 15;
   }
 
@@ -138,6 +146,13 @@ class QuizProvider extends ChangeNotifier {
       _wrongCount++;
     }
 
+    final q = currentQuestion;
+    if (q != null) {
+      _answerRecords.add(
+        AnswerRecord(question: q, selectedIndex: index, status: AnswerStatus.answered),
+      );
+    }
+
     notifyListeners();
 
     // Auto next after 1.8 seconds
@@ -150,6 +165,14 @@ class QuizProvider extends ChangeNotifier {
     if (_isAnswerSubmitted) return;
     _isAnswerSubmitted = true;
     _wrongCount++;
+
+    final q = currentQuestion;
+    if (q != null) {
+      _answerRecords.add(
+        AnswerRecord(question: q, selectedIndex: null, status: AnswerStatus.timedOut),
+      );
+    }
+
     notifyListeners();
 
     Future.delayed(const Duration(milliseconds: 1800), () {
@@ -249,6 +272,14 @@ class QuizProvider extends ChangeNotifier {
   /// Skips the current question without scoring. Free to use.
   void useSkipQuestion() {
     _timer?.cancel();
+
+    final q = currentQuestion;
+    if (q != null) {
+      _answerRecords.add(
+        AnswerRecord(question: q, selectedIndex: null, status: AnswerStatus.skipped),
+      );
+    }
+
     nextQuestion();
   }
 

@@ -7,6 +7,7 @@ import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
 import '../leaderboard/leaderboard_screen.dart';
+import 'review_answers_screen.dart';
 
 class QuizResultScreen extends StatelessWidget {
   const QuizResultScreen({super.key});
@@ -208,6 +209,19 @@ class QuizResultScreen extends StatelessWidget {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  NeonButton(
+                    text: 'REVIEW ANSWERS 📖',
+                    gradient: const LinearGradient(
+                      colors: [AppColors.neonCyan, AppColors.neonPurple],
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ReviewAnswersScreen()),
                       );
                     },
                   ),
