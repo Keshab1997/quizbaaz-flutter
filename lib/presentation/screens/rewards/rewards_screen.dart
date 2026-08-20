@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../widgets/glass_card.dart';
-import '../../widgets/neon_button.dart';
 
 class RewardsScreen extends StatelessWidget {
-  const RewardsScreen({Key? key}) : super(key: key);
+  const RewardsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +38,7 @@ class RewardsScreen extends StatelessWidget {
           // Banner
           GlassCard(
             borderRadius: 20,
-            borderColor: AppColors.neonGold.withOpacity(0.4),
+            borderColor: AppColors.neonGold.withValues(alpha: 0.4),
             backgroundColor: const Color(0x33281E48),
             child: Row(
               children: [
@@ -107,7 +106,7 @@ class RewardsScreen extends StatelessWidget {
                 ),
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

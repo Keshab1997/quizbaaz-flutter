@@ -16,7 +16,7 @@ import '../profile/profile_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -86,7 +86,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.neonPurple.withOpacity(0.22),
+                color: AppColors.neonPurple.withValues(alpha: 0.22),
               ),
             ),
           ),
@@ -98,7 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.neonCyan.withOpacity(0.14),
+                color: AppColors.neonCyan.withValues(alpha: 0.14),
               ),
             ),
           ),
@@ -110,7 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 240,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.neonGold.withOpacity(0.12),
+                color: AppColors.neonGold.withValues(alpha: 0.12),
               ),
             ),
           ),
@@ -211,7 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     gradient: AppColors.primaryGradient,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.neonPurple.withOpacity(0.5),
+                        color: AppColors.neonPurple.withValues(alpha: 0.5),
                         blurRadius: 12,
                       ),
                     ],
@@ -266,9 +266,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.06),
+                color: Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.neonGold.withOpacity(0.4)),
+                border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: [
@@ -290,9 +290,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.06),
+                color: Colors.white.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.neonPurple.withOpacity(0.4)),
+                border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: [
@@ -317,9 +317,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.white.withValues(alpha: 0.06),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.12)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
                   ),
                   child: const Icon(Icons.notifications_none_rounded, size: 18, color: Colors.white),
                 ),
@@ -350,7 +350,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildMainHeroCard(String heroMascotAsset) {
     return GlassCard(
       borderRadius: 24,
-      borderColor: AppColors.neonPurple.withOpacity(0.4),
+      borderColor: AppColors.neonPurple.withValues(alpha: 0.4),
       backgroundColor: const Color(0x332E1065),
       child: Stack(
         clipBehavior: Clip.none,
@@ -382,9 +382,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.neonCyan.withOpacity(0.15),
+                        color: AppColors.neonCyan.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.neonCyan.withOpacity(0.4)),
+                        border: Border.all(color: AppColors.neonCyan.withValues(alpha: 0.4)),
                       ),
                       child: const Text(
                         "TODAY'S QUIZ",
@@ -413,7 +413,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.08),
+                            color: Colors.white.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Row(
@@ -435,7 +435,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.08),
+                            color: Colors.white.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Row(
@@ -486,7 +486,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return GlassCard(
       padding: const EdgeInsets.all(14),
       borderRadius: 20,
-      borderColor: AppColors.neonGreen.withOpacity(0.35),
+      borderColor: AppColors.neonGreen.withValues(alpha: 0.35),
       child: Column(
         children: [
           Row(
@@ -549,9 +549,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   margin: const EdgeInsets.only(right: 10),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   child: Row(
                     children: [
@@ -596,7 +596,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildYesterdayChampionCard() {
     return GlassCard(
       borderRadius: 20,
-      borderColor: AppColors.neonGold.withOpacity(0.4),
+      borderColor: AppColors.neonGold.withValues(alpha: 0.4),
       backgroundColor: const Color(0x33281E48),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -629,9 +629,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.neonGold.withOpacity(0.15),
+                    color: AppColors.neonGold.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.neonGold.withOpacity(0.4)),
+                    border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.4)),
                   ),
                   child: const Text(
                     'VIEW PROFILE',
@@ -657,8 +657,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   borderRadius: BorderRadius.circular(16),
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.neonPurple.withOpacity(0.4),
-                      AppColors.neonGold.withOpacity(0.2),
+                      AppColors.neonPurple.withValues(alpha: 0.4),
+                      AppColors.neonGold.withValues(alpha: 0.2),
                     ],
                   ),
                 ),
@@ -693,9 +693,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.card_giftcard, size: 14, color: AppColors.neonPink),
-                        const SizedBox(width: 4),
-                        const Expanded(
+                        Icon(Icons.card_giftcard, size: 14, color: AppColors.neonPink),
+                        SizedBox(width: 4),
+                        Expanded(
                           child: Text(
                             'Reward: 500 Coins + Smartwatch',
                             maxLines: 1,
@@ -725,7 +725,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return GlassCard(
       borderRadius: 20,
-      borderColor: AppColors.neonGold.withOpacity(0.35),
+      borderColor: AppColors.neonGold.withValues(alpha: 0.35),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -772,9 +772,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDone ? AppColors.neonGold.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                  color: isDone ? AppColors.neonGold.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
                   border: Border.all(
-                    color: isDone ? AppColors.neonGold : Colors.white.withOpacity(0.2),
+                    color: isDone ? AppColors.neonGold : Colors.white.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
                 ),
@@ -812,7 +812,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return GlassCard(
       borderRadius: 20,
-      borderColor: AppColors.neonCyan.withOpacity(0.35),
+      borderColor: AppColors.neonCyan.withValues(alpha: 0.35),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -888,7 +888,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -942,7 +942,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: GlassCard(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
               borderRadius: 16,
-              borderColor: (act['color'] as Color).withOpacity(0.35),
+              borderColor: (act['color'] as Color).withValues(alpha: 0.35),
               onTap: act['onTap'] as VoidCallback,
               child: Column(
                 mainAxisSize: MainAxisSize.min,

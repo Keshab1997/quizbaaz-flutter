@@ -8,10 +8,10 @@ class StreakFlameWidget extends StatelessWidget {
   final VoidCallback? onTap;
 
   const StreakFlameWidget({
-    Key? key,
+    super.key,
     required this.streakDays,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class StreakFlameWidget extends StatelessWidget {
 
     return GlassCard(
       onTap: onTap,
-      borderColor: AppColors.neonGold.withOpacity(0.3),
+      borderColor: AppColors.neonGold.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -85,12 +85,12 @@ class StreakFlameWidget extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isCompleted
-                      ? AppColors.neonGold.withOpacity(0.2)
-                      : (isToday ? AppColors.neonPurple.withOpacity(0.3) : Colors.white.withOpacity(0.05)),
+                      ? AppColors.neonGold.withValues(alpha: 0.2)
+                      : (isToday ? AppColors.neonPurple.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.05)),
                   border: Border.all(
                     color: isCompleted
                         ? AppColors.neonGold
-                        : (isToday ? AppColors.neonCyan : Colors.white.withOpacity(0.1)),
+                        : (isToday ? AppColors.neonCyan : Colors.white.withValues(alpha: 0.1)),
                     width: isToday ? 2 : 1,
                   ),
                 ),

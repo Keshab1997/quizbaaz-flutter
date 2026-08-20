@@ -10,7 +10,7 @@ import '../../widgets/glass_card.dart';
 class LeaderboardScreen extends StatefulWidget {
   final int initialTabIndex;
 
-  const LeaderboardScreen({Key? key, this.initialTabIndex = 0}) : super(key: key);
+  const LeaderboardScreen({super.key, this.initialTabIndex = 0});
 
   @override
   State<LeaderboardScreen> createState() => _LeaderboardScreenState();
@@ -100,7 +100,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   Widget _buildPodiumView(List<LeaderboardItem> top3) {
     return GlassCard(
       borderRadius: 24,
-      borderColor: AppColors.neonGold.withOpacity(0.3),
+      borderColor: AppColors.neonGold.withValues(alpha: 0.3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -144,9 +144,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           width: 70,
           height: height,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            border: Border.all(color: color.withOpacity(0.6)),
+            border: Border.all(color: color.withValues(alpha: 0.6)),
           ),
           child: Center(
             child: Text(
@@ -233,7 +233,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           padding: const EdgeInsets.only(bottom: 14.0),
           child: GlassCard(
             borderRadius: 20,
-            borderColor: isFirst ? AppColors.neonGold.withOpacity(0.5) : Colors.white12,
+            borderColor: isFirst ? AppColors.neonGold.withValues(alpha: 0.5) : Colors.white12,
             backgroundColor: isFirst ? const Color(0x333F2E00) : AppColors.bgCardGlass,
             child: Row(
               children: [

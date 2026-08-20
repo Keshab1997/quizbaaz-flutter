@@ -9,10 +9,10 @@ class ChampionPodiumWidget extends StatelessWidget {
   final VoidCallback? onViewProfile;
 
   const ChampionPodiumWidget({
-    Key? key,
+    super.key,
     this.champion,
     this.onViewProfile,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class ChampionPodiumWidget extends StatelessWidget {
         );
 
     return GlassCard(
-      borderColor: AppColors.neonGold.withOpacity(0.4),
+      borderColor: AppColors.neonGold.withValues(alpha: 0.4),
       backgroundColor: const Color(0x33281E48),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,8 +91,8 @@ class ChampionPodiumWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.neonPurple.withOpacity(0.3),
-                      AppColors.neonCyan.withOpacity(0.1),
+                      AppColors.neonPurple.withValues(alpha: 0.3),
+                      AppColors.neonCyan.withValues(alpha: 0.1),
                     ],
                   ),
                 ),
@@ -135,9 +135,9 @@ class ChampionPodiumWidget extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
+                        color: Colors.white.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.neonGold.withOpacity(0.3)),
+                        border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,

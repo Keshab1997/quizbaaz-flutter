@@ -322,8 +322,8 @@ class _CelebrationOverlayState extends State<_CelebrationOverlay>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    widget.accent.withOpacity(0.5),
-                    widget.accent.withOpacity(0.0),
+                    widget.accent.withValues(alpha: 0.5),
+                    widget.accent.withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -360,7 +360,7 @@ class _CelebrationOverlayState extends State<_CelebrationOverlay>
                   color: widget.accent,
                   boxShadow: [
                     BoxShadow(
-                      color: widget.accent.withOpacity(0.7),
+                      color: widget.accent.withValues(alpha: 0.7),
                       blurRadius: 22,
                       spreadRadius: 2,
                     ),

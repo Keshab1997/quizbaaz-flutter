@@ -6,7 +6,7 @@ import '../../widgets/glass_card.dart';
 import '../quiz_result/quiz_result_screen.dart';
 
 class DailyQuizScreen extends StatelessWidget {
-  const DailyQuizScreen({Key? key}) : super(key: key);
+  const DailyQuizScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +39,9 @@ class DailyQuizScreen extends StatelessWidget {
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.neonGold.withOpacity(0.15),
+              color: AppColors.neonGold.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.neonGold.withOpacity(0.4)),
+              border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.4)),
             ),
             child: Row(
               children: [
@@ -98,7 +98,6 @@ class DailyQuizScreen extends StatelessWidget {
   }
 
   Widget _buildProgressAndTimer(QuizProvider quiz) {
-    final progress = (quiz.currentIndex + 1) / (quiz.questions.isEmpty ? 1 : quiz.questions.length);
     final timerPercent = quiz.secondsRemaining / 15.0;
 
     return Column(
@@ -140,7 +139,7 @@ class DailyQuizScreen extends StatelessWidget {
           child: LinearProgressIndicator(
             value: timerPercent,
             minHeight: 6,
-            backgroundColor: Colors.white.withOpacity(0.1),
+            backgroundColor: Colors.white.withValues(alpha: 0.1),
             valueColor: AlwaysStoppedAnimation<Color>(
               quiz.secondsRemaining <= 5 ? AppColors.neonRed : AppColors.neonCyan,
             ),
@@ -207,10 +206,10 @@ class DailyQuizScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: outOfStock ? Colors.white.withOpacity(0.03) : Colors.white.withOpacity(0.06),
+          color: outOfStock ? Colors.white.withValues(alpha: 0.03) : Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: outOfStock ? Colors.white.withOpacity(0.06) : Colors.white.withOpacity(0.15),
+            color: outOfStock ? Colors.white.withValues(alpha: 0.06) : Colors.white.withValues(alpha: 0.15),
           ),
         ),
         child: Row(
@@ -234,7 +233,7 @@ class DailyQuizScreen extends StatelessWidget {
   Widget _buildQuestionCard(dynamic question) {
     return GlassCard(
       borderRadius: 22,
-      borderColor: AppColors.neonPurple.withOpacity(0.3),
+      borderColor: AppColors.neonPurple.withValues(alpha: 0.3),
       backgroundColor: const Color(0x331E1B4B),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -280,19 +279,19 @@ class DailyQuizScreen extends StatelessWidget {
     final isAnswerSubmitted = quiz.isAnswerSubmitted;
     final isCorrect = question.correctIndex == index;
 
-    Color borderColor = Colors.white.withOpacity(0.12);
-    Color bgColor = Colors.white.withOpacity(0.05);
+    Color borderColor = Colors.white.withValues(alpha: 0.12);
+    Color bgColor = Colors.white.withValues(alpha: 0.05);
     Color textColor = AppColors.textPrimary;
     Widget? trailingIcon;
 
     if (isAnswerSubmitted) {
       if (isCorrect) {
         borderColor = AppColors.neonGreen;
-        bgColor = AppColors.neonGreen.withOpacity(0.2);
+        bgColor = AppColors.neonGreen.withValues(alpha: 0.2);
         trailingIcon = const Icon(Icons.check_circle, color: AppColors.neonGreen);
       } else if (isSelected) {
         borderColor = AppColors.neonRed;
-        bgColor = AppColors.neonRed.withOpacity(0.2);
+        bgColor = AppColors.neonRed.withValues(alpha: 0.2);
         trailingIcon = const Icon(Icons.cancel, color: AppColors.neonRed);
       }
     }
@@ -311,7 +310,7 @@ class DailyQuizScreen extends StatelessWidget {
             boxShadow: isAnswerSubmitted && (isCorrect || isSelected)
                 ? [
                     BoxShadow(
-                      color: (isCorrect ? AppColors.neonGreen : AppColors.neonRed).withOpacity(0.3),
+                      color: (isCorrect ? AppColors.neonGreen : AppColors.neonRed).withValues(alpha: 0.3),
                       blurRadius: 10,
                     )
                   ]
@@ -324,7 +323,7 @@ class DailyQuizScreen extends StatelessWidget {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08),
+                  color: Colors.white.withValues(alpha: 0.08),
                 ),
                 child: Center(
                   child: Text(

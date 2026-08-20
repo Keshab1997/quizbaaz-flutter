@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_assets.dart';
 import '../../../data/models/chapter_model.dart';
 import '../../../data/repositories/quiz_repository.dart';
 import '../../../data/providers/quiz_provider.dart';
@@ -9,7 +8,7 @@ import '../../widgets/glass_card.dart';
 import '../daily_quiz/daily_quiz_screen.dart';
 
 class ChapterListScreen extends StatefulWidget {
-  const ChapterListScreen({Key? key}) : super(key: key);
+  const ChapterListScreen({super.key});
 
   @override
   State<ChapterListScreen> createState() => _ChapterListScreenState();
@@ -119,7 +118,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                               ],
                             ),
                           ),
-                          ...category.chapters.map((ch) => _buildChapterCard(context, ch, category.colorHex)).toList(),
+                          ...category.chapters.map((ch) => _buildChapterCard(context, ch, category.colorHex)),
                           const SizedBox(height: 14),
                         ],
                       );
@@ -156,15 +155,15 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.neonPurple : Colors.white.withOpacity(0.06),
+                  color: isSelected ? AppColors.neonPurple : Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isSelected ? AppColors.neonPurple : Colors.white.withOpacity(0.12),
+                    color: isSelected ? AppColors.neonPurple : Colors.white.withValues(alpha: 0.12),
                   ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: AppColors.neonPurple.withOpacity(0.4),
+                            color: AppColors.neonPurple.withValues(alpha: 0.4),
                             blurRadius: 10,
                             offset: const Offset(0, 3),
                           )
@@ -195,7 +194,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: GlassCard(
         borderRadius: 20,
-        borderColor: isLocked ? Colors.white10 : catColor.withOpacity(0.35),
+        borderColor: isLocked ? Colors.white10 : catColor.withValues(alpha: 0.35),
         backgroundColor: isLocked ? const Color(0x221E293B) : const Color(0x331E1B4B),
         onTap: isLocked
             ? () {
@@ -218,8 +217,8 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
               height: 50,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: isLocked ? Colors.white.withOpacity(0.05) : catColor.withOpacity(0.2),
-                border: Border.all(color: isLocked ? Colors.white12 : catColor.withOpacity(0.5)),
+                color: isLocked ? Colors.white.withValues(alpha: 0.05) : catColor.withValues(alpha: 0.2),
+                border: Border.all(color: isLocked ? Colors.white12 : catColor.withValues(alpha: 0.5)),
               ),
               child: Center(
                 child: isLocked
@@ -272,7 +271,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06),
+                          color: Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -300,7 +299,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: catColor.withOpacity(0.15),
+                  color: catColor.withValues(alpha: 0.15),
                 ),
                 child: Icon(Icons.play_arrow_rounded, color: catColor, size: 20),
               ),

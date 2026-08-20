@@ -8,11 +8,11 @@ class CustomBottomNav extends StatelessWidget {
   final VoidCallback onCenterTap;
 
   const CustomBottomNav({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
     required this.onCenterTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +52,7 @@ class CustomBottomNav extends StatelessWidget {
                   gradient: AppColors.goldGradient,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.neonGold.withOpacity(0.6),
+                      color: AppColors.neonGold.withValues(alpha: 0.6),
                       blurRadius: 16,
                       spreadRadius: 2,
                       offset: const Offset(0, 4),

@@ -13,7 +13,7 @@ class NeonButton extends StatelessWidget {
   final TextStyle? textStyle;
 
   const NeonButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.gradient,
@@ -23,7 +23,7 @@ class NeonButton extends StatelessWidget {
     this.width,
     this.borderRadius = 16.0,
     this.textStyle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class NeonButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: effectiveGlowColor.withOpacity(0.4),
+            color: effectiveGlowColor.withValues(alpha: 0.4),
             blurRadius: 18,
             spreadRadius: 1,
             offset: const Offset(0, 4),

@@ -9,7 +9,7 @@ import '../../widgets/neon_button.dart';
 import '../leaderboard/leaderboard_screen.dart';
 
 class QuizResultScreen extends StatelessWidget {
-  const QuizResultScreen({Key? key}) : super(key: key);
+  const QuizResultScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class QuizResultScreen extends StatelessWidget {
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.neonGold.withOpacity(0.15),
+                color: AppColors.neonGold.withValues(alpha: 0.15),
               ),
             ),
           ),
@@ -90,7 +90,7 @@ class QuizResultScreen extends StatelessWidget {
                   // Score Glass Card
                   GlassCard(
                     borderRadius: 24,
-                    borderColor: AppColors.neonGold.withOpacity(0.4),
+                    borderColor: AppColors.neonGold.withValues(alpha: 0.4),
                     backgroundColor: const Color(0x33281E48),
                     child: Column(
                       children: [
@@ -127,9 +127,9 @@ class QuizResultScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                              color: AppColors.neonGold.withOpacity(0.15),
+                              color: AppColors.neonGold.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.neonGold.withOpacity(0.5)),
+                              border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.5)),
                             ),
                             child: const Text(
                               '🔥 PERFECT SCORE! +100 coin bonus',
@@ -157,7 +157,7 @@ class QuizResultScreen extends StatelessWidget {
                   // Guest Conversion Card (If Guest)
                   if (isGuest) ...[
                     GlassCard(
-                      borderColor: AppColors.neonCyan.withOpacity(0.4),
+                      borderColor: AppColors.neonCyan.withValues(alpha: 0.4),
                       backgroundColor: const Color(0x33003B46),
                       child: Column(
                         children: [

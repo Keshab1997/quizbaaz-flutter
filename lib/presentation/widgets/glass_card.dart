@@ -16,7 +16,7 @@ class GlassCard extends StatelessWidget {
   final List<BoxShadow>? shadows;
 
   const GlassCard({
-    Key? key,
+    super.key,
     required this.child,
     this.borderRadius = 20.0,
     this.padding = const EdgeInsets.all(16.0),
@@ -28,7 +28,7 @@ class GlassCard extends StatelessWidget {
     this.width,
     this.height,
     this.shadows,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class GlassCard extends StatelessWidget {
         boxShadow: shadows ??
             [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withValues(alpha: 0.25),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               )
@@ -57,13 +57,13 @@ class GlassCard extends StatelessWidget {
               color: backgroundColor ?? AppColors.bgCardGlass,
               borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
-                color: borderColor ?? Colors.white.withOpacity(0.12),
+                color: borderColor ?? Colors.white.withValues(alpha: 0.12),
                 width: 1.2,
               ),
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.08),
-                  Colors.white.withOpacity(0.02),
+                  Colors.white.withValues(alpha: 0.08),
+                  Colors.white.withValues(alpha: 0.02),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

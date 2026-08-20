@@ -4,7 +4,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
-  const AdminDashboardScreen({Key? key}) : super(key: key);
+  const AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,12 +20,12 @@ class AdminDashboardScreen extends StatelessWidget {
           // Live Metrics
           const Text('SYSTEM OVERVIEW', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1)),
           const SizedBox(height: 10),
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: GlassCard(
-                  padding: const EdgeInsets.all(14),
-                  child: const Column(
+                  padding: EdgeInsets.all(14),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('1,284', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.neonCyan)),
@@ -34,11 +34,11 @@ class AdminDashboardScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: GlassCard(
-                  padding: const EdgeInsets.all(14),
-                  child: const Column(
+                  padding: EdgeInsets.all(14),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('8,420', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.neonGold)),
@@ -54,7 +54,7 @@ class AdminDashboardScreen extends StatelessWidget {
           // Action 1: Upload JSON Questions
           GlassCard(
             borderRadius: 20,
-            borderColor: AppColors.neonPurple.withOpacity(0.4),
+            borderColor: AppColors.neonPurple.withValues(alpha: 0.4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -86,7 +86,7 @@ class AdminDashboardScreen extends StatelessWidget {
           // Action 2: Declare Daily Winner & Gift
           GlassCard(
             borderRadius: 20,
-            borderColor: AppColors.neonGold.withOpacity(0.4),
+            borderColor: AppColors.neonGold.withValues(alpha: 0.4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -123,7 +123,7 @@ class AdminDashboardScreen extends StatelessWidget {
                   title: const Text('Anti-Cheat Auto Protection', style: TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: const Text('Auto-flag suspicious fast answers & block bots', style: TextStyle(fontSize: 11)),
                   value: true,
-                  activeColor: AppColors.neonGreen,
+                  activeThumbColor: AppColors.neonGreen,
                   onChanged: (val) {},
                 ),
                 const Divider(color: Colors.white12),
@@ -131,7 +131,7 @@ class AdminDashboardScreen extends StatelessWidget {
                   title: const Text('Maintenance Mode', style: TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: const Text('Temporarily lock app for server upgrade', style: TextStyle(fontSize: 11)),
                   value: false,
-                  activeColor: AppColors.neonRed,
+                  activeThumbColor: AppColors.neonRed,
                   onChanged: (val) {},
                 ),
               ],

@@ -9,7 +9,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/purchase_celebration.dart';
 
 class ShopScreen extends StatelessWidget {
-  const ShopScreen({Key? key}) : super(key: key);
+  const ShopScreen({super.key});
 
   IconData _iconFor(String itemId) {
     switch (itemId) {
@@ -42,7 +42,7 @@ class ShopScreen extends StatelessWidget {
           // Balance Bar
           GlassCard(
             borderRadius: 20,
-            borderColor: AppColors.neonCyan.withOpacity(0.4),
+            borderColor: AppColors.neonCyan.withValues(alpha: 0.4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -88,7 +88,7 @@ class ShopScreen extends StatelessWidget {
                 onBuy: () => _handleBuy(context, userProvider, item),
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -150,7 +150,6 @@ class _ShopItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isGems = !item.costsCoins;
-    final isOwnedCosmetic = item.isCosmetic && owned > 0;
 
     final Color accent = isGems ? AppColors.neonPurple : AppColors.neonGold;
 
@@ -162,7 +161,7 @@ class _ShopItemCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: accent.withOpacity(0.2),
+              color: accent.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: accent),
@@ -207,9 +206,9 @@ class _ShopItemCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.08),
+          color: Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.neonCyan.withOpacity(0.5)),
+          border: Border.all(color: AppColors.neonCyan.withValues(alpha: 0.5)),
         ),
         child: const Text(
           'OWNED ✓',
@@ -218,7 +217,7 @@ class _ShopItemCard extends StatelessWidget {
       );
     }
 
-    final Color bg = affordable ? accent : Colors.white.withOpacity(0.08);
+    final Color bg = affordable ? accent : Colors.white.withValues(alpha: 0.08);
     final Color fg = affordable
         ? (item.costsCoins ? Colors.black : Colors.white)
         : AppColors.textSecondary;
@@ -227,7 +226,7 @@ class _ShopItemCard extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: bg,
         foregroundColor: fg,
-        disabledBackgroundColor: Colors.white.withOpacity(0.08),
+        disabledBackgroundColor: Colors.white.withValues(alpha: 0.08),
         disabledForegroundColor: AppColors.textSecondary,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

@@ -18,7 +18,6 @@ class AppTheme {
         primary: AppColors.neonPurple,
         secondary: AppColors.neonCyan,
         surface: AppColors.bgCard,
-        background: AppColors.bgDark,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
