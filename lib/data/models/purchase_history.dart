@@ -7,6 +7,7 @@ class PurchaseHistory {
   final String userId;
   final String itemId;
   final String itemName;
+  final String category; // 'power_ups', 'shields', 'boosters', 'avatars', 'badges', 'effects', 'packs'
   final int quantity;
   final int cost;
   final String currency; // 'coins' or 'gems'
@@ -17,6 +18,7 @@ class PurchaseHistory {
     required this.userId,
     required this.itemId,
     required this.itemName,
+    this.category = 'power_ups',
     required this.quantity,
     required this.cost,
     required this.currency,
@@ -25,11 +27,34 @@ class PurchaseHistory {
 
   String get costLabel => '$cost $currency';
 
+  /// Get category display name with emoji.
+  String get categoryDisplayName {
+    switch (category) {
+      case 'power_ups':
+        return '🎮 Power-Ups';
+      case 'shields':
+        return '🛡️ Shields';
+      case 'boosters':
+        return '⚡ Boosters';
+      case 'avatars':
+        return '🎨 Avatars';
+      case 'badges':
+        return '🏆 Badges';
+      case 'effects':
+        return '✨ Effects';
+      case 'packs':
+        return '🎁 Packs';
+      default:
+        return category;
+    }
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'user_id': userId,
         'item_id': itemId,
         'item_name': itemName,
+        'category': category,
         'quantity': quantity,
         'cost': cost,
         'currency': currency,
@@ -42,6 +67,7 @@ class PurchaseHistory {
       userId: json['user_id'] as String? ?? '',
       itemId: json['item_id'] as String? ?? '',
       itemName: json['item_name'] as String? ?? '',
+      category: json['category'] as String? ?? 'power_ups',
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       cost: (json['cost'] as num?)?.toInt() ?? 0,
       currency: json['currency'] as String? ?? 'coins',

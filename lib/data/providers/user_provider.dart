@@ -222,6 +222,7 @@ class UserProvider extends ChangeNotifier {
       userId: _user.userId,
       itemId: item.id,
       itemName: item.name,
+      category: item.category,
       quantity: item.quantity,
       cost: item.cost,
       currency: item.costsCoins ? 'coins' : 'gems',

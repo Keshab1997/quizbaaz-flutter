@@ -7,7 +7,7 @@ import '../../../data/models/shop_item.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 
-/// Shows the player's complete purchase history with filtering options.
+/// Shows the player's complete purchase history with category filtering.
 class PurchaseHistoryScreen extends StatefulWidget {
   const PurchaseHistoryScreen({super.key});
 
@@ -19,7 +19,21 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
   List<PurchaseHistory> _allHistory = [];
   List<PurchaseHistory> _filteredHistory = [];
   bool _isLoading = true;
-  String _filter = 'all'; // 'all', 'coins', 'gems'
+  String _filter = 'all';
+
+  // All available categories
+  final List<Map<String, String>> _categories = [
+    {'id': 'all', 'label': '🏪 All'},
+    {'id': 'power_ups', 'label': '🎮 Power-Ups'},
+    {'id': 'shields', 'label': '🛡️ Shields'},
+    {'id': 'boosters', 'label': '⚡ Boosters'},
+    {'id': 'avatars', 'label': '🎨 Avatars'},
+    {'id': 'badges', 'label': '🏆 Badges'},
+    {'id': 'effects', 'label': '✨ Effects'},
+    {'id': 'packs', 'label': '🎁 Packs'},
+    {'id': 'coins', 'label': '💰 Coins'},
+    {'id': 'gems', 'label': '💎 Gems'},
+  ];
 
   @override
   void initState() {
@@ -43,9 +57,15 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
   void _applyFilter() {
     if (_filter == 'all') {
       _filteredHistory = _allHistory;
+    } else if (_filter == 'coins') {
+      _filteredHistory =
+          _allHistory.where((h) => h.currency == 'coins').toList();
+    } else if (_filter == 'gems') {
+      _filteredHistory =
+          _allHistory.where((h) => h.currency == 'gems').toList();
     } else {
       _filteredHistory =
-          _allHistory.where((h) => h.currency == _filter).toList();
+          _allHistory.where((h) => h.category == _filter).toList();
     }
   }
 
@@ -71,7 +91,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.neonCyan),
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.neonGold),
             onPressed: _loadHistory,
           ),
         ],
@@ -79,12 +99,12 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
       body: Column(
         children: [
           _buildStatsSummary(),
-          _buildFilterChips(),
+          _buildCategoryFilter(),
           Expanded(
             child: _isLoading
                 ? const Center(
                     child:
-                        CircularProgressIndicator(color: AppColors.neonCyan))
+                        CircularProgressIndicator(color: AppColors.neonGold))
                 : _filteredHistory.isEmpty
                     ? _buildEmptyState()
                     : _buildHistoryList(),
@@ -105,6 +125,12 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     final totalItems =
         _allHistory.fold<int>(0, (sum, h) => sum + h.quantity);
 
+    // Category counts
+    final categoryCounts = <String, int>{};
+    for (final h in _allHistory) {
+      categoryCounts[h.category] = (categoryCounts[h.category] ?? 0) + 1;
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: GlassCard(
@@ -112,33 +138,69 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
         borderColor: AppColors.neonGold.withValues(alpha: 0.3),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          child: Column(
             children: [
-              _buildStatItem(
-                icon: Icons.shopping_bag_rounded,
-                value: '$totalPurchases',
-                label: 'Orders',
-                color: AppColors.neonCyan,
+              // Main stats
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatItem(
+                    icon: Icons.shopping_bag_rounded,
+                    value: '$totalPurchases',
+                    label: 'Orders',
+                    color: AppColors.neonCyan,
+                  ),
+                  _buildStatItem(
+                    icon: Icons.monetization_on_rounded,
+                    value: _formatNumber(totalCoinsSpent),
+                    label: 'Coins Spent',
+                    color: AppColors.neonGold,
+                  ),
+                  _buildStatItem(
+                    icon: Icons.diamond_rounded,
+                    value: _formatNumber(totalGemsSpent),
+                    label: 'Gems Spent',
+                    color: AppColors.neonPurple,
+                  ),
+                  _buildStatItem(
+                    icon: Icons.inventory_2_rounded,
+                    value: '$totalItems',
+                    label: 'Items',
+                    color: AppColors.neonGreen,
+                  ),
+                ],
               ),
-              _buildStatItem(
-                icon: Icons.monetization_on_rounded,
-                value: _formatNumber(totalCoinsSpent),
-                label: 'Coins Spent',
-                color: AppColors.neonGold,
-              ),
-              _buildStatItem(
-                icon: Icons.diamond_rounded,
-                value: _formatNumber(totalGemsSpent),
-                label: 'Gems Spent',
-                color: AppColors.neonPurple,
-              ),
-              _buildStatItem(
-                icon: Icons.inventory_2_rounded,
-                value: '$totalItems',
-                label: 'Items',
-                color: AppColors.neonGreen,
-              ),
+              // Category breakdown
+              if (categoryCounts.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                const Divider(color: Colors.white12),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: categoryCounts.entries.map((entry) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _categoryColor(entry.key).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _categoryColor(entry.key).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        '${_categoryEmoji(entry.key)} ${entry.value}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _categoryColor(entry.key),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ],
           ),
         ),
@@ -176,51 +238,56 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     );
   }
 
-  Widget _buildFilterChips() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          _buildFilterChip('All', 'all'),
-          const SizedBox(width: 8),
-          _buildFilterChip('Coins', 'coins'),
-          const SizedBox(width: 8),
-          _buildFilterChip('Gems', 'gems'),
-        ],
-      ),
-    );
-  }
+  Widget _buildCategoryFilter() {
+    return SizedBox(
+      height: 45,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        itemCount: _categories.length,
+        itemBuilder: (context, index) {
+          final cat = _categories[index];
+          final isSelected = _filter == cat['id'];
 
-  Widget _buildFilterChip(String label, String value) {
-    final isSelected = _filter == value;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _filter = value;
-          _applyFilter();
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.neonGold.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.neonGold.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.1),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? AppColors.neonGold : AppColors.textSecondary,
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-          ),
-        ),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _filter = cat['id']!;
+                  _applyFilter();
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.neonGold.withValues(alpha: 0.2)
+                      : Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.neonGold.withValues(alpha: 0.5)
+                        : Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Text(
+                  cat['label']!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight:
+                        isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isSelected
+                        ? AppColors.neonGold
+                        : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -236,18 +303,22 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
             color: AppColors.textMuted.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'No Purchases Yet',
-            style: TextStyle(
+          Text(
+            _filter == 'all'
+                ? 'No Purchases Yet'
+                : 'No ${_getFilterName()} Purchases',
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Visit the shop to buy power-ups and items!',
-            style: TextStyle(
+          Text(
+            _filter == 'all'
+                ? 'Visit the shop to buy power-ups and items!'
+                : 'No items in this category yet.',
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 14,
             ),
@@ -255,6 +326,14 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
         ],
       ),
     );
+  }
+
+  String _getFilterName() {
+    final cat = _categories.firstWhere(
+      (c) => c['id'] == _filter,
+      orElse: () => {'label': _filter},
+    );
+    return cat['label']!.split(' ').skip(1).join(' ');
   }
 
   Widget _buildHistoryList() {
@@ -276,27 +355,49 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     final isCoins = history.currency == 'coins';
     final accent = isCoins ? AppColors.neonGold : AppColors.neonPurple;
     final icon = _iconForItem(history.itemId);
+    final catColor = _categoryColor(history.category);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassCard(
         borderRadius: 18,
-        borderColor: accent.withValues(alpha: 0.3),
+        borderColor: catColor.withValues(alpha: 0.3),
         onTap: () => _showDetailSheet(history),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              // Item icon
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: accent.withValues(alpha: 0.15),
-                  border: Border.all(color: accent.withValues(alpha: 0.4)),
-                ),
-                child: Icon(icon, color: accent, size: 26),
+              // Item icon with category badge
+              Stack(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: catColor.withValues(alpha: 0.15),
+                      border: Border.all(color: catColor.withValues(alpha: 0.4)),
+                    ),
+                    child: Icon(icon, color: catColor, size: 26),
+                  ),
+                  // Category badge
+                  Positioned(
+                    bottom: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1B2646),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: catColor.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        _categoryEmoji(history.category),
+                        style: const TextStyle(fontSize: 8),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(width: 14),
               // Info
@@ -317,28 +418,48 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
+                        // Category tag
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
+                            color: catColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            'x${history.quantity}',
+                            history.categoryDisplayName,
                             style: TextStyle(
-                              color: accent,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
+                              color: catColor,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
+                        // Quantity
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'x${history.quantity}',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        // Date
                         Text(
                           _formatDate(history.purchasedAt),
                           style: const TextStyle(
                             color: AppColors.textMuted,
-                            fontSize: 11,
+                            fontSize: 10,
                           ),
                         ),
                       ],
@@ -346,6 +467,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                   ],
                 ),
               ),
+              const SizedBox(width: 10),
               // Cost
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -392,6 +514,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     final isCoins = history.currency == 'coins';
     final accent = isCoins ? AppColors.neonGold : AppColors.neonPurple;
     final icon = _iconForItem(history.itemId);
+    final catColor = _categoryColor(history.category);
 
     showModalBottomSheet(
       context: context,
@@ -402,7 +525,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF1B2646),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: accent.withValues(alpha: 0.3)),
+          border: Border.all(color: catColor.withValues(alpha: 0.3)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -425,16 +548,16 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                 height: 80,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  color: accent.withValues(alpha: 0.15),
-                  border: Border.all(color: accent.withValues(alpha: 0.4)),
+                  color: catColor.withValues(alpha: 0.15),
+                  border: Border.all(color: catColor.withValues(alpha: 0.4)),
                   boxShadow: [
                     BoxShadow(
-                      color: accent.withValues(alpha: 0.3),
+                      color: catColor.withValues(alpha: 0.3),
                       blurRadius: 20,
                     ),
                   ],
                 ),
-                child: Icon(icon, color: accent, size: 40),
+                child: Icon(icon, color: catColor, size: 40),
               ),
               const SizedBox(height: 16),
               Text(
@@ -443,6 +566,24 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                   color: AppColors.textPrimary,
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Category badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: catColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: catColor.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  history.categoryDisplayName,
+                  style: TextStyle(
+                    color: catColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -563,16 +704,112 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
 
   IconData _iconForItem(String itemId) {
     switch (itemId) {
+      // Power-ups
       case ShopItemIds.fiftyFifty:
         return Icons.filter_2;
       case ShopItemIds.freezeTime:
         return Icons.ac_unit;
+      case ShopItemIds.skipQuestion:
+        return Icons.skip_next_rounded;
+      case ShopItemIds.doublePoints:
+        return Icons.double_arrow_rounded;
+      case ShopItemIds.extraLife:
+        return Icons.favorite_rounded;
+      case ShopItemIds.hintReveal:
+        return Icons.lightbulb_rounded;
+      case ShopItemIds.audiencePoll:
+        return Icons.people_rounded;
+
+      // Shields
       case ShopItemIds.streakShield:
         return Icons.shield_moon;
+      case ShopItemIds.scoreShield:
+        return Icons.security_rounded;
+
+      // Boosters
+      case ShopItemIds.coinBooster:
+        return Icons.monetization_on_rounded;
+      case ShopItemIds.xpBooster:
+        return Icons.trending_up_rounded;
+
+      // Avatars
       case ShopItemIds.vipAvatar:
         return Icons.workspace_premium;
+      case ShopItemIds.goldenAvatar:
+        return Icons.military_tech_rounded;
+      case ShopItemIds.neonAvatar:
+        return Icons.auto_awesome_rounded;
+      case ShopItemIds.royalAvatar:
+        return Icons.diamond_rounded;
+
+      // Badges
+      case ShopItemIds.championBadge:
+        return Icons.emoji_events_rounded;
+      case ShopItemIds.scholarBadge:
+        return Icons.school_rounded;
+      case ShopItemIds.legendBadge:
+        return Icons.stars_rounded;
+
+      // Effects
+      case ShopItemIds.fireName:
+        return Icons.local_fire_department_rounded;
+      case ShopItemIds.rainbowName:
+        return Icons.palette_rounded;
+      case ShopItemIds.goldName:
+        return Icons.auto_fix_high_rounded;
+
+      // Packs
+      case ShopItemIds.starterPack:
+        return Icons.card_giftcard_rounded;
+      case ShopItemIds.megaPack:
+        return Icons.inventory_2_rounded;
+      case ShopItemIds.legendPack:
+        return Icons.workspace_premium_rounded;
+
       default:
         return Icons.card_giftcard;
+    }
+  }
+
+  Color _categoryColor(String category) {
+    switch (category) {
+      case 'power_ups':
+        return AppColors.neonCyan;
+      case 'shields':
+        return AppColors.neonGreen;
+      case 'boosters':
+        return AppColors.neonPink;
+      case 'avatars':
+        return AppColors.neonPurple;
+      case 'badges':
+        return AppColors.neonGold;
+      case 'effects':
+        return AppColors.neonRed;
+      case 'packs':
+        return AppColors.neonGold;
+      default:
+        return AppColors.neonCyan;
+    }
+  }
+
+  String _categoryEmoji(String category) {
+    switch (category) {
+      case 'power_ups':
+        return '🎮';
+      case 'shields':
+        return '🛡️';
+      case 'boosters':
+        return '⚡';
+      case 'avatars':
+        return '🎨';
+      case 'badges':
+        return '🏆';
+      case 'effects':
+        return '✨';
+      case 'packs':
+        return '🎁';
+      default:
+        return '📦';
     }
   }
 
@@ -594,18 +831,8 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
 
   String _formatFullDate(DateTime date) {
     final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}, ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
