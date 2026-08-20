@@ -5,6 +5,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../../data/providers/quiz_provider.dart';
+import '../../../data/providers/rewards_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
 import '../daily_quiz/daily_quiz_screen.dart';
@@ -31,6 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserProvider>().initialize();
+      context.read<RewardsProvider>().initialize();
     });
   }
 
