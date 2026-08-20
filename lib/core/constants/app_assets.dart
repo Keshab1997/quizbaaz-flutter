@@ -7,10 +7,67 @@ class AppAssets {
   static const String battleDuo = 'assets/images/characters/quizbaaz_battle_duo.png';
   static const String rewardGirl = 'assets/images/characters/quizbaaz_reward_girl.png';
 
-  // Premium profile avatars.
+  // Default profile avatars.
   static const String maleAvatar = 'assets/images/avatars/quizbaaz_avatar_boy.png';
   static const String femaleAvatar = 'assets/images/avatars/quizbaaz_avatar_girl.png';
   static const String userAvatarBoy = maleAvatar; // Backwards compatibility.
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // 🎨 NEW 3D AVATARS - Male
+  // ═══════════════════════════════════════════════════════════════════════
+  static const String maleAvatar1 = 'assets/images/avatars/new/male_avatar_1.png';
+  static const String maleAvatar2 = 'assets/images/avatars/new/male_avatar_2.png';
+  static const String maleAvatar3 = 'assets/images/avatars/new/male_avatar_3.png';
+  static const String maleAvatar4 = 'assets/images/avatars/new/male_avatar_4.png';
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // 🎨 NEW 3D AVATARS - Female
+  // ═══════════════════════════════════════════════════════════════════════
+  static const String femaleAvatar1 = 'assets/images/avatars/new/female_avatar_1.png';
+  static const String femaleAvatar2 = 'assets/images/avatars/new/female_avatar_2.png';
+  static const String femaleAvatar3 = 'assets/images/avatars/new/female_avatar_3.png';
+  static const String femaleAvatar4 = 'assets/images/avatars/new/female_avatar_4.png';
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // 👑 PREMIUM SHOP AVATARS
+  // ═══════════════════════════════════════════════════════════════════════
+  static const String vipAvatar = 'assets/images/avatars/new/vip_avatar.png';
+  static const String goldenKnightAvatar = 'assets/images/avatars/new/golden_knight_avatar.png';
+  static const String neonCyberAvatar = 'assets/images/avatars/new/neon_cyber_avatar.png';
+  static const String royalCrownAvatar = 'assets/images/avatars/new/royal_crown_avatar.png';
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // 📋 AVATAR LISTS (for selection screens)
+  // ═══════════════════════════════════════════════════════════════════════
+  static const List<String> maleAvatars = [
+    maleAvatar,
+    maleAvatar1,
+    maleAvatar2,
+    maleAvatar3,
+    maleAvatar4,
+  ];
+
+  static const List<String> femaleAvatars = [
+    femaleAvatar,
+    femaleAvatar1,
+    femaleAvatar2,
+    femaleAvatar3,
+    femaleAvatar4,
+  ];
+
+  static const List<String> premiumAvatars = [
+    vipAvatar,
+    goldenKnightAvatar,
+    neonCyberAvatar,
+    royalCrownAvatar,
+  ];
+
+  // All avatars combined
+  static const List<String> allAvatars = [
+    ...maleAvatars,
+    ...femaleAvatars,
+    ...premiumAvatars,
+  ];
 
   // Existing glossy action icons are still used by secondary screens.
   static const String streakFire = 'assets/icons/streak_fire_3d.png';

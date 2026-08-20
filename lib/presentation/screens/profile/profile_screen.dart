@@ -7,6 +7,7 @@ import '../../../data/providers/auth_provider.dart';
 import '../../../data/models/user_stats.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
+import 'avatar_selection_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -81,7 +82,40 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
+                  // Change Avatar Button
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AvatarSelectionScreen()),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.neonPurple.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.4)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.face_rounded, color: AppColors.neonPurple, size: 16),
+                          SizedBox(width: 6),
+                          Text(
+                            'Change Avatar',
+                            style: TextStyle(
+                              color: AppColors.neonPurple,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   GestureDetector(
                     onTap: () => _showEditProfileSheet(context, userProvider, user),
                     child: Row(

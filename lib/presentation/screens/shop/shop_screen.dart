@@ -9,6 +9,22 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/purchase_celebration.dart';
 import 'purchase_history_screen.dart';
 
+/// Maps shop item IDs to their avatar asset paths.
+String? _avatarPathForItem(String itemId) {
+  switch (itemId) {
+    case ShopItemIds.vipAvatar:
+      return AppAssets.vipAvatar;
+    case ShopItemIds.goldenAvatar:
+      return AppAssets.goldenKnightAvatar;
+    case ShopItemIds.neonAvatar:
+      return AppAssets.neonCyberAvatar;
+    case ShopItemIds.royalAvatar:
+      return AppAssets.royalCrownAvatar;
+    default:
+      return null;
+  }
+}
+
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
 
@@ -385,12 +401,14 @@ class _ShopItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final avatarPath = _avatarPathForItem(item.id);
+
     return GlassCard(
       borderRadius: 18,
       borderColor: accent.withValues(alpha: 0.3),
       child: Row(
         children: [
-          // Icon
+          // Icon or Avatar Preview
           Container(
             width: 52,
             height: 52,
@@ -399,7 +417,16 @@ class _ShopItemCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: accent.withValues(alpha: 0.4)),
             ),
-            child: Icon(icon, color: accent, size: 26),
+            child: avatarPath != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      avatarPath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Icon(icon, color: accent, size: 26),
+                    ),
+                  )
+                : Icon(icon, color: accent, size: 26),
           ),
           const SizedBox(width: 14),
 

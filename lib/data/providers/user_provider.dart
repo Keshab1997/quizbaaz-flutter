@@ -509,6 +509,13 @@ class UserProvider extends ChangeNotifier {
     _persistUser();
   }
 
+  /// Updates the user's avatar path.
+  void updateAvatar(String avatarPath) {
+    _user.avatarPath = avatarPath;
+    notifyListeners();
+    _persistUser();
+  }
+
   /// Links a Google account, keeping all local progress.
   Future<void> linkGoogleAccount(
     String fullName,
