@@ -124,15 +124,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 12),
                       _buildQuickActions(),
                       const SizedBox(height: 28),
-                      _buildSectionHeader(
-                        eyebrow: 'SMART REVISION',
-                        title: 'Continue learning',
-                        actionLabel: 'All chapters',
-                        onAction: () => _onNavTap(1),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildContinueLearning(),
-                      const SizedBox(height: 28),
                       _buildChampionCard(),
                       const SizedBox(height: 28),
                       _buildSectionHeader(

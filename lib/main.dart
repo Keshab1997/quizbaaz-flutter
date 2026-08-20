@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
@@ -8,16 +9,23 @@ import 'data/providers/battle_provider.dart';
 import 'data/providers/quiz_provider.dart';
 import 'data/providers/rewards_provider.dart';
 import 'data/providers/user_provider.dart';
+import 'data/services/firebase_options.dart';
+import 'data/services/hive_service.dart';
 import 'presentation/screens/dashboard/dashboard_screen.dart';
 import 'presentation/widgets/app_background.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase is optional at startup so development is never blocked.
-  // Google Sign-In will report a clear error until the project is configured.
+  // Init Hive for local storage
+  await Hive.initFlutter();
+  await HiveService.initialize();
+
+  // Init Firebase (optional)
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
     debugPrint('Firebase not configured yet: $e');
   }

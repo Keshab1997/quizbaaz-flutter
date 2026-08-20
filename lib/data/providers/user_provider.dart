@@ -8,6 +8,8 @@ import '../models/champion_model.dart';
 import '../models/leaderboard_model.dart';
 import '../models/shop_item.dart';
 import '../repositories/quiz_repository.dart';
+import '../services/hive_service.dart';
+import '../services/firestore_service.dart';
 
 /// Result of a shop purchase attempt.
 enum PurchaseStatus { success, insufficientFunds, alreadyOwned }
@@ -32,6 +34,7 @@ class UserProvider extends ChangeNotifier {
   int _bestDailyScore = 0;
   double _bestDailyTime = 0;
   bool _hasPlayedDaily = false;
+  bool _firestoreAvailable = true;
 
   UserModel get user => _user;
   List<ChampionModel> get champions => _champions;
@@ -41,20 +44,10 @@ class UserProvider extends ChangeNotifier {
   ChampionModel? get yesterdayTopChampion =>
       _champions.isNotEmpty ? _champions.first : null;
 
-  // ------------------------------------------------------ Leaderboard / Rank --
-
-  /// The player's best daily-quiz score so far (0 = never played).
   int get bestDailyScore => _bestDailyScore;
-
-  /// Time taken for the best daily-quiz run, in seconds.
   double get bestDailyTime => _bestDailyTime;
-
-  /// Whether the player has finished at least one daily quiz.
   bool get hasPlayedDailyQuiz => _hasPlayedDaily;
 
-  /// Saves a finished daily-quiz result as the new personal best, if it is
-  /// better than the previous one (higher score wins; on a tie, faster wins).
-  /// Returns true when the record was updated.
   bool updateDailyBest({required int score, required double timeSeconds}) {
     _hasPlayedDaily = true;
     final isBest = score > _bestDailyScore ||
@@ -62,14 +55,13 @@ class UserProvider extends ChangeNotifier {
     if (isBest) {
       _bestDailyScore = score;
       _bestDailyTime = timeSeconds;
+      _syncLeaderboardEntry(score, timeSeconds);
     }
     notifyListeners();
     _persist();
     return isBest;
   }
 
-  /// The player's rank (1-based) on today's leaderboard, computed by inserting
-  /// their best score into the loaded list. Returns null if not played yet.
   int? get playerRank {
     if (!hasPlayedDailyQuiz) return null;
     var rank = 1;
@@ -81,11 +73,11 @@ class UserProvider extends ChangeNotifier {
     return rank;
   }
 
-  /// Loads persisted coins/gems/inventory (from a previous session) and then
-  /// fetches the champion + leaderboard data.
   Future<void> initialize() async {
     await _loadPersistedState();
     await loadInitialData();
+    _firestoreAvailable = true;
+    await _syncFromFirestoreIfNeeded();
   }
 
   Future<void> loadInitialData() async {
@@ -103,21 +95,12 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------------------------------------------------------------- Shop ----
-
-  /// How many units of [itemId] the user currently owns.
   int inventoryCount(String itemId) => _user.inventoryCount(itemId);
-
-  /// Whether the user owns at least one unit of [itemId].
   bool hasItem(String itemId) => inventoryCount(itemId) > 0;
-
-  /// Whether the user has enough coins/gems to buy [item].
   bool canAfford(ShopItem item) => item.costsCoins
       ? _user.coins >= item.cost
       : _user.gems >= item.cost;
 
-  /// Buys [item], deducts the balance and adds it to the inventory.
-  /// Returns a [PurchaseStatus] so the UI can show the right feedback.
   PurchaseStatus purchaseItem(ShopItem item) {
     if (item.isCosmetic && hasItem(item.id)) {
       return PurchaseStatus.alreadyOwned;
@@ -138,8 +121,6 @@ class UserProvider extends ChangeNotifier {
     return PurchaseStatus.success;
   }
 
-  /// Consumes one unit of [itemId] (e.g. when a lifeline is used in a quiz).
-  /// Returns false if the user owns none.
   bool consumeItem(String itemId) {
     final count = inventoryCount(itemId);
     if (count <= 0) return false;
@@ -150,10 +131,6 @@ class UserProvider extends ChangeNotifier {
     return true;
   }
 
-  // ------------------------------------------------------- Rewards / Auth ---
-
-  /// "yyyy-MM-dd" key for today (local time) — used to limit the daily
-  /// quiz reward to once per day.
   static String _todayKey() {
     final now = DateTime.now();
     final m = now.month.toString().padLeft(2, '0');
@@ -161,14 +138,8 @@ class UserProvider extends ChangeNotifier {
     return '${now.year}-$m-$d';
   }
 
-  /// Whether the player can still claim the daily quiz reward today.
   bool get canEarnDailyRewards => _lastDailyRewardDate != _todayKey();
 
-  /// Grants coins & gems earned from a finished quiz.
-  ///
-  /// - Daily quiz rewards are granted at most once per calendar day to stop
-  ///   reward farming (returns false if already claimed today).
-  /// - Chapter quiz (practice) always grants, but earns fewer coins.
   bool grantQuizRewards({
     required int coins,
     required int gems,
@@ -188,10 +159,10 @@ class UserProvider extends ChangeNotifier {
     return true;
   }
 
-  /// Switches the profile mascot and keeps every screen in sync.
   void toggleGender() {
     _user.toggleGender();
     notifyListeners();
+    _persistUserToServices();
   }
 
   void setGuestMode(bool isGuest) {
@@ -204,11 +175,18 @@ class UserProvider extends ChangeNotifier {
     _persist();
   }
 
-  /// Converts the local/guest account into a registered account using the
-  /// Google profile data (call after a successful Google Sign-In).
-  ///
-  /// Keeps all earned coins, gems, inventory and streak. A one-time welcome
-  /// bonus is granted only when converting from guest mode.
+  void updateUsername(String newUsername) {
+    _user.username = newUsername;
+    notifyListeners();
+    _persistUserToServices();
+  }
+
+  void updateGender(UserGender gender) {
+    _user.setGender(gender);
+    notifyListeners();
+    _persistUserToServices();
+  }
+
   void linkGoogleAccount(String fullName, String email) {
     final wasGuest = _user.isGuest;
     _user = UserModel(
@@ -216,48 +194,146 @@ class UserProvider extends ChangeNotifier {
       username: email.split('@').first,
       fullName: fullName,
       avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png',
-      coins: _user.coins + (wasGuest ? 500 : 0), // Welcome bonus
+      coins: _user.coins + (wasGuest ? 500 : 0),
       gems: _user.gems + (wasGuest ? 20 : 0),
       dailyStreak: _user.dailyStreak,
       isGuest: false,
-      // Keep everything the guest earned or bought.
       inventory: _user.inventory,
     );
     notifyListeners();
     _persist();
+    _syncToFirestore();
+  }
+
+  void saveProfile({
+    required String username,
+    required String fullName,
+    required UserGender gender,
+  }) {
+    _user = UserModel(
+      userId: _user.userId,
+      username: username,
+      fullName: fullName,
+      avatarPath: gender == UserGender.male
+          ? 'assets/images/avatars/quizbaaz_avatar_boy.png'
+          : 'assets/images/avatars/quizbaaz_avatar_girl.png',
+      gender: gender,
+      coins: _user.coins,
+      gems: _user.gems,
+      dailyStreak: _user.dailyStreak,
+      isGuest: _user.isGuest,
+      playedTodayDailyQuiz: _user.playedTodayDailyQuiz,
+      inventory: _user.inventory,
+    );
+    notifyListeners();
+    _persistUserToServices();
+  }
+
+  // ------------------------------------------------------------- Sync ---
+
+  Future<void> _persistUserToServices() async {
+    await HiveService.saveUser(_user);
+    if (_firestoreAvailable) {
+      await _syncToFirestore();
+    }
+  }
+
+  Future<void> _syncToFirestore() async {
+    if (!_firestoreAvailable || _user.isGuest) return;
+    await FirestoreService.saveUser(_user);
+  }
+
+  Future<void> _syncLeaderboardEntry(int score, double timeSeconds) async {
+    if (!_firestoreAvailable || _user.isGuest) return;
+    await FirestoreService.saveLeaderboardEntry(
+      userId: _user.userId,
+      username: _user.username,
+      avatarPath: _user.avatarPath,
+      score: score,
+      timeSeconds: timeSeconds,
+      date: DateTime.now(),
+    );
+  }
+
+  Future<void> _syncFromFirestoreIfNeeded() async {
+    if (_user.isGuest) return;
+    try {
+      final firebaseUser = await FirestoreService.loadUser(_user.userId);
+      if (firebaseUser != null) {
+        if (_user.coins == 0 && firebaseUser.coins > 0) {
+          _user.coins = firebaseUser.coins;
+        }
+        if (_user.gems == 0 && firebaseUser.gems > 0) {
+          _user.gems = firebaseUser.gems;
+        }
+        notifyListeners();
+        _persist();
+      }
+    } catch (e) {      debugPrint('Firestore sync error: $e');
+    }
   }
 
   // ---------------------------------------------------------- Persistence ---
 
   Future<void> _loadPersistedState() async {
+    // Try Hive first
+    final hiveUser = HiveService.loadUser();
+    if (hiveUser != null) {
+      _user = hiveUser;
+    }
+
+    // Load game progress from Hive
+    final progress = HiveService.loadGameProgress();
+    _bestDailyScore = progress['bestScore'] as int? ?? 0;
+    _bestDailyTime = progress['bestTime'] as double? ?? 0.0;
+    _lastDailyRewardDate = progress['lastRewardDate'] as String?;
+    _hasPlayedDaily = progress['hasPlayedDaily'] as bool? ?? false;
+
     try {
       final prefs = await SharedPreferences.getInstance();
-      final coins = prefs.getInt(_kCoins);
-      final gems = prefs.getInt(_kGems);
-      final inventoryRaw = prefs.getString(_kInventory);
-      final lastDailyReward = prefs.getString(_kLastDailyReward);
-      final bestScore = prefs.getInt(_kBestDailyScore);
-      final bestTime = prefs.getDouble(_kBestDailyTime);
-      final hasPlayed = prefs.getBool(_kHasPlayedDaily);
-
-      if (coins != null) _user.coins = coins;
-      if (gems != null) _user.gems = gems;
-      if (lastDailyReward != null) _lastDailyRewardDate = lastDailyReward;
-      if (bestScore != null) _bestDailyScore = bestScore;
-      if (bestTime != null) _bestDailyTime = bestTime;
-      if (hasPlayed != null) _hasPlayedDaily = hasPlayed;
-      if (inventoryRaw != null) {
-        final decoded = jsonDecode(inventoryRaw) as Map<String, dynamic>;
-        _user.inventory =
-            decoded.map((key, value) => MapEntry(key, (value as num).toInt()));
+      // Migrate from SharedPreferences if Hive had no data
+      if (hiveUser == null) {
+        final coins = prefs.getInt(_kCoins);
+        final gems = prefs.getInt(_kGems);
+        if (coins != null) _user.coins = coins;
+        if (gems != null) _user.gems = gems;
+        final inventoryRaw = prefs.getString(_kInventory);
+        if (inventoryRaw != null) {
+          final decoded = jsonDecode(inventoryRaw) as Map<String, dynamic>;
+          _user.inventory = decoded.map((key, value) => MapEntry(key, (value as num).toInt()));
+        }
+      }
+      if (_bestDailyScore == 0) {
+        _bestDailyScore = prefs.getInt(_kBestDailyScore) ?? 0;
+      }
+      if (_bestDailyTime == 0.0) {
+        _bestDailyTime = prefs.getDouble(_kBestDailyTime) ?? 0.0;
+      }
+      if (_lastDailyRewardDate == null) {
+        _lastDailyRewardDate = prefs.getString(_kLastDailyReward);
+      }
+      if (!_hasPlayedDaily) {
+        _hasPlayedDaily = prefs.getBool(_kHasPlayedDaily) ?? false;
       }
     } catch (e) {
-      debugPrint('Failed to load persisted state: $e');
+      debugPrint('Failed to load SharedPreferences: $e');
     }
+
     notifyListeners();
   }
 
   Future<void> _persist() async {
+    await HiveService.saveUser(_user);
+    await HiveService.saveGameProgress(
+      bestScore: _bestDailyScore,
+      bestTime: _bestDailyTime,
+      lastRewardDate: _lastDailyRewardDate,
+      hasPlayedDaily: _hasPlayedDaily,
+    );
+    if (_firestoreAvailable && !_user.isGuest) {
+      await _syncToFirestore();
+    }
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_kCoins, _user.coins);
@@ -270,7 +346,7 @@ class UserProvider extends ChangeNotifier {
       await prefs.setDouble(_kBestDailyTime, _bestDailyTime);
       await prefs.setBool(_kHasPlayedDaily, _hasPlayedDaily);
     } catch (e) {
-      debugPrint('Failed to persist state: $e');
+      debugPrint('Failed to persist to SharedPreferences: $e');
     }
   }
 }

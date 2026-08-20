@@ -4,7 +4,7 @@ enum UserGender { male, female }
 
 class UserModel {
   final String userId;
-  final String username;
+  String username;
   final String fullName;
   String avatarPath;
   UserGender gender;
@@ -44,12 +44,62 @@ class UserModel {
     }
   }
 
+  void updateUsername(String newUsername) {
+    username = newUsername; // Note: username field is final, we need to handle carefully
+  }
+
+  /// Set gender and update avatar accordingly.
+  void setGender(UserGender newGender) {
+    gender = newGender;
+    avatarPath = newGender == UserGender.male
+        ? 'assets/images/avatars/quizbaaz_avatar_boy.png'
+        : 'assets/images/avatars/quizbaaz_avatar_girl.png';
+  }
+
+  // ----------------------------------------------------------------- JSON --
+
+  Map<String, dynamic> toJson() => {
+        'user_id': userId,
+        'username': username,
+        'full_name': fullName,
+        'avatar_path': avatarPath,
+        'gender': gender.name,
+        'coins': coins,
+        'gems': gems,
+        'daily_streak': dailyStreak,
+        'is_guest': isGuest,
+        'played_today_daily_quiz': playedTodayDailyQuiz,
+        'inventory': inventory,
+      };
+
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      userId: json['user_id'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      fullName: json['full_name'] as String? ?? '',
+      avatarPath: json['avatar_path'] as String? ??
+          'assets/images/avatars/quizbaaz_avatar_boy.png',
+      gender:
+          (json['gender'] as String? ?? 'male') == 'male' ? UserGender.male : UserGender.female,
+      coins: (json['coins'] as num?)?.toInt() ?? 0,
+      gems: (json['gems'] as num?)?.toInt() ?? 0,
+      dailyStreak: (json['daily_streak'] as num?)?.toInt() ?? 0,
+      isGuest: json['is_guest'] as bool? ?? false,
+      playedTodayDailyQuiz: json['played_today_daily_quiz'] as bool? ?? false,
+      inventory: (json['inventory'] as Map<String, dynamic>?)
+              ?.map((k, v) => MapEntry(k, (v as num).toInt())) ??
+          {},
+    );
+  }
+
+  // -------------------------------------------------------------- Defaults --
+
   factory UserModel.defaultUser() {
     return UserModel(
       userId: 'usr_keshab_1997',
       username: 'Keshab1997',
       fullName: 'Keshab',
-      avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png',
+      avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png', // intentional typo to match existing
       gender: UserGender.male,
       coins: 1450,
       gems: 45,
