@@ -812,96 +812,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildContinueLearning() {
-    const lessons = <_Lesson>[
-      _Lesson('Mathematics', 'Real Numbers', 0.72, Icons.functions_rounded, AppColors.neonCyan),
-      _Lesson('General Science', 'Life Processes', 0.45, Icons.science_rounded, AppColors.neonGreen),
-    ];
-
-    return Column(
-      children: lessons
-          .map(
-            (lesson) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: GlassCard(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                borderRadius: 19,
-                borderColor: lesson.color.withValues(alpha: 0.24),
-                onTap: () => _onNavTap(1),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        color: lesson.color.withValues(alpha: 0.13),
-                        border: Border.all(color: lesson.color.withValues(alpha: 0.25)),
-                      ),
-                      child: Icon(lesson.icon, color: lesson.color, size: 22),
-                    ),
-                    const SizedBox(width: 11),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            lesson.subject,
-                            style: TextStyle(
-                              color: lesson.color,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.65,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            lesson.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(5),
-                            child: LinearProgressIndicator(
-                              value: lesson.progress,
-                              minHeight: 5,
-                              backgroundColor: Colors.white.withValues(alpha: 0.08),
-                              valueColor: AlwaysStoppedAnimation(lesson.color),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${(lesson.progress * 100).round()}%',
-                      style: TextStyle(
-                        color: lesson.color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(width: 3),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      color: AppColors.textMuted,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-          .toList(),
-    );
-  }
-
   Widget _buildChampionCard() {
     return Container(
       decoration: BoxDecoration(
@@ -1213,7 +1123,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
-
 class _QuickAction {
   final String title;
   final IconData icon;
@@ -1221,16 +1130,6 @@ class _QuickAction {
   final VoidCallback onTap;
 
   const _QuickAction(this.title, this.icon, this.color, this.onTap);
-}
-
-class _Lesson {
-  final String subject;
-  final String title;
-  final double progress;
-  final IconData icon;
-  final Color color;
-
-  const _Lesson(this.subject, this.title, this.progress, this.icon, this.color);
 }
 
 class _Rank {

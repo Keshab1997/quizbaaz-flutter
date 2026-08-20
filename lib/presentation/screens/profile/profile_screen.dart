@@ -396,7 +396,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showEditProfileSheet(
-      BuildContext contex, UserProvider userProvider, UserModel user) {
+      BuildContext context, UserProvider userProvider, UserModel user) {
     final nameController =
         TextEditingController(text: user.fullName);
     final usernameController =
@@ -501,7 +501,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       onPressed: () {
                         userProvider.saveProfile(
-                          username: usernaeController.text.trim().isEmpty
+                          username: usernameController.text.trim().isEmpty
                               ? user.username
                               : usernameController.text.trim(),
                           fullName: nameController.text.trim().isEmpty
@@ -560,7 +560,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         child: Row(
-          mainAxisSize: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               gender == UserGender.male
@@ -618,7 +618,7 @@ class ProfileScreen extends StatelessWidget {
                       UserGender.male,
                       false,
                       () {
-                        uerProvider.updateGender(UserGender.male);
+                        userProvider.updateGender(UserGender.male);
                         Navigator.pop(ctx);
                       },
                     ),
