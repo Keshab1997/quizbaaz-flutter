@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/models/user_model.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 
@@ -459,14 +460,15 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     final isFemale = _selectedAvatar!.contains('female') ||
         _selectedAvatar!.contains('girl');
 
-    userProvider.saveProfile(
-      username: userProvider.user.username,
-      fullName: userProvider.user.fullName,
-      gender: isFemale ? 0 : 1, // 0 = female, 1 = male (check your enum)
-    );
-
     // Update avatar path directly
     userProvider.updateAvatar(_selectedAvatar!);
+
+    // Update gender if needed
+    if (isFemale && userProvider.user.gender != UserGender.female) {
+      userProvider.updateGender(UserGender.female);
+    } else if (!isFemale && userProvider.user.gender != UserGender.male) {
+      userProvider.updateGender(UserGender.male);
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -480,20 +482,15 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
 
   void _showPurchaseDialog(BuildContext context, String avatar) {
     String itemName;
-    String itemId;
 
     if (avatar == AppAssets.vipAvatar) {
       itemName = 'VIP Golden Avatar';
-      itemId = 'vip_avatar';
     } else if (avatar == AppAssets.goldenKnightAvatar) {
       itemName = 'Golden Knight Avatar';
-      itemId = 'golden_avatar';
     } else if (avatar == AppAssets.neonCyberAvatar) {
       itemName = 'Neon Cyber Avatar';
-      itemId = 'neon_avatar';
     } else {
       itemName = 'Royal Crown Avatar';
-      itemId = 'royal_avatar';
     }
 
     showDialog(
@@ -507,7 +504,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
             Text(itemName),
           ],
         ),
-        content: Text(
+        content: const Text(
           'This is a premium avatar. Visit the Shop to purchase it first!',
         ),
         actions: [
