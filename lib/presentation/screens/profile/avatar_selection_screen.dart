@@ -94,28 +94,37 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Current Avatar
+              // Current Avatar (larger circular)
               Container(
-                width: 70,
-                height: 70,
+                width: 80,
+                height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: AppColors.primaryGradient,
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.neonPurple.withValues(alpha: 0.4),
-                      blurRadius: 15,
+                      blurRadius: 20,
+                      spreadRadius: 2,
                     ),
                   ],
                 ),
-                child: ClipOval(
-                  child: Image.asset(
-                    currentAvatar,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.person_rounded,
-                      color: Colors.white,
-                      size: 36,
+                child: Container(
+                  margin: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      currentAvatar,
+                      fit: BoxFit.cover,
+                      width: 74,
+                      height: 74,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.person_rounded,
+                        color: Colors.white,
+                        size: 40,
+                      ),
                     ),
                   ),
                 ),
@@ -142,22 +151,33 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tap an avatar below to change',
+                      style: TextStyle(
+                        color: AppColors.textMuted.withValues(alpha: 0.7),
+                        fontSize: 11,
+                      ),
+                    ),
                   ],
                 ),
               ),
               // Preview selected
               if (_selectedAvatar != null && _selectedAvatar != currentAvatar)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.neonGold.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.4)),
+                    border: Border.all(
+                        color: AppColors.neonGold.withValues(alpha: 0.4)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: AppColors.neonGold, size: 16),
+                      Icon(Icons.check_circle,
+                          color: AppColors.neonGold, size: 16),
                       SizedBox(width: 4),
                       Text(
                         'New',
@@ -260,9 +280,9 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
       physics: const BouncingScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
         childAspectRatio: 0.85,
       ),
       itemCount: avatars.length,
@@ -301,7 +321,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isSelected
                 ? AppColors.neonCyan.withValues(alpha: 0.8)
@@ -314,26 +334,49 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               ? [
                   BoxShadow(
                     color: AppColors.neonCyan.withValues(alpha: 0.3),
-                    blurRadius: 15,
+                    blurRadius: 20,
+                    spreadRadius: 2,
                   )
                 ]
               : null,
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(22),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Avatar Image
-              Image.asset(
-                avatar,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: AppColors.textMuted,
-                    size: 40,
+              // Avatar Image (circular crop)
+              Container(
+                color: Colors.white.withValues(alpha: 0.03),
+                child: Center(
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.neonCyan.withValues(alpha: 0.5)
+                            : Colors.white.withValues(alpha: 0.1),
+                        width: 2,
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        avatar,
+                        fit: BoxFit.cover,
+                        width: 120,
+                        height: 120,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          child: const Icon(
+                            Icons.person_rounded,
+                            color: AppColors.textMuted,
+                            size: 50,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -341,24 +384,24 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               // Selected indicator
               if (isSelected)
                 Positioned(
-                  top: 8,
-                  right: 8,
+                  top: 10,
+                  right: 10,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: AppColors.neonCyan,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.neonCyan.withValues(alpha: 0.5),
-                          blurRadius: 8,
+                          blurRadius: 10,
                         ),
                       ],
                     ),
                     child: const Icon(
                       Icons.check_rounded,
                       color: Colors.white,
-                      size: 16,
+                      size: 18,
                     ),
                   ),
                 ),
@@ -366,23 +409,41 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               // Premium lock overlay
               if (isPremium && !isOwned)
                 Container(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  child: const Center(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.lock_rounded,
-                          color: AppColors.neonGold,
-                          size: 28,
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'SHOP',
-                          style: TextStyle(
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.neonGold.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.neonGold.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.lock_rounded,
                             color: AppColors.neonGold,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
+                            size: 30,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.neonGold.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'SHOP',
+                            style: TextStyle(
+                              color: AppColors.neonGold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
                       ],
@@ -393,25 +454,28 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               // Premium badge
               if (isPremium && isOwned)
                 Positioned(
-                  bottom: 8,
-                  left: 8,
+                  bottom: 10,
+                  left: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.neonGold.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.5)),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: AppColors.neonGold.withValues(alpha: 0.5)),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.verified, color: AppColors.neonGold, size: 10),
-                        SizedBox(width: 2),
+                        Icon(Icons.verified,
+                            color: AppColors.neonGold, size: 12),
+                        SizedBox(width: 4),
                         Text(
                           'OWNED',
                           style: TextStyle(
                             color: AppColors.neonGold,
-                            fontSize: 8,
+                            fontSize: 10,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
