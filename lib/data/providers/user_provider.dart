@@ -187,13 +187,14 @@ class UserProvider extends ChangeNotifier {
     _persistUserToServices();
   }
 
-  void linkGoogleAccount(String fullName, String email) {
+  void linkGoogleAccount(String fullName, String email, {String? photoURL}) {
     final wasGuest = _user.isGuest;
     _user = UserModel(
       userId: email,
       username: email.split('@').first,
       fullName: fullName,
-      avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png',
+      avatarPath: _user.avatarPath,
+      avatarUrl: photoURL,
       coins: _user.coins + (wasGuest ? 500 : 0),
       gems: _user.gems + (wasGuest ? 20 : 0),
       dailyStreak: _user.dailyStreak,

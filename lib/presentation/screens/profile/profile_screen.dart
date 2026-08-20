@@ -54,13 +54,27 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(45),
-                        child: Image.asset(
-                          user.avatarPath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.person,
-                                  size: 50, color: Colors.white),
-                        ),
+                        child: user.hasGoogleAvatar
+                            ? Image.network(
+                                user.avatarUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.person,
+                                        size: 50, color: Colors.white),
+                                loadingBuilder: (context, child, loadingProgress) =>
+                                    loadingProgress == null
+                                        ? child
+                                        : const Center(
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2)),
+                              )
+                            : Image.asset(
+                                user.effectiveAvatar,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.person,
+                                        size: 50, color: Colors.white),
+                              ),
                       ),
                     ),
                   ),
@@ -660,6 +674,7 @@ class ProfileScreen extends StatelessWidget {
       userProvider.linkGoogleAccount(
         user.displayName ?? 'QuizBaaz Player',
         user.email ?? 'player@quizbaaz.app',
+        photoURL: user.photoURL?.toString(),
       );
 
       messenger.showSnackBar(

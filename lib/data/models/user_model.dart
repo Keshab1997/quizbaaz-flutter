@@ -7,6 +7,7 @@ class UserModel {
   String username;
   final String fullName;
   String avatarPath;
+  String? avatarUrl; // Google profile photo URL (nullable)
   UserGender gender;
   int coins;
   int gems;
@@ -22,6 +23,7 @@ class UserModel {
     required this.username,
     required this.fullName,
     required this.avatarPath,
+    this.avatarUrl,
     this.gender = UserGender.male,
     this.coins = 1450,
     this.gems = 45,
@@ -42,10 +44,12 @@ class UserModel {
       gender = UserGender.male;
       avatarPath = 'assets/images/avatars/quizbaaz_avatar_boy.png';
     }
+    // Clear Google photo when toggling gender (use local avatar instead)
+    avatarUrl = null;
   }
 
   void updateUsername(String newUsername) {
-    username = newUsername; // Note: username field is final, we need to handle carefully
+    username = newUsername;
   }
 
   /// Set gender and update avatar accordingly.
@@ -54,7 +58,13 @@ class UserModel {
     avatarPath = newGender == UserGender.male
         ? 'assets/images/avatars/quizbaaz_avatar_boy.png'
         : 'assets/images/avatars/quizbaaz_avatar_girl.png';
+    // Keep Google photo if user wants, but gender toggle clears it
+    avatarUrl = null;
   }
+
+  /// Returns the best available avatar: remote URL > local asset.
+  String get effectiveAvatar => avatarUrl ?? avatarPath;
+  bool get hasGoogleAvatar => avatarUrl != null && avatarUrl!.isNotEmpty;
 
   // ----------------------------------------------------------------- JSON --
 
@@ -63,6 +73,7 @@ class UserModel {
         'username': username,
         'full_name': fullName,
         'avatar_path': avatarPath,
+        'avatar_url': avatarUrl,
         'gender': gender.name,
         'coins': coins,
         'gems': gems,
@@ -79,6 +90,7 @@ class UserModel {
       fullName: json['full_name'] as String? ?? '',
       avatarPath: json['avatar_path'] as String? ??
           'assets/images/avatars/quizbaaz_avatar_boy.png',
+      avatarUrl: json['avatar_url'] as String?,
       gender:
           (json['gender'] as String? ?? 'male') == 'male' ? UserGender.male : UserGender.female,
       coins: (json['coins'] as num?)?.toInt() ?? 0,
@@ -99,7 +111,7 @@ class UserModel {
       userId: 'usr_keshab_1997',
       username: 'Keshab1997',
       fullName: 'Keshab',
-      avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png', // intentional typo to match existing
+      avatarPath: 'assets/images/avatars/quizbaaz_avatar_boy.png',
       gender: UserGender.male,
       coins: 1450,
       gems: 45,
