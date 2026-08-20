@@ -3,6 +3,7 @@ class AppAssets {
   static const String heroBoy = 'assets/images/characters/hero_boy_3d.png';
   static const String heroGirl = 'assets/images/characters/hero_girl_3d.png';
   static const String championBoy = 'assets/images/characters/champion_boy_3d.png';
+  static const String quizChampion = 'assets/images/characters/quiz_champion_3d.png';
 
   // 3D Player Profile Avatars (Both Male & Female)
   static const String maleAvatar = 'assets/images/avatars/user_boy_avatar.png';

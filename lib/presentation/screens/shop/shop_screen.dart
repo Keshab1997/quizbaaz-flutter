@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/shop_item.dart';
-import '../../../data/models/user_model.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/purchase_celebration.dart';
@@ -107,9 +106,7 @@ class ShopScreen extends StatelessWidget {
           subtitle: item.isCosmetic
               ? 'Unlocked forever!'
               : '+${item.quantity} added to your inventory',
-          characterAsset: userProvider.user.gender == UserGender.female
-              ? AppAssets.heroGirl
-              : AppAssets.heroBoy,
+          characterAsset: AppAssets.quizChampion,
           itemIcon: _iconFor(item.id),
           accent: item.costsCoins ? AppColors.neonGold : AppColors.neonPurple,
         );
