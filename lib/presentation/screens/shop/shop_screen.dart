@@ -7,6 +7,7 @@ import '../../../data/models/shop_item.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/purchase_celebration.dart';
+import 'purchase_history_screen.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
@@ -35,6 +36,18 @@ class ShopScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('Power-Up Shop', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history_rounded, color: AppColors.neonGold),
+            tooltip: 'Purchase History',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PurchaseHistoryScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),

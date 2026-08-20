@@ -1,0 +1,612 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../core/constants/app_colors.dart';
+import '../../../data/models/purchase_history.dart';
+import '../../../data/models/shop_item.dart';
+import '../../../data/providers/user_provider.dart';
+import '../../widgets/glass_card.dart';
+
+/// Shows the player's complete purchase history with filtering options.
+class PurchaseHistoryScreen extends StatefulWidget {
+  const PurchaseHistoryScreen({super.key});
+
+  @override
+  State<PurchaseHistoryScreen> createState() => _PurchaseHistoryScreenState();
+}
+
+class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
+  List<PurchaseHistory> _allHistory = [];
+  List<PurchaseHistory> _filteredHistory = [];
+  bool _isLoading = true;
+  String _filter = 'all'; // 'all', 'coins', 'gems'
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    setState(() => _isLoading = true);
+    final userProvider = context.read<UserProvider>();
+    final history = await userProvider.loadPurchaseHistory(limit: 100);
+    if (mounted) {
+      setState(() {
+        _allHistory = history;
+        _applyFilter();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _applyFilter() {
+    if (_filter == 'all') {
+      _filteredHistory = _allHistory;
+    } else {
+      _filteredHistory =
+          _allHistory.where((h) => h.currency == _filter).toList();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon:
+              const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Purchase History',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.neonCyan),
+            onPressed: _loadHistory,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          _buildStatsSummary(),
+          _buildFilterChips(),
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child:
+                        CircularProgressIndicator(color: AppColors.neonCyan))
+                : _filteredHistory.isEmpty
+                    ? _buildEmptyState()
+                    : _buildHistoryList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsSummary() {
+    final totalPurchases = _allHistory.length;
+    final totalCoinsSpent = _allHistory
+        .where((h) => h.currency == 'coins')
+        .fold<int>(0, (sum, h) => sum + h.cost);
+    final totalGemsSpent = _allHistory
+        .where((h) => h.currency == 'gems')
+        .fold<int>(0, (sum, h) => sum + h.cost);
+    final totalItems =
+        _allHistory.fold<int>(0, (sum, h) => sum + h.quantity);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: GlassCard(
+        borderRadius: 20,
+        borderColor: AppColors.neonGold.withValues(alpha: 0.3),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem(
+                icon: Icons.shopping_bag_rounded,
+                value: '$totalPurchases',
+                label: 'Orders',
+                color: AppColors.neonCyan,
+              ),
+              _buildStatItem(
+                icon: Icons.monetization_on_rounded,
+                value: _formatNumber(totalCoinsSpent),
+                label: 'Coins Spent',
+                color: AppColors.neonGold,
+              ),
+              _buildStatItem(
+                icon: Icons.diamond_rounded,
+                value: _formatNumber(totalGemsSpent),
+                label: 'Gems Spent',
+                color: AppColors.neonPurple,
+              ),
+              _buildStatItem(
+                icon: Icons.inventory_2_rounded,
+                value: '$totalItems',
+                label: 'Items',
+                color: AppColors.neonGreen,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 22),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterChips() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          _buildFilterChip('All', 'all'),
+          const SizedBox(width: 8),
+          _buildFilterChip('Coins', 'coins'),
+          const SizedBox(width: 8),
+          _buildFilterChip('Gems', 'gems'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = _filter == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _filter = value;
+          _applyFilter();
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.neonGold.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.neonGold.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? AppColors.neonGold : AppColors.textSecondary,
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.shopping_bag_outlined,
+            size: 80,
+            color: AppColors.textMuted.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'No Purchases Yet',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Visit the shop to buy power-ups and items!',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistoryList() {
+    return RefreshIndicator(
+      color: AppColors.neonGold,
+      onRefresh: _loadHistory,
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+        itemCount: _filteredHistory.length,
+        itemBuilder: (context, index) {
+          final history = _filteredHistory[index];
+          return _buildHistoryCard(history);
+        },
+      ),
+    );
+  }
+
+  Widget _buildHistoryCard(PurchaseHistory history) {
+    final isCoins = history.currency == 'coins';
+    final accent = isCoins ? AppColors.neonGold : AppColors.neonPurple;
+    final icon = _iconForItem(history.itemId);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassCard(
+        borderRadius: 18,
+        borderColor: accent.withValues(alpha: 0.3),
+        onTap: () => _showDetailSheet(history),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              // Item icon
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: accent.withValues(alpha: 0.15),
+                  border: Border.all(color: accent.withValues(alpha: 0.4)),
+                ),
+                child: Icon(icon, color: accent, size: 26),
+              ),
+              const SizedBox(width: 14),
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      history.itemName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'x${history.quantity}',
+                            style: TextStyle(
+                              color: accent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _formatDate(history.purchasedAt),
+                          style: const TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Cost
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isCoins
+                            ? Icons.monetization_on_rounded
+                            : Icons.diamond_rounded,
+                        color: accent,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${history.cost}',
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    history.currency.toUpperCase(),
+                    style: TextStyle(
+                      color: accent.withValues(alpha: 0.7),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDetailSheet(PurchaseHistory history) {
+    final isCoins = history.currency == 'coins';
+    final accent = isCoins ? AppColors.neonGold : AppColors.neonPurple;
+    final icon = _iconForItem(history.itemId);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1B2646),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: accent.withValues(alpha: 0.3)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Item icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: accent.withValues(alpha: 0.15),
+                  border: Border.all(color: accent.withValues(alpha: 0.4)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: accent, size: 40),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                history.itemName,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Stats
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDetailStat(
+                      'Quantity',
+                      'x${history.quantity}',
+                      AppColors.neonCyan,
+                      Icons.inventory_2_rounded,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildDetailStat(
+                      'Cost',
+                      '${history.cost}',
+                      accent,
+                      isCoins
+                          ? Icons.monetization_on_rounded
+                          : Icons.diamond_rounded,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDetailStat(
+                      'Currency',
+                      history.currency.toUpperCase(),
+                      accent,
+                      Icons.attach_money_rounded,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildDetailStat(
+                      'Total Spent',
+                      '${history.cost * history.quantity}',
+                      AppColors.neonPink,
+                      Icons.account_balance_wallet_rounded,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Purchased on ${_formatFullDate(history.purchasedAt)}',
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.2)),
+                    ),
+                  ),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailStat(
+      String label, String value, Color color, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _iconForItem(String itemId) {
+    switch (itemId) {
+      case ShopItemIds.fiftyFifty:
+        return Icons.filter_2;
+      case ShopItemIds.freezeTime:
+        return Icons.ac_unit;
+      case ShopItemIds.streakShield:
+        return Icons.shield_moon;
+      case ShopItemIds.vipAvatar:
+        return Icons.workspace_premium;
+      default:
+        return Icons.card_giftcard;
+    }
+  }
+
+  String _formatNumber(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+    return '$n';
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inDays == 0) return 'Today';
+    if (diff.inDays == 1) return 'Yesterday';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    return '${date.day}/${date.month}';
+  }
+
+  String _formatFullDate(DateTime date) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}, ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
+}
