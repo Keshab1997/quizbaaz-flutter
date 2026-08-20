@@ -35,6 +35,44 @@ class DailyQuizScreen extends StatelessWidget {
           onPressed: () => _showExitDialog(context),
         ),
         actions: [
+          // Active Boosters Indicator
+          if (quiz.doublePointsActive)
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.neonPink.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.neonPink.withValues(alpha: 0.5)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.double_arrow_rounded, color: AppColors.neonPink, size: 14),
+                  SizedBox(width: 4),
+                  Text('2x', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonPink)),
+                ],
+              ),
+            ),
+          if (quiz.extraLifeAvailable && !quiz.extraLifeUsed)
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.neonRed.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.neonRed.withValues(alpha: 0.5)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.favorite_rounded, color: AppColors.neonRed, size: 14),
+                  SizedBox(width: 4),
+                  Text('+1', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonRed)),
+                ],
+              ),
+            ),
+          // Score
           Container(
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -99,15 +137,27 @@ class DailyQuizScreen extends StatelessWidget {
                   children: [
                     // Top Progress & Timer
                     _buildProgressAndTimer(quiz),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 14),
 
-                    // Lifelines Bar
+                    // Lifelines Bar (scrollable)
                     _buildLifelines(context, quiz),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
+
+                    // Hint Display (if used)
+                    if (quiz.currentHint != null) ...[
+                      _buildHintCard(quiz.currentHint!),
+                      const SizedBox(height: 10),
+                    ],
+
+                    // Audience Poll Display (if used)
+                    if (quiz.audiencePollResults != null) ...[
+                      _buildAudiencePollCard(quiz),
+                      const SizedBox(height: 10),
+                    ],
 
                     // Question Card
                     _buildQuestionCard(currentQ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 18),
 
                     // 4 Options
                     Expanded(
@@ -181,36 +231,265 @@ class DailyQuizScreen extends StatelessWidget {
   }
 
   Widget _buildLifelines(BuildContext context, QuizProvider quiz) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildLifelineBtn(
-          label: '50-50',
-          icon: Icons.filter_2,
-          count: quiz.fiftyFiftyStock,
-          onTap: () => _useFiftyFifty(context, quiz),
-        ),
-        _buildLifelineBtn(
-          label: '+10s Freeze',
-          icon: Icons.ac_unit,
-          count: quiz.freezeTimeStock,
-          onTap: () => _useFreezeTime(context, quiz),
-        ),
-        _buildLifelineBtn(
-          label: 'Skip',
-          icon: Icons.fast_forward,
-          onTap: () => quiz.useSkipQuestion(),
-        ),
-      ],
+    return SizedBox(
+      height: 50,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        children: [
+          // 50-50
+          _buildLifelineBtn(
+            label: '50:50',
+            icon: Icons.filter_2,
+            count: quiz.fiftyFiftyStock,
+            isUsed: quiz.fiftyFiftyUsed,
+            color: AppColors.neonCyan,
+            onTap: () => _useFiftyFifty(context, quiz),
+          ),
+          const SizedBox(width: 8),
+
+          // Freeze Time
+          _buildLifelineBtn(
+            label: '+10s',
+            icon: Icons.ac_unit,
+            count: quiz.freezeTimeStock,
+            isUsed: quiz.freezeUsed,
+            color: AppColors.neonCyan,
+            onTap: () => _useFreezeTime(context, quiz),
+          ),
+          const SizedBox(width: 8),
+
+          // Skip Question
+          _buildLifelineBtn(
+            label: 'Skip',
+            icon: Icons.skip_next_rounded,
+            count: quiz.skipQuestionStock,
+            isUsed: quiz.skipUsed,
+            color: AppColors.neonPurple,
+            onTap: () => _useSkipQuestion(context, quiz),
+          ),
+          const SizedBox(width: 8),
+
+          // Hint Reveal
+          _buildLifelineBtn(
+            label: 'Hint',
+            icon: Icons.lightbulb_rounded,
+            count: quiz.hintRevealStock,
+            isUsed: quiz.hintUsed,
+            color: AppColors.neonGold,
+            onTap: () => _useHintReveal(context, quiz),
+          ),
+          const SizedBox(width: 8),
+
+          // Audience Poll
+          _buildLifelineBtn(
+            label: 'Poll',
+            icon: Icons.people_rounded,
+            count: quiz.audiencePollStock,
+            isUsed: quiz.audienceUsed,
+            color: AppColors.neonGreen,
+            onTap: () => _useAudiencePoll(context, quiz),
+          ),
+        ],
+      ),
     );
   }
 
+  Widget _buildLifelineBtn({
+    required String label,
+    required IconData icon,
+    required int count,
+    required bool isUsed,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    final bool outOfStock = count <= 0;
+    final bool disabled = isUsed || outOfStock;
+
+    return GestureDetector(
+      onTap: disabled ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: disabled
+              ? Colors.white.withValues(alpha: 0.03)
+              : color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: disabled
+                ? Colors.white.withValues(alpha: 0.06)
+                : color.withValues(alpha: 0.4),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: disabled ? AppColors.textMuted : color,
+            ),
+            const SizedBox(width: 6),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: disabled ? AppColors.textMuted : AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  isUsed ? 'Used' : 'x$count',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: disabled ? AppColors.textMuted : color,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHintCard(String hint) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.neonGold.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lightbulb_rounded, color: AppColors.neonGold, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'HINT',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.neonGold,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  hint,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAudiencePollCard(QuizProvider quiz) {
+    final results = quiz.audiencePollResults!;
+    final options = quiz.currentQuestion!.options;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.neonGreen.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.neonGreen.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.people_rounded, color: AppColors.neonGreen, size: 18),
+              SizedBox(width: 8),
+              Text(
+                'AUDIENCE POLL',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.neonGreen,
+                  letterSpacing: 1,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...List.generate(options.length, (index) {
+            final percent = results[index] ?? 0;
+            final letter = String.fromCharCode(65 + index);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 24,
+                    child: Text(
+                      '$letter.',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: percent / 100,
+                        minHeight: 16,
+                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.neonGreen.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 36,
+                    child: Text(
+                      '$percent%',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.neonGreen,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // Lifeline Actions
   void _useFiftyFifty(BuildContext context, QuizProvider quiz) {
     if (quiz.useFiftyFifty()) return;
 
     final message = quiz.fiftyFiftyStock <= 0
         ? 'No 50-50 lifelines left! Buy more in the Shop. 🛒'
-        : 'Already used 50-50 on this question.';
+        : quiz.fiftyFiftyUsed
+            ? 'Already used 50-50 on this question.'
+            : 'Cannot use 50-50 now.';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
@@ -219,46 +498,43 @@ class DailyQuizScreen extends StatelessWidget {
 
     final message = quiz.freezeTimeStock <= 0
         ? 'No +10s Freeze left! Buy more in the Shop. 🛒'
-        : 'Freeze already used on this question.';
+        : quiz.freezeUsed
+            ? 'Freeze already used on this question.'
+            : 'Cannot use Freeze now.';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Widget _buildLifelineBtn({
-    required String label,
-    required IconData icon,
-    required VoidCallback onTap,
-    int? count, // null = free / unlimited (e.g. Skip)
-  }) {
-    final bool outOfStock = count != null && count <= 0;
-    final String displayLabel = count != null ? '$label ($count)' : label;
+  void _useSkipQuestion(BuildContext context, QuizProvider quiz) {
+    if (quiz.useSkipQuestion()) return;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: outOfStock ? Colors.white.withValues(alpha: 0.03) : Colors.white.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: outOfStock ? Colors.white.withValues(alpha: 0.06) : Colors.white.withValues(alpha: 0.15),
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 14, color: outOfStock ? AppColors.textSecondary : AppColors.neonCyan),
-            const SizedBox(width: 6),
-            Text(
-              displayLabel,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: outOfStock ? AppColors.textSecondary : AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    final message = quiz.skipQuestionStock <= 0
+        ? 'No Skip left! Buy more in the Shop. 🛒'
+        : quiz.skipUsed
+            ? 'Already used Skip on this question.'
+            : 'Cannot use Skip now.';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _useHintReveal(BuildContext context, QuizProvider quiz) {
+    if (quiz.useHintReveal()) return;
+
+    final message = quiz.hintRevealStock <= 0
+        ? 'No Hints left! Buy more in the Shop. 🛒'
+        : quiz.hintUsed
+            ? 'Already used Hint on this question.'
+            : 'Cannot use Hint now.';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _useAudiencePoll(BuildContext context, QuizProvider quiz) {
+    if (quiz.useAudiencePoll()) return;
+
+    final message = quiz.audiencePollStock <= 0
+        ? 'No Audience Poll left! Buy more in the Shop. 🛒'
+        : quiz.audienceUsed
+            ? 'Already used Poll on this question.'
+            : 'Cannot use Poll now.';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _buildQuestionCard(dynamic question) {
