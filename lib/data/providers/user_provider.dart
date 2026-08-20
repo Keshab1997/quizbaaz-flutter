@@ -20,12 +20,18 @@ class UserProvider extends ChangeNotifier {
   static const _kGems = 'quizcraft_gems';
   static const _kInventory = 'quizcraft_inventory';
   static const _kLastDailyReward = 'quizcraft_last_daily_reward';
+  static const _kBestDailyScore = 'quizcraft_best_daily_score';
+  static const _kBestDailyTime = 'quizcraft_best_daily_time';
+  static const _kHasPlayedDaily = 'quizcraft_has_played_daily';
 
   UserModel _user = UserModel.defaultUser();
   List<ChampionModel> _champions = [];
   List<LeaderboardItem> _leaderboard = [];
   bool _isLoading = false;
   String? _lastDailyRewardDate;
+  int _bestDailyScore = 0;
+  double _bestDailyTime = 0;
+  bool _hasPlayedDaily = false;
 
   UserModel get user => _user;
   List<ChampionModel> get champions => _champions;
@@ -34,6 +40,46 @@ class UserProvider extends ChangeNotifier {
 
   ChampionModel? get yesterdayTopChampion =>
       _champions.isNotEmpty ? _champions.first : null;
+
+  // ------------------------------------------------------ Leaderboard / Rank --
+
+  /// The player's best daily-quiz score so far (0 = never played).
+  int get bestDailyScore => _bestDailyScore;
+
+  /// Time taken for the best daily-quiz run, in seconds.
+  double get bestDailyTime => _bestDailyTime;
+
+  /// Whether the player has finished at least one daily quiz.
+  bool get hasPlayedDailyQuiz => _hasPlayedDaily;
+
+  /// Saves a finished daily-quiz result as the new personal best, if it is
+  /// better than the previous one (higher score wins; on a tie, faster wins).
+  /// Returns true when the record was updated.
+  bool updateDailyBest({required int score, required double timeSeconds}) {
+    _hasPlayedDaily = true;
+    final isBest = score > _bestDailyScore ||
+        (score == _bestDailyScore && score > 0 && timeSeconds < _bestDailyTime);
+    if (isBest) {
+      _bestDailyScore = score;
+      _bestDailyTime = timeSeconds;
+    }
+    notifyListeners();
+    _persist();
+    return isBest;
+  }
+
+  /// The player's rank (1-based) on today's leaderboard, computed by inserting
+  /// their best score into the loaded list. Returns null if not played yet.
+  int? get playerRank {
+    if (!hasPlayedDailyQuiz) return null;
+    var rank = 1;
+    for (final item in _leaderboard) {
+      final isAhead = item.score > _bestDailyScore ||
+          (item.score == _bestDailyScore && item.timeSeconds < _bestDailyTime);
+      if (isAhead) rank++;
+    }
+    return rank;
+  }
 
   /// Loads persisted coins/gems/inventory (from a previous session) and then
   /// fetches the champion + leaderboard data.
@@ -178,10 +224,16 @@ class UserProvider extends ChangeNotifier {
       final gems = prefs.getInt(_kGems);
       final inventoryRaw = prefs.getString(_kInventory);
       final lastDailyReward = prefs.getString(_kLastDailyReward);
+      final bestScore = prefs.getInt(_kBestDailyScore);
+      final bestTime = prefs.getDouble(_kBestDailyTime);
+      final hasPlayed = prefs.getBool(_kHasPlayedDaily);
 
       if (coins != null) _user.coins = coins;
       if (gems != null) _user.gems = gems;
       if (lastDailyReward != null) _lastDailyRewardDate = lastDailyReward;
+      if (bestScore != null) _bestDailyScore = bestScore;
+      if (bestTime != null) _bestDailyTime = bestTime;
+      if (hasPlayed != null) _hasPlayedDaily = hasPlayed;
       if (inventoryRaw != null) {
         final decoded = jsonDecode(inventoryRaw) as Map<String, dynamic>;
         _user.inventory =
@@ -202,6 +254,9 @@ class UserProvider extends ChangeNotifier {
       if (_lastDailyRewardDate != null) {
         await prefs.setString(_kLastDailyReward, _lastDailyRewardDate!);
       }
+      await prefs.setInt(_kBestDailyScore, _bestDailyScore);
+      await prefs.setDouble(_kBestDailyTime, _bestDailyTime);
+      await prefs.setBool(_kHasPlayedDaily, _hasPlayedDaily);
     } catch (e) {
       debugPrint('Failed to persist state: $e');
     }

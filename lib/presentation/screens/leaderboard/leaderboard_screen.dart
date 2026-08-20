@@ -59,14 +59,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildTodayLeaderboardTab(leaderboard),
+          _buildTodayLeaderboardTab(leaderboard, userProvider),
           _buildYesterdayWinnersTab(champions),
         ],
       ),
     );
   }
 
-  Widget _buildTodayLeaderboardTab(List<LeaderboardItem> list) {
+  Widget _buildTodayLeaderboardTab(List<LeaderboardItem> list, UserProvider userProvider) {
     if (list.isEmpty) {
       return const Center(child: CircularProgressIndicator(color: AppColors.neonCyan));
     }
@@ -91,6 +91,145 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               final item = rest[index];
               return _buildRankTile(item);
             },
+          ),
+          const SizedBox(height: 10),
+          _buildYourPositionCard(userProvider),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildYourPositionCard(UserProvider userProvider) {
+    if (!userProvider.hasPlayedDailyQuiz) {
+      return GlassCard(
+        borderRadius: 18,
+        borderColor: Colors.white12,
+        child: Row(
+          children: [
+            const Icon(Icons.emoji_events_outlined, color: AppColors.textMuted, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Play today\'s Daily Quiz to join the leaderboard! 🎯',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary.withValues(alpha: 0.9)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final rank = userProvider.playerRank ?? 1;
+    final user = userProvider.user;
+    final isTop3 = rank <= 3;
+
+    return GlassCard(
+      borderRadius: 18,
+      borderColor: isTop3
+          ? AppColors.neonGold.withValues(alpha: 0.6)
+          : AppColors.neonCyan.withValues(alpha: 0.45),
+      backgroundColor: isTop3 ? const Color(0x333F2E00) : AppColors.bgCardGlass,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.person_pin_circle, size: 15, color: AppColors.neonCyan),
+              const SizedBox(width: 6),
+              const Text(
+                'YOUR POSITION',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.neonCyan,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              // Rank badge
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: isTop3 ? AppColors.goldGradient : null,
+                  color: isTop3 ? null : Colors.white10,
+                  border: isTop3 ? null : Border.all(color: AppColors.neonCyan.withValues(alpha: 0.5)),
+                ),
+                child: Center(
+                  child: Text(
+                    '#$rank',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: isTop3 ? Colors.black : AppColors.neonCyan,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: AssetImage(
+                  user.avatarPath.isNotEmpty ? user.avatarPath : AppAssets.maleAvatar,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            user.fullName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.neonCyan.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.neonCyan.withValues(alpha: 0.5)),
+                          ),
+                          child: const Text(
+                            'YOU',
+                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.neonCyan),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isTop3 ? '🏆 You\'re on the podium!' : 'Keep going — beat the rank above!',
+                      style: TextStyle(fontSize: 11, color: isTop3 ? AppColors.neonGold : AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${userProvider.bestDailyScore} pts',
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.neonGold),
+                  ),
+                  Text(
+                    '${userProvider.bestDailyTime.toStringAsFixed(0)}s',
+                    style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

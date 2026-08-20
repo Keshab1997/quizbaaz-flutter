@@ -35,6 +35,9 @@ class QuizProvider extends ChangeNotifier {
   // Answer history (for the review screen)
   final List<AnswerRecord> _answerRecords = [];
 
+  // Total time spent answering the current quiz (seconds).
+  double _totalTimeSeconds = 0;
+
   // Timer
   int _secondsRemaining = 15;
   Timer? _timer;
@@ -69,6 +72,9 @@ class QuizProvider extends ChangeNotifier {
 
   /// The player's answer history for the finished quiz (for the review screen).
   List<AnswerRecord> get answerRecords => List.unmodifiable(_answerRecords);
+
+  /// Total seconds spent answering the finished quiz.
+  double get totalTimeSeconds => _totalTimeSeconds;
 
   QuestionModel? get currentQuestion =>
       _questions.isNotEmpty && _currentIndex < _questions.length
@@ -112,6 +118,7 @@ class QuizProvider extends ChangeNotifier {
     _earnedGems = 0;
     _dailyRewardSkipped = false;
     _answerRecords.clear();
+    _totalTimeSeconds = 0;
     _secondsRemaining = 15;
   }
 
@@ -135,6 +142,7 @@ class QuizProvider extends ChangeNotifier {
     _selectedOptionIndex = index;
     _isAnswerSubmitted = true;
     _timer?.cancel();
+    _totalTimeSeconds += 15 - _secondsRemaining;
 
     final correctIndex = currentQuestion?.correctIndex ?? 0;
     if (index == correctIndex) {
@@ -165,6 +173,7 @@ class QuizProvider extends ChangeNotifier {
     if (_isAnswerSubmitted) return;
     _isAnswerSubmitted = true;
     _wrongCount++;
+    _totalTimeSeconds += 15;
 
     final q = currentQuestion;
     if (q != null) {
@@ -213,6 +222,15 @@ class QuizProvider extends ChangeNotifier {
       // Chapter quiz = practice mode: smaller rewards, always claimable.
       coins = _correctCount * 25;
       gems = _correctCount == _questions.length ? 5 : 0;
+    }
+
+    // Save a new personal best on the daily leaderboard (independent of the
+    // once-per-day reward limit — replays can still improve your rank).
+    if (_isDailyQuiz) {
+      _userProvider.updateDailyBest(
+        score: _score,
+        timeSeconds: _totalTimeSeconds,
+      );
     }
 
     final granted = _userProvider.grantQuizRewards(
@@ -272,6 +290,7 @@ class QuizProvider extends ChangeNotifier {
   /// Skips the current question without scoring. Free to use.
   void useSkipQuestion() {
     _timer?.cancel();
+    _totalTimeSeconds += 15 - _secondsRemaining;
 
     final q = currentQuestion;
     if (q != null) {
