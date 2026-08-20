@@ -3,17 +3,18 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 Future<void> debugLeaderboard() async {
-  print('=== LEADERBOARD DEBUG ===');
+  debugPrint('=== LEADERBOARD DEBUG ===');
 
   // 1. Check Firebase initialized
-  print('1. Firebase apps: ${Firebase.apps.length}');
+  debugPrint('1. Firebase apps: ${Firebase.apps.length}');
   if (Firebase.apps.isEmpty) {
-    print('   Firebase NOT initialized!');
+    debugPrint('   Firebase NOT initialized!');
     return;
   }
-  print('   Firebase initialized');
+  debugPrint('   Firebase initialized');
 
   // 2. Check Firestore connection
   try {
@@ -23,11 +24,11 @@ Future<void> debugLeaderboard() async {
         .collection('scores')
         .limit(1)
         .get();
-    print('2. Firestore connection: OK');
-    print('   Documents found: ${testDoc.docs.length}');
+    debugPrint('2. Firestore connection: OK');
+    debugPrint('   Documents found: ${testDoc.docs.length}');
   } catch (e) {
-    print('2. Firestore connection: FAILED');
-    print('   Error: $e');
+    debugPrint('2. Firestore connection: FAILED');
+    debugPrint('   Error: $e');
   }
 
   // 3. Try to write a test entry
@@ -41,7 +42,7 @@ Future<void> debugLeaderboard() async {
       'test': true,
       'timestamp': FieldValue.serverTimestamp(),
     });
-    print('3. Write test: OK');
+    debugPrint('3. Write test: OK');
 
     // Clean up
     await FirebaseFirestore.instance
@@ -50,12 +51,12 @@ Future<void> debugLeaderboard() async {
         .collection('scores')
         .doc('debug_test')
         .delete();
-    print('   Cleaned up test doc');
+    debugPrint('   Cleaned up test doc');
   } catch (e) {
-    print('3. Write test: FAILED');
-    print('   Error: $e');
-    print('   Check Firestore rules!');
+    debugPrint('3. Write test: FAILED');
+    debugPrint('   Error: $e');
+    debugPrint('   Check Firestore rules!');
   }
 
-  print('=== END DEBUG ===');
+  debugPrint('=== END DEBUG ===');
 }
