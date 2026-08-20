@@ -309,9 +309,7 @@ class UserProvider extends ChangeNotifier {
       if (_bestDailyTime == 0.0) {
         _bestDailyTime = prefs.getDouble(_kBestDailyTime) ?? 0.0;
       }
-      if (_lastDailyRewardDate == null) {
-        _lastDailyRewardDate = prefs.getString(_kLastDailyReward);
-      }
+      _lastDailyRewardDate ??= prefs.getString(_kLastDailyReward);
       if (!_hasPlayedDaily) {
         _hasPlayedDaily = prefs.getBool(_kHasPlayedDaily) ?? false;
       }
