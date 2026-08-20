@@ -84,7 +84,7 @@ class _CelebrationOverlay extends StatefulWidget {
 }
 
 class _CelebrationOverlayState extends State<_CelebrationOverlay>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _entrance;
   late final AnimationController _float;
   late final ConfettiController _confetti;
