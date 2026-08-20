@@ -693,14 +693,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.card_giftcard, size: 14, color: AppColors.neonPink),
-                        SizedBox(width: 4),
-                        Text(
-                          'Reward: 500 Coins + Smartwatch',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+                        const Icon(Icons.card_giftcard, size: 14, color: AppColors.neonPink),
+                        const SizedBox(width: 4),
+                        const Expanded(
+                          child: Text(
+                            'Reward: 500 Coins + Smartwatch',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ),
                       ],
