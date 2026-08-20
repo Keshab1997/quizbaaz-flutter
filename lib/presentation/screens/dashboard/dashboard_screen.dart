@@ -9,6 +9,7 @@ import '../../../data/providers/rewards_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
 import '../daily_quiz/daily_quiz_screen.dart';
+import '../battle/battle_screen.dart';
 import '../chapter_quiz/chapter_list_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import '../rewards/rewards_screen.dart';
@@ -915,11 +916,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'title': '1 vs 1 Battle',
         'icon': AppAssets.battleSwords,
         'color': AppColors.neonPink,
-        'onTap': () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('⚔️ 1 vs 1 Realtime Battle Arena Ready!')),
-          );
-        },
+        'onTap': () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BattleScreen())),
       },
       {
         'title': 'Rewards',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
+import 'data/providers/battle_provider.dart';
 import 'data/providers/quiz_provider.dart';
 import 'data/providers/rewards_provider.dart';
 import 'data/providers/user_provider.dart';
@@ -20,6 +21,7 @@ class QuizCraftApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (ctx) => QuizProvider(ctx.read<UserProvider>())),
+        ChangeNotifierProvider(create: (ctx) => BattleProvider(ctx.read<UserProvider>())),
         ChangeNotifierProvider(create: (_) => RewardsProvider()),
       ],
       child: MaterialApp(
