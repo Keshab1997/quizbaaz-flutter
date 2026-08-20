@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/shop_item.dart';
+import '../../../data/models/user_model.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/purchase_celebration.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({Key? key}) : super(key: key);
@@ -93,26 +96,36 @@ class ShopScreen extends StatelessWidget {
   }
 
   void _handleBuy(BuildContext context, UserProvider userProvider, ShopItem item) {
-    final messenger = ScaffoldMessenger.of(context);
     final result = userProvider.purchaseItem(item);
 
     switch (result) {
       case PurchaseStatus.success:
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('✨ Purchased ${item.name} (x${item.quantity})!'),
-            backgroundColor: Colors.green.shade800,
-          ),
+        // Instant 3D-character celebration instead of the slow SnackBar.
+        PurchaseCelebration.show(
+          context,
+          itemName: item.name,
+          subtitle: item.isCosmetic
+              ? 'Unlocked forever!'
+              : '+${item.quantity} added to your inventory',
+          characterAsset: userProvider.user.gender == UserGender.female
+              ? AppAssets.heroGirl
+              : AppAssets.heroBoy,
+          itemIcon: _iconFor(item.id),
+          accent: item.costsCoins ? AppColors.neonGold : AppColors.neonPurple,
         );
         break;
       case PurchaseStatus.alreadyOwned:
-        messenger.showSnackBar(
-          const SnackBar(content: Text('You already own this item!')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            duration: Duration(milliseconds: 1200),
+            content: Text('You already own this item!'),
+          ),
         );
         break;
       case PurchaseStatus.insufficientFunds:
-        messenger.showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            duration: const Duration(milliseconds: 1200),
             content: Text('Not enough ${item.currencyLabel}! Earn more by playing quizzes.'),
             backgroundColor: Colors.red.shade800,
           ),
