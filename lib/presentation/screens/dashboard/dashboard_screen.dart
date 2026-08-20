@@ -822,7 +822,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildContinueLearning() {
-    final lessons = [
+    const lessons = <_Lesson>[
       _Lesson('Mathematics', 'Real Numbers', 0.72, Icons.functions_rounded, AppColors.neonCyan),
       _Lesson('General Science', 'Life Processes', 0.45, Icons.science_rounded, AppColors.neonGreen),
     ];
@@ -961,18 +961,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-              Positioned.fill(
+              const Positioned.fill(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(148, 17, 16, 14),
+                  padding: EdgeInsets.fromLTRB(148, 17, 16, 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.workspace_premium_rounded,
+                          Icon(Icons.workspace_premium_rounded,
                               color: AppColors.neonGold, size: 17),
-                          const SizedBox(width: 6),
-                          const Expanded(
+                          SizedBox(width: 6),
+                          Expanded(
                             child: Text(
                               "YESTERDAY'S CHAMPION",
                               maxLines: 1,
@@ -987,8 +987,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 13),
-                      const Text(
+                      SizedBox(height: 13),
+                      Text(
                         'Rahul Das',
                         style: TextStyle(
                           color: AppColors.textPrimary,
@@ -996,8 +996,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      const Text(
+                      SizedBox(height: 4),
+                      Text(
                         '96 pts  •  Rank #1',
                         style: TextStyle(
                           color: AppColors.neonGold,
@@ -1005,13 +1005,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const Spacer(),
+                      Spacer(),
                       Row(
                         children: [
-                          const Icon(Icons.card_giftcard_rounded,
+                          Icon(Icons.card_giftcard_rounded,
                               color: AppColors.neonPink, size: 15),
-                          const SizedBox(width: 5),
-                          const Expanded(
+                          SizedBox(width: 5),
+                          Expanded(
                             child: Text(
                               '500 coins + smartwatch',
                               maxLines: 1,
@@ -1037,10 +1037,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildLeaderboardPreview() {
-    final players = [
+    const players = <_Rank>[
       _Rank('1', 'Liam G.', '1200 pts', AppColors.neonGold, AppAssets.maleAvatar),
-      _Rank('2', 'Sarah K.', '1180 pts', const Color(0xFFC7D2E8), AppAssets.femaleAvatar),
-      _Rank('3', 'Ben J.', '1150 pts', const Color(0xFFDC9A67), AppAssets.maleAvatar),
+      _Rank('2', 'Sarah K.', '1180 pts', Color(0xFFC7D2E8), AppAssets.femaleAvatar),
+      _Rank('3', 'Ben J.', '1150 pts', Color(0xFFDC9A67), AppAssets.maleAvatar),
       _Rank('4', 'Maya S.', '1125 pts', AppColors.textSecondary, AppAssets.femaleAvatar),
     ];
 
