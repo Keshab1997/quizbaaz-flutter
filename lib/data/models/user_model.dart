@@ -1,8 +1,11 @@
+enum UserGender { male, female }
+
 class UserModel {
   final String userId;
   final String username;
   final String fullName;
-  final String avatarPath;
+  String avatarPath;
+  UserGender gender;
   int coins;
   int gems;
   int dailyStreak;
@@ -14,19 +17,31 @@ class UserModel {
     required this.username,
     required this.fullName,
     required this.avatarPath,
-    this.coins = 500,
-    this.gems = 20,
+    this.gender = UserGender.male,
+    this.coins = 1450,
+    this.gems = 45,
     this.dailyStreak = 6,
     this.isGuest = false,
     this.playedTodayDailyQuiz = false,
   });
 
+  void toggleGender() {
+    if (gender == UserGender.male) {
+      gender = UserGender.female;
+      avatarPath = 'assets/images/avatars/female_avatar_3d.png';
+    } else {
+      gender = UserGender.male;
+      avatarPath = 'assets/images/avatars/user_boy_avatar.png';
+    }
+  }
+
   factory UserModel.defaultUser() {
     return UserModel(
       userId: 'usr_keshab_1997',
       username: 'Keshab1997',
-      fullName: 'Keshab Sarkar',
-      avatarPath: 'assets/images/characters/hero_boy_3d.png',
+      fullName: 'Keshab',
+      avatarPath: 'assets/images/avatars/user_boy_avatar.png',
+      gender: UserGender.male,
       coins: 1450,
       gems: 45,
       dailyStreak: 6,
@@ -38,8 +53,9 @@ class UserModel {
     return UserModel(
       userId: 'guest_${DateTime.now().millisecondsSinceEpoch}',
       username: 'Guest Explorer',
-      fullName: 'Guest Visitor',
+      fullName: 'Guest User',
       avatarPath: 'assets/images/avatars/user_boy_avatar.png',
+      gender: UserGender.male,
       coins: 100,
       gems: 5,
       dailyStreak: 1,

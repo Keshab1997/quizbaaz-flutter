@@ -1,10 +1,14 @@
 class AppAssets {
-  // Characters
+  // 3D Mascots & Characters (Transparent)
   static const String heroBoy = 'assets/images/characters/hero_boy_3d.png';
+  static const String heroGirl = 'assets/images/characters/hero_girl_3d.png';
   static const String championBoy = 'assets/images/characters/champion_boy_3d.png';
-  static const String userAvatarBoy = 'assets/images/avatars/user_boy_avatar.png';
 
-  // 3D Action Icons
+  // 3D Player Profile Avatars (Transparent)
+  static const String maleAvatar = 'assets/images/avatars/user_boy_avatar.png';
+  static const String femaleAvatar = 'assets/images/avatars/female_avatar_3d.png';
+
+  // 3D Polished Action Icons (Transparent)
   static const String streakFire = 'assets/icons/streak_fire_3d.png';
   static const String coinGem = 'assets/icons/coin_and_gem_3d.png';
   static const String chapterQuiz = 'assets/icons/chapter_quiz_3d.png';
