@@ -189,7 +189,7 @@ class _CountdownView extends StatelessWidget {
           width: 76,
           height: 76,
           padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
             gradient: AppColors.primaryGradient,
           ),
@@ -310,9 +310,9 @@ class _ArenaView extends StatelessWidget {
       borderColor: AppColors.neonPink.withValues(alpha: 0.5),
       child: Column(
         children: [
-          CircleAvatar(
+          const CircleAvatar(
             radius: 26,
-            backgroundImage: const AssetImage(AppAssets.championBoy),
+            backgroundImage: AssetImage(AppAssets.championBoy),
           ),
           const SizedBox(height: 6),
           const Text('BOT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonPink)),
