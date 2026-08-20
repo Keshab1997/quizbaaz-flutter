@@ -1,8 +1,8 @@
-# 🚀 QuizCraft 3D - Gamified Flutter Quiz & Learning Platform
+# 🚀 QuizBaaz 3D - Gamified Flutter Quiz & Learning Platform
 
 <div align="center">
 
-![QuizCraft 3D Banner](assets/images/characters/hero_boy_3d.png)
+![QuizBaaz 3D Banner](assets/images/characters/hero_boy_3d.png)
 
 ### **A Next-Gen 3D Gamified Quiz Platform built with Flutter**
 *Chapter-Wise Question Bank • Daily 10-Question Live Quiz • Live Leaderboard • Yesterday's Champion Gifts • 3D Streaks • Zero-Friction Guest Trial • Central Admin Panel*
@@ -10,7 +10,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)](https://dart.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/Keshab1997/quizcraft-3d-flutter?style=social)](https://github.com/Keshab1997/quizcraft-3d-flutter)
+[![GitHub stars](https://img.shields.io/github/stars/Keshab1997/quizbaaz-flutter?style=social)](https://github.com/Keshab1997/quizbaaz-flutter)
 
 </div>
 
@@ -51,7 +51,7 @@ All architectural and step-by-step blueprints are documented in the [`docs/`](./
 ## 🏗️ Project Architecture
 
 ```text
-quizcraft-3d-flutter/
+quizbaaz-flutter/
 ├── assets/
 │   ├── data/                   # JSON Question Banks, Champions & Daily Quiz
 │   ├── icons/                  # 3D Glossy Action Icons (Streak Fire, Sword, Shop, etc.)
@@ -92,4 +92,4 @@ quizcraft-3d-flutter/
 ## 👨‍💻 Author
 
 * **Developer:** Keshab Sarkar ([@Keshab1997](https://github.com/Keshab1997))
-* **Repository:** [https://github.com/Keshab1997/quizcraft-3d-flutter](https://github.com/Keshab1997/quizcraft-3d-flutter)
+* **Repository:** [https://github.com/Keshab1997/quizbaaz-flutter](https://github.com/Keshab1997/quizbaaz-flutter)

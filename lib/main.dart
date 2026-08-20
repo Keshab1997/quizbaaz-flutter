@@ -9,11 +9,11 @@ import 'presentation/screens/dashboard/dashboard_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const QuizCraftApp());
+  runApp(const QuizBaazApp());
 }
 
-class QuizCraftApp extends StatelessWidget {
-  const QuizCraftApp({super.key});
+class QuizBaazApp extends StatelessWidget {
+  const QuizBaazApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class QuizCraftApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RewardsProvider()),
       ],
       child: MaterialApp(
-        title: 'QuizCraft 3D',
+        title: 'QuizBaaz 3D',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
         home: const DashboardScreen(),

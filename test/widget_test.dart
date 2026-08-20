@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quizcraft/main.dart';
+import 'package:quizbaaz/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -7,10 +7,10 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('QuizCraftApp builds without crashing', (tester) async {
-    await tester.pumpWidget(const QuizCraftApp());
+  testWidgets('QuizBaazApp builds without crashing', (tester) async {
+    await tester.pumpWidget(const QuizBaazApp());
     await tester.pump();
 
-    expect(find.byType(QuizCraftApp), findsOneWidget);
+    expect(find.byType(QuizBaazApp), findsOneWidget);
   });
 }

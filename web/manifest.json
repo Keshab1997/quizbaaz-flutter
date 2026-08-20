@@ -1,11 +1,11 @@
 {
-  "name": "QuizCraft 3D",
-  "short_name": "QuizCraft",
+  "name": "QuizBaaz 3D",
+  "short_name": "QuizBaaz",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0A0E21",
   "theme_color": "#A855F7",
-  "description": "QuizCraft 3D - A Gamified Flutter Quiz & Learning Platform",
+  "description": "QuizBaaz 3D - A Gamified Flutter Quiz & Learning Platform",
   "orientation": "portrait-primary",
   "prefer_related_applications": false
 }

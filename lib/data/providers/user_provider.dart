@@ -16,13 +16,13 @@ class UserProvider extends ChangeNotifier {
   final QuizRepository _repository = QuizRepository();
 
   // SharedPreferences keys
-  static const _kCoins = 'quizcraft_coins';
-  static const _kGems = 'quizcraft_gems';
-  static const _kInventory = 'quizcraft_inventory';
-  static const _kLastDailyReward = 'quizcraft_last_daily_reward';
-  static const _kBestDailyScore = 'quizcraft_best_daily_score';
-  static const _kBestDailyTime = 'quizcraft_best_daily_time';
-  static const _kHasPlayedDaily = 'quizcraft_has_played_daily';
+  static const _kCoins = 'quizbaaz_coins';
+  static const _kGems = 'quizbaaz_gems';
+  static const _kInventory = 'quizbaaz_inventory';
+  static const _kLastDailyReward = 'quizbaaz_last_daily_reward';
+  static const _kBestDailyScore = 'quizbaaz_best_daily_score';
+  static const _kBestDailyTime = 'quizbaaz_best_daily_time';
+  static const _kHasPlayedDaily = 'quizbaaz_has_played_daily';
 
   UserModel _user = UserModel.defaultUser();
   List<ChampionModel> _champions = [];

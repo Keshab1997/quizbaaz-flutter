@@ -8,7 +8,7 @@ import '../models/gift_claim.dart';
 
 /// Manages the player's won prizes and their claim/delivery state.
 class RewardsProvider extends ChangeNotifier {
-  static const _kGifts = 'quizcraft_gift_claims';
+  static const _kGifts = 'quizbaaz_gift_claims';
 
   List<GiftClaim> _gifts = [];
 
