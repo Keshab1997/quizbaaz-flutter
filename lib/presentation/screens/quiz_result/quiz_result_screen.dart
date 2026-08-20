@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
@@ -16,6 +17,7 @@ class QuizResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final quiz = context.watch<QuizProvider>();
     final userProvider = context.watch<UserProvider>();
+    final auth = context.watch<AuthProvider>();
     final isGuest = userProvider.user.isGuest;
 
     final totalQuestions = quiz.questions.length;
@@ -183,18 +185,12 @@ class QuizResultScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           NeonButton(
-                            text: '1-Tap Google Sign-In',
+                            text: auth.isBusy ? 'Signing in...' : '1-Tap Google Sign-In',
                             height: 40,
                             gradient: AppColors.primaryGradient,
-                            onPressed: () {
-                              userProvider.upgradeGuestToFullAccount(
-                                'Keshab Sarkar',
-                                '@Keshab1997',
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('🎉 Account upgraded! Score saved to Leaderboard!')),
-                              );
-                            },
+                            onPressed: auth.isBusy
+                                ? () {}
+                                : () => _handleGoogleSignIn(context),
                           ),
                         ],
                       ),
@@ -251,6 +247,35 @@ class QuizResultScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _handleGoogleSignIn(BuildContext context) async {
+    final auth = context.read<AuthProvider>();
+    final userProvider = context.read<UserProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (auth.isBusy) return;
+
+    try {
+      final signedIn = await auth.signInWithGoogle();
+      if (!signedIn) return; // User cancelled the account picker.
+
+      final user = auth.firebaseUser;
+      if (user == null) return;
+
+      userProvider.linkGoogleAccount(
+        user.displayName ?? 'QuizBaaz Player',
+        user.email ?? 'player@quizbaaz.app',
+      );
+
+      messenger.showSnackBar(
+        const SnackBar(content: Text('🎉 Signed in with Google! Score saved to Leaderboard!')),
+      );
+    } on AuthException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.red.shade800),
+      );
+    }
   }
 
   Widget _buildStatColumn(String title, String val, Color color, IconData icon) {

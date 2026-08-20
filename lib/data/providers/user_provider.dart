@@ -198,14 +198,20 @@ class UserProvider extends ChangeNotifier {
     _persist();
   }
 
-  void upgradeGuestToFullAccount(String name, String username) {
+  /// Converts the local/guest account into a registered account using the
+  /// Google profile data (call after a successful Google Sign-In).
+  ///
+  /// Keeps all earned coins, gems, inventory and streak. A one-time welcome
+  /// bonus is granted only when converting from guest mode.
+  void linkGoogleAccount(String fullName, String email) {
+    final wasGuest = _user.isGuest;
     _user = UserModel(
-      userId: 'usr_${DateTime.now().millisecondsSinceEpoch}',
-      username: username,
-      fullName: name,
+      userId: email,
+      username: email.split('@').first,
+      fullName: fullName,
       avatarPath: 'assets/images/characters/hero_boy_3d.png',
-      coins: _user.coins + 500, // Welcome bonus
-      gems: _user.gems + 20,
+      coins: _user.coins + (wasGuest ? 500 : 0), // Welcome bonus
+      gems: _user.gems + (wasGuest ? 20 : 0),
       dailyStreak: _user.dailyStreak,
       isGuest: false,
       // Keep everything the guest earned or bought.

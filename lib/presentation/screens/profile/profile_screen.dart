@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 
@@ -10,6 +11,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
+    final auth = context.watch<AuthProvider>();
     final user = userProvider.user;
 
     return Scaffold(
@@ -131,10 +133,94 @@ class ProfileScreen extends StatelessWidget {
                 },
               ),
             ),
+            const SizedBox(height: 16),
+
+            // Google Account
+            GlassCard(
+              borderRadius: 16,
+              child: Row(
+                children: [
+                  const Icon(Icons.g_mobiledata, size: 34, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          auth.isSignedIn
+                              ? (auth.firebaseUser?.displayName ?? 'Google Account')
+                              : 'Google Account',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          auth.isSignedIn
+                              ? auth.firebaseUser?.email ?? 'Connected'
+                              : 'Sign in to save your progress',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: auth.isSignedIn ? AppColors.neonGreen : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (auth.isSignedIn)
+                    TextButton(
+                      onPressed: () => auth.signOut(),
+                      child: const Text('Sign Out', style: TextStyle(color: AppColors.neonRed, fontWeight: FontWeight.bold)),
+                    )
+                  else
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: auth.isBusy ? null : () => _handleGoogleSignIn(context),
+                      child: Text(
+                        auth.isBusy ? 'Wait...' : 'Sign In',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _handleGoogleSignIn(BuildContext context) async {
+    final auth = context.read<AuthProvider>();
+    final userProvider = context.read<UserProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      final signedIn = await auth.signInWithGoogle();
+      if (!signedIn) return;
+
+      final user = auth.firebaseUser;
+      if (user == null) return;
+
+      userProvider.linkGoogleAccount(
+        user.displayName ?? 'QuizBaaz Player',
+        user.email ?? 'player@quizbaaz.app',
+      );
+
+      messenger.showSnackBar(
+        const SnackBar(content: Text('🎉 Signed in with Google!')),
+      );
+    } on AuthException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.red.shade800),
+      );
+    }
   }
 
   Widget _buildBadge(String title, IconData icon, Color color) {
