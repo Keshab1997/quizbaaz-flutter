@@ -58,11 +58,12 @@ class ProfileScreen extends StatelessWidget {
                             ? Image.network(
                                 user.avatarUrl!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.person,
-                                        size: 50, color: Colors.white),
-                                loadingBuilder: (context, child, loadingProgress) =>
-                                    loadingProgress == null
+                                errorBuilder: (_, __, ___) => Image.asset(
+                                  user.effectiveAvatar,
+                                  fit: BoxFit.cover,
+                                ),
+                                loadingBuilder: (ctx, child, progress) =>
+                                    progress == null
                                         ? child
                                         : const Center(
                                             child: CircularProgressIndicator(
