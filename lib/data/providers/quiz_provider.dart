@@ -105,6 +105,7 @@ class QuizProvider extends ChangeNotifier {
   // Active booster states
   bool get doublePointsActive => _doublePointsActive;
   bool get extraLifeAvailable => _extraLifeAvailable;
+  bool get extraLifeUsed => _extraLifeUsed;
 
   // Hint & Audience data
   String? get currentHint => _currentHint;
