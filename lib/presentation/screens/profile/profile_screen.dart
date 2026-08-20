@@ -413,19 +413,19 @@ class ProfileScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Sign Out', style: const TextStyle(color: Colors.white)),
-        content: Text(
+        title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+        content: const Text(
           'Are you sure you want to sign out? Your local data will be kept.',
-          style: const TextStyle(color: AppColors.textSecondary),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: const TextStyle(color: AppColors.textSecondary)),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Sign Out', style: const TextStyle(color: AppColors.neonRed)),
+            child: const Text('Sign Out', style: TextStyle(color: AppColors.neonRed)),
           ),
         ],
       ),
