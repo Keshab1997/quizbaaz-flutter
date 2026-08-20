@@ -14,7 +14,7 @@ class AuthException implements Exception {
 /// Handles Google Sign-In via Firebase Authentication.
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   bool _isBusy = false;
   String? _lastError;
@@ -27,6 +27,11 @@ class AuthProvider extends ChangeNotifier {
 
   bool get isSignedIn => _auth.currentUser != null;
 
+  /// Initializes the Google Sign-In manager.
+  Future<void> initialize() async {
+    await _googleSignIn.initialize();
+  }
+
   /// Starts the Google sign-in flow.
   ///
   /// Returns true when signed in, false when the user cancelled the Google
@@ -37,22 +42,25 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        // User cancelled the Google account picker.
-        return false;
-      }
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
       await _auth.signInWithCredential(credential);
       return _auth.currentUser != null;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled ||
+          e.code == GoogleSignInExceptionCode.interrupted) {
+        // User cancelled the Google account picker.
+        return false;
+      }
+      debugPrint('Google Sign-In error: ${e.code} - ${e.description}');
+      _lastError = 'Google Sign-In failed. Please try again.';
+      throw AuthException(_lastError!);
     } on FirebaseAuthException catch (e) {
       _lastError = _friendlyAuthError(e);
       throw AuthException(_lastError ?? 'Sign-in failed.');

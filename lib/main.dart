@@ -32,7 +32,9 @@ class QuizBaazApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider()..initialize(),
+        ),
         ChangeNotifierProvider(create: (ctx) => QuizProvider(ctx.read<UserProvider>())),
         ChangeNotifierProvider(create: (ctx) => BattleProvider(ctx.read<UserProvider>())),
         ChangeNotifierProvider(create: (_) => RewardsProvider()),
