@@ -12,7 +12,20 @@
           "package_name": "com.keshabstudios.quizbaaz"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "274398480008-bdfo6ls6tdgmleu2ipju2q7pkdgljj6p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.keshabstudios.quizbaaz",
+            "certificate_hash": "e96a48efb7802c1b6ec5cb99e6ef702a5b9c18b5"
+          }
+        },
+        {
+          "client_id": "274398480008-rkvm5k4nrkbqsa7rh0468kgpk8e4shm6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDnZ1SjoFZkN4Fxl3z5fJjqXhYisObXw5Q"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "274398480008-rkvm5k4nrkbqsa7rh0468kgpk8e4shm6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
