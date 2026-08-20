@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuizCraft 3D - Class 10 Board Exam Edition</title>
+  <title>QuizCraft 3D - Class 10 &amp; Competitive Quiz Bank</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,7 +70,7 @@
       box-shadow: 0 1px 0 #9E5C00, 0 4px 10px rgba(255, 184, 0, 0.3);
     }
 
-    /* Device Mockup */
+    /* Device Frame */
     .mobile-frame {
       width: 414px;
       height: 855px;
@@ -118,30 +118,24 @@
     <!-- Left Controls Panel -->
     <div class="flex flex-col text-center xl:text-left max-w-md">
       <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold w-fit mx-auto xl:mx-0 mb-3">
-        <span>🎓</span>
-        CLASS 10 BOARD EXAMINATION CURRICULUM
+        <span>📚</span>
+        ALL SUBJECTS &amp; TOPICS INCLUDED
       </div>
       <h1 class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-purple-300 to-cyan-300">
         QuizCraft 3D
       </h1>
       <p class="text-slate-300 text-sm mt-2 leading-relaxed">
-        ১০ম শ্রেণির বোর্ড পরীক্ষার জন্য চ্যাপ্টারভিত্তিক প্রশ্নব্যাংক যুক্ত করা হয়েছে: ভৌতবিজ্ঞান, জীবনবিজ্ঞান, গণিত ও কম্পিউটার সায়েন্স (Bilingual: English + বাংলা)।
+        <strong>সাহিত্য (Literature), ইতিহাস (History), সাধারণ জ্ঞান (GK) এবং সাম্প্রতিক ঘটনাবলী (Current Affairs 2026)</strong> সহ মোট ৮টি বিষয় যুক্ত করা হয়েছে!
       </p>
 
-      <!-- Mascot Switcher -->
-      <div class="mt-4 p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between shadow-xl">
-        <div class="text-xs text-left">
-          <span class="font-extrabold text-white block">3D Mascot Switcher:</span>
-          <span class="text-slate-400 text-[11px]">Alex (Boy) ⟷ Maya (Girl)</span>
-        </div>
-        <div class="flex gap-1.5">
-          <button onclick="setGender('male')" id="btn-gender-male" class="px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 font-black text-xs shadow-md transition">
-            👦 Alex
-          </button>
-          <button onclick="setGender('female')" id="btn-gender-female" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs hover:text-white transition">
-            👧 Maya
-          </button>
-        </div>
+      <!-- Subject Badges Grid -->
+      <div class="mt-4 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs text-left grid grid-cols-2 gap-1.5 shadow-lg">
+        <div class="flex items-center gap-1.5 text-pink-400"><span>📖</span><strong>সাহিত্য</strong> (Literature)</div>
+        <div class="flex items-center gap-1.5 text-rose-400"><span>⚔️</span><strong>ইতিহাস</strong> (History)</div>
+        <div class="flex items-center gap-1.5 text-cyan-400"><span>🌍</span><strong>সাধারণ জ্ঞান</strong> (GK)</div>
+        <div class="flex items-center gap-1.5 text-purple-400"><span>⚡</span><strong>Current Affairs</strong></div>
+        <div class="flex items-center gap-1.5 text-blue-400"><span>⚛️</span><strong>ভৌতবিজ্ঞান</strong></div>
+        <div class="flex items-center gap-1.5 text-emerald-400"><span>🌿</span><strong>জীবনবিজ্ঞান</strong></div>
       </div>
 
       <!-- Quick Switcher -->
@@ -150,13 +144,10 @@
           🏠 Home Dashboard
         </button>
         <button onclick="switchScreen('chapters')" class="px-3.5 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 text-xs font-bold border border-cyan-500/40">
-          📚 Class 10 Chapters
+          📚 Explore All Chapters
         </button>
         <button onclick="startQuiz('daily')" class="px-3.5 py-1.5 rounded-xl bg-purple-500/20 text-purple-300 text-xs font-bold border border-purple-500/40">
           ⚡ Start Live Quiz
-        </button>
-        <button onclick="switchScreen('admin')" class="px-3.5 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/40">
-          🛡️ Admin Panel
         </button>
       </div>
     </div>
@@ -184,7 +175,7 @@
               <h2 class="text-sm font-black text-white leading-tight">
                 Hi, Keshab! 👋
               </h2>
-              <p class="text-[10px] text-slate-300 font-medium">Class 10 Board Prep 🎓</p>
+              <p class="text-[10px] text-slate-300 font-medium">8 Subjects Active 🎓</p>
             </div>
           </div>
 
@@ -383,7 +374,7 @@
           <button onclick="switchScreen('dashboard')" class="text-slate-400 hover:text-white p-1 text-sm font-bold">
             ← Exit
           </button>
-          <span class="text-xs font-bold text-slate-200">Class 10 Board Quiz</span>
+          <span id="quiz-title-header" class="text-xs font-bold text-slate-200">Board Exam Quiz</span>
           <div class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-xs border border-amber-500/40">
             <span id="quiz-live-score">0</span> pts
           </div>
@@ -413,10 +404,10 @@
 
         <div class="glass-card-purple p-4 mt-3">
           <h3 id="quiz-question-text" class="text-base font-bold text-white leading-snug">
-            What is the chemical formula of rust on iron?
+            Question Text
           </h3>
           <p id="quiz-question-bn" class="text-xs text-slate-300 mt-1 font-medium">
-            লোহায় মরিচা পড়ার রাসায়নিক সংকেত কোনটি?
+            বাংলা প্রশ্ন বিবরণ
           </p>
         </div>
 
@@ -453,7 +444,7 @@
 
         <div class="mt-4 space-y-2">
           <button onclick="switchScreen('chapters')" class="game-button-3d-gold w-full py-3 text-xs tracking-wider">
-            CHOOSE NEXT CHAPTER 📚
+            CHOOSE NEXT SUBJECT 📚
           </button>
           <button onclick="switchScreen('dashboard')" class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-xs hover:bg-slate-700">
             Back to Home Dashboard
@@ -461,36 +452,114 @@
         </div>
       </div>
 
-      <!-- ================= SCREEN 4: CLASS 10 BOARD CHAPTER BANK ================= -->
+      <!-- ================= SCREEN 4: 8 SUBJECT CHAPTER BANK ================= -->
       <div id="screen-chapters" class="flex-1 flex-col h-full overflow-y-auto no-scrollbar pt-11 pb-20 px-3.5 hidden">
         <div class="flex items-center justify-between mt-1 mb-2">
           <div class="flex items-center gap-2">
             <button onclick="switchScreen('dashboard')" class="text-slate-400 hover:text-white p-1 text-sm font-bold">
               ←
             </button>
-            <h2 class="text-sm font-black text-white">Class 10 Board Chapters</h2>
+            <h2 class="text-sm font-black text-white">Subject Question Bank</h2>
           </div>
-          <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px]">
-            10th Exam 🎓
+          <span class="px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black text-[10px]">
+            8 Subjects Active 🎓
           </span>
         </div>
 
-        <!-- Subject Filters -->
+        <!-- Subject Filter Pills (8 Subjects) -->
         <div class="flex gap-1.5 overflow-x-auto no-scrollbar py-1 mb-2.5">
           <button onclick="filterChapters('all')" id="tab-sub-all" class="px-2.5 py-1 rounded-xl bg-purple-600 text-white font-bold text-[10px] whitespace-nowrap">All Subjects</button>
-          <button onclick="filterChapters('phys')" id="tab-sub-phys" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">Physical Science</button>
-          <button onclick="filterChapters('bio')" id="tab-sub-bio" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">Life Science</button>
-          <button onclick="filterChapters('math')" id="tab-sub-math" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">Mathematics</button>
-          <button onclick="filterChapters('cs')" id="tab-sub-cs" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">Computer &amp; IT</button>
+          <button onclick="filterChapters('lit')" id="tab-sub-lit" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">📖 সাহিত্য (Literature)</button>
+          <button onclick="filterChapters('hist')" id="tab-sub-hist" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">⚔️ ইতিহাস (History)</button>
+          <button onclick="filterChapters('gk')" id="tab-sub-gk" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">🌍 সাধারণ জ্ঞান (GK)</button>
+          <button onclick="filterChapters('ca')" id="tab-sub-ca" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">⚡ Current Affairs</button>
+          <button onclick="filterChapters('phys')" id="tab-sub-phys" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">⚛️ ভৌতবিজ্ঞান</button>
+          <button onclick="filterChapters('bio')" id="tab-sub-bio" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">🌿 জীবনবিজ্ঞান</button>
+          <button onclick="filterChapters('math')" id="tab-sub-math" class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold text-[10px] whitespace-nowrap">📐 গণিত</button>
         </div>
 
-        <!-- Subject 1: Physical Science -->
+        <!-- 1. LITERATURE (সাহিত্য) -->
+        <div id="group-lit" class="mb-3">
+          <div class="text-[11px] font-black text-pink-400 mb-1.5 flex items-center gap-1">
+            <span>📖</span>
+            <span>Literature (সাহিত্য - বাংলা ও ইংরেজি)</span>
+          </div>
+          <div onclick="startQuiz('literature')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-pink-400 transition">
+            <div class="w-10 h-10 rounded-xl bg-pink-600/20 border border-pink-400/50 flex items-center justify-center font-black text-pink-300 text-xs">
+              Ch 1
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">Bengali Literature &amp; Great Writers</h4>
+              <p class="text-[10px] text-slate-300 truncate">রবীন্দ্রনাথ, নজরুল, বঙ্কিম ও শরৎচন্দ্র • 10 Qs</p>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
+            </div>
+            <span class="text-pink-400 text-sm font-black">&gt;</span>
+          </div>
+        </div>
+
+        <!-- 2. HISTORY (ইতিহাস) -->
+        <div id="group-hist" class="mb-3">
+          <div class="text-[11px] font-black text-rose-400 mb-1.5 flex items-center gap-1">
+            <span>⚔️</span>
+            <span>History (ইতিহাস - ভারতের স্বাধীনতা সংগ্রাম)</span>
+          </div>
+          <div onclick="startQuiz('history')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-rose-400 transition">
+            <div class="w-10 h-10 rounded-xl bg-rose-600/20 border border-rose-400/50 flex items-center justify-center font-black text-rose-300 text-xs">
+              Ch 1
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">Indian Freedom Movement &amp; INA</h4>
+              <p class="text-[10px] text-slate-300 truncate">১৮৫৭ মহাবিদ্রোহ, নেতাজি ও গান্ধীজি • 10 Qs</p>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
+            </div>
+            <span class="text-rose-400 text-sm font-black">&gt;</span>
+          </div>
+        </div>
+
+        <!-- 3. GENERAL KNOWLEDGE (সাধারণ জ্ঞান) -->
+        <div id="group-gk" class="mb-3">
+          <div class="text-[11px] font-black text-cyan-400 mb-1.5 flex items-center gap-1">
+            <span>🌍</span>
+            <span>General Knowledge (সাধারণ জ্ঞান - GK)</span>
+          </div>
+          <div onclick="startQuiz('gk')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-cyan-400 transition">
+            <div class="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-400/50 flex items-center justify-center font-black text-cyan-300 text-xs">
+              Ch 1
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">India &amp; World Superlatives &amp; Awards</h4>
+              <p class="text-[10px] text-slate-300 truncate">ভূগোল, মহাকাশ ও নোবেল পুরস্কার • 10 Qs</p>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
+            </div>
+            <span class="text-cyan-400 text-sm font-black">&gt;</span>
+          </div>
+        </div>
+
+        <!-- 4. CURRENT AFFAIRS (সাম্প্রতিক ঘটনাবলী 2026) -->
+        <div id="group-ca" class="mb-3">
+          <div class="text-[11px] font-black text-purple-400 mb-1.5 flex items-center gap-1">
+            <span>⚡</span>
+            <span>Current Affairs 2026 (সাম্প্রতিক ঘটনাবলী)</span>
+          </div>
+          <div onclick="startQuiz('current_affairs')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-purple-400 transition">
+            <div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-400/50 flex items-center justify-center font-black text-purple-300 text-xs">
+              Ch 1
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">Summits, ISRO Missions &amp; Sports 2026</h4>
+              <p class="text-[10px] text-slate-300 truncate">চন্দ্রযান, গগনযান ও আন্তর্জাতিক সম্মেলন • 10 Qs</p>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
+            </div>
+            <span class="text-purple-400 text-sm font-black">&gt;</span>
+          </div>
+        </div>
+
+        <!-- 5. PHYSICAL SCIENCE -->
         <div id="group-phys" class="mb-3">
           <div class="text-[11px] font-black text-blue-400 mb-1.5 flex items-center gap-1">
             <span>⚛️</span>
-            <span>Physical Science (ভৌতবিজ্ঞান ও রসায়ন)</span>
+            <span>Physical Science (ভৌতবিজ্ঞান)</span>
           </div>
-          <!-- Ch 1 -->
           <div onclick="startQuiz('phys_1')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition">
             <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-400/50 flex items-center justify-center font-black text-blue-300 text-xs">
               Ch 1
@@ -498,39 +567,17 @@
             <div class="flex-1 min-w-0">
               <h4 class="text-xs font-bold text-white truncate">Chemical Reactions &amp; Equations</h4>
               <p class="text-[10px] text-slate-300 truncate">রাসায়নিক বিক্রিয়া ও সমীকরণ • 10 Qs</p>
-              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐</div>
             </div>
             <span class="text-blue-400 text-sm font-black">&gt;</span>
-          </div>
-          <!-- Ch 2 -->
-          <div onclick="startQuiz('phys_2')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-blue-400 transition">
-            <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-400/50 flex items-center justify-center font-black text-blue-300 text-xs">
-              Ch 2
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="text-xs font-bold text-white truncate">Acids, Bases &amp; Salts</h4>
-              <p class="text-[10px] text-slate-300 truncate">অ্যাসিড, ক্ষারক ও লবণ • 10 Qs</p>
-              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐☆ (Score: 80/100)</div>
-            </div>
-            <span class="text-blue-400 text-sm font-black">&gt;</span>
-          </div>
-          <!-- Ch 3 (Locked) -->
-          <div class="glass-card p-2.5 mb-2 flex items-center gap-3 opacity-60">
-            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 text-xs">
-              🔒
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="text-xs font-bold text-slate-400 truncate">Light: Reflection &amp; Refraction</h4>
-              <p class="text-[10px] text-slate-500">Complete Ch 2 to unlock</p>
-            </div>
           </div>
         </div>
 
-        <!-- Subject 2: Life Science -->
+        <!-- 6. LIFE SCIENCE -->
         <div id="group-bio" class="mb-3">
           <div class="text-[11px] font-black text-emerald-400 mb-1.5 flex items-center gap-1">
             <span>🌿</span>
-            <span>Life Science &amp; Biology (জীবনবিজ্ঞান)</span>
+            <span>Life Science (জীবনবিজ্ঞান)</span>
           </div>
           <div onclick="startQuiz('bio_1')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-emerald-400 transition">
             <div class="w-10 h-10 rounded-xl bg-emerald-600/20 border border-emerald-400/50 flex items-center justify-center font-black text-emerald-300 text-xs">
@@ -539,13 +586,13 @@
             <div class="flex-1 min-w-0">
               <h4 class="text-xs font-bold text-white truncate">Life Processes</h4>
               <p class="text-[10px] text-slate-300 truncate">জীবনের মৌলিক প্রক্রিয়া • 10 Qs</p>
-              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 90/100)</div>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐</div>
             </div>
             <span class="text-emerald-400 text-sm font-black">&gt;</span>
           </div>
         </div>
 
-        <!-- Subject 3: Mathematics -->
+        <!-- 7. MATHEMATICS -->
         <div id="group-math" class="mb-3">
           <div class="text-[11px] font-black text-amber-400 mb-1.5 flex items-center gap-1">
             <span>📐</span>
@@ -558,28 +605,9 @@
             <div class="flex-1 min-w-0">
               <h4 class="text-xs font-bold text-white truncate">Quadratic Equations &amp; Polynomials</h4>
               <p class="text-[10px] text-slate-300 truncate">দ্বিঘাত সমীকরণ ও বহুপদী • 10 Qs</p>
-              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
+              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐</div>
             </div>
             <span class="text-amber-400 text-sm font-black">&gt;</span>
-          </div>
-        </div>
-
-        <!-- Subject 4: Computer Science & IT -->
-        <div id="group-cs" class="mb-3">
-          <div class="text-[11px] font-black text-purple-400 mb-1.5 flex items-center gap-1">
-            <span>💻</span>
-            <span>Computer Science &amp; IT (কম্পিউটার অ্যাপ্লিকেশন)</span>
-          </div>
-          <div onclick="startQuiz('cs_1')" class="glass-card p-2.5 mb-2 flex items-center gap-3 cursor-pointer hover:border-purple-400 transition">
-            <div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-400/50 flex items-center justify-center font-black text-purple-300 text-xs">
-              Ch 1
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="text-xs font-bold text-white truncate">HTML, Web Design &amp; Networking</h4>
-              <p class="text-[10px] text-slate-300 truncate">এইচটিএমএল ও ওয়েব প্রযুক্তি • 10 Qs</p>
-              <div class="text-amber-400 text-[9px] mt-0.5">⭐⭐⭐ (Score: 100/100)</div>
-            </div>
-            <span class="text-purple-400 text-sm font-black">&gt;</span>
           </div>
         </div>
 
@@ -654,43 +682,25 @@
         </div>
       </div>
 
-      <!-- ================= SCREEN 8: ADMIN PANEL ================= -->
-      <div id="screen-admin" class="flex-1 flex-col h-full overflow-y-auto no-scrollbar pt-11 pb-20 px-4 hidden">
-        <div class="flex items-center gap-2 mt-1 mb-3">
-          <button onclick="switchScreen('dashboard')" class="text-slate-400 hover:text-white p-1 text-sm font-bold">
-            ←
-          </button>
-          <h2 class="text-base font-bold text-rose-400">Admin Panel</h2>
-        </div>
-        <div class="glass-card p-3 mb-2">
-          <h4 class="text-xs font-bold text-white mb-1">📁 Bulk Question Uploader</h4>
-          <button onclick="alert('Parsed Class 10 Board question batch!')" class="w-full py-1.5 rounded bg-purple-600 text-white font-bold text-xs">Import JSON</button>
-        </div>
-      </div>
-
       <!-- ================= 8. BOTTOM NAVIGATION ================= -->
       <div id="bottom-nav-bar" class="absolute bottom-0 left-0 right-0 h-20 px-4 pb-3 flex items-end justify-center pointer-events-auto">
         <div class="glass-card w-full h-14 rounded-full px-5 flex items-center justify-between relative shadow-2xl border-white/20">
           
-          <!-- 1. 🏠 Home -->
           <button onclick="switchScreen('dashboard')" class="flex flex-col items-center text-amber-400">
             <span class="text-lg">🏠</span>
             <span class="text-[10px] font-black tracking-tight text-amber-400">Home</span>
           </button>
 
-          <!-- 2. ❓ Quiz (Chapters) -->
           <button onclick="switchScreen('chapters')" class="flex flex-col items-center text-slate-400 hover:text-slate-200">
             <span class="text-lg">📚</span>
             <span class="text-[10px] font-bold">Chapters</span>
           </button>
 
-          <!-- 3. 🏆 Ranking -->
           <button onclick="switchScreen('leaderboard')" class="flex flex-col items-center text-slate-400 hover:text-slate-200">
             <span class="text-lg">🏆</span>
             <span class="text-[10px] font-bold">Ranking</span>
           </button>
 
-          <!-- 4. 👤 Profile -->
           <button onclick="toggleGender()" class="flex flex-col items-center text-slate-400 hover:text-slate-200">
             <span class="text-lg">👤</span>
             <span class="text-[10px] font-bold">Profile</span>
@@ -720,27 +730,21 @@
       const heroMascot = document.getElementById('hero-mascot-img');
       const userHeader = document.getElementById('user-header-avatar');
       const resultMascot = document.getElementById('result-mascot-img');
-      const btnMale = document.getElementById('btn-gender-male');
-      const btnFemale = document.getElementById('btn-gender-female');
 
       if (isFemale) {
         if (heroMascot) heroMascot.src = '/assets/images/characters/hero_girl_3d.png';
         if (resultMascot) resultMascot.src = '/assets/images/characters/hero_girl_3d.png';
         if (userHeader) userHeader.src = '/assets/images/avatars/female_avatar_3d.png';
-        if (btnFemale) btnFemale.className = "px-3 py-1.5 rounded-xl bg-purple-500 text-white font-extrabold text-xs shadow";
-        if (btnMale) btnMale.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs hover:text-white";
       } else {
         if (heroMascot) heroMascot.src = '/assets/images/characters/hero_boy_3d.png';
         if (resultMascot) resultMascot.src = '/assets/images/characters/hero_boy_3d.png';
         if (userHeader) userHeader.src = '/assets/images/avatars/user_boy_avatar.png';
-        if (btnMale) btnMale.className = "px-3 py-1.5 rounded-xl bg-cyan-500 text-slate-950 font-extrabold text-xs shadow";
-        if (btnFemale) btnFemale.className = "px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-xs hover:text-white";
       }
     }
 
     function filterChapters(sub) {
-      const groups = ['phys', 'bio', 'math', 'cs'];
-      const tabs = ['all', 'phys', 'bio', 'math', 'cs'];
+      const groups = ['lit', 'hist', 'gk', 'ca', 'phys', 'bio', 'math'];
+      const tabs = ['all', 'lit', 'hist', 'gk', 'ca', 'phys', 'bio', 'math'];
 
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-sub-${t}`);
@@ -765,51 +769,124 @@
       });
     }
 
-    // Question Banks for Class 10
-    const class10QuestionsMap = {
+    const allQuestionsMap = {
       daily: [
         {
-          q: "What is the chemical formula of rust on iron?",
-          qBn: "লোহায় মরিচা পড়ার রাসায়নিক সংকেত কোনটি? (Class 10 Board)",
-          options: ["Fe2O3.xH2O", "FeO", "Fe3O4", "Fe(OH)3"],
-          correct: 0
-        },
-        {
-          q: "Which enzyme in human saliva breaks down starch?",
-          qBn: "লালারসে উপস্থিত কোন উৎসেচক শ্বেতসারকে পাচিত করে?",
-          options: ["Pepsin", "Salivary Amylase (Ptyalin)", "Trypsin", "Lipase"],
+          q: "Who was awarded the Nobel Prize in Literature for 'Gitanjali' in 1913?",
+          qBn: "১৯১৩ সালে 'গীতাঞ্জলি' কাব্যগ্রন্থের জন্য কে নোবেল পুরস্কার পেয়েছিলেন? (সাহিত্য)",
+          options: ["Kazi Nazrul Islam", "Rabindranath Tagore (রবীন্দ্রনাথ ঠাকুর)", "Bankim Chandra", "Sarat Chandra"],
           correct: 1
         },
         {
-          q: "For quadratic equation ax² + bx + c = 0, what is discriminant (D)?",
-          qBn: "ax² + bx + c = 0 দ্বিঘাত সমীকরণের নিরূপক কোনটি?",
-          options: ["b² - 4ac", "b² + 4ac", "4ac - b²", "√b² - 4ac"],
-          correct: 0
-        },
-        {
-          q: "Which HTML tag is used to create a hyperlink?",
-          qBn: "এইচটিএমএল-এ হাইপারলিঙ্ক যুক্ত করার জন্য কোন ট্যাগ ব্যবহার করা হয়?",
-          options: ["<a href='url'>", "<link href='url'>", "<hyperlink>", "<url>"],
-          correct: 0
-        },
-        {
-          q: "What gas is released when zinc reacts with dilute HCl?",
-          qBn: "জিঙ্কের সাথে লঘু হাইড্রোক্লোরিক অ্যাসিডের বিক্রিয়ায় কোন গ্যাস উৎপন্ন হয়?",
-          options: ["Oxygen (O2)", "Hydrogen (H2)", "Chlorine (Cl2)", "Carbon Dioxide (CO2)"],
+          q: "Who gave the call 'Give me blood, and I will give you freedom'?",
+          qBn: "'তোমরা আমাকে রক্ত দাও, আমি তোমাদের স্বাধীনতা দেব' — কার স্লোগান? (ইতিহাস)",
+          options: ["Bhagat Singh", "Netaji Subhash Chandra Bose (নেতাজি)", "Chandrasekhar Azad", "Tilak"],
           correct: 1
-        }
-      ],
-      phys_1: [
+        },
+        {
+          q: "Which is the longest river in the world?",
+          qBn: "বিশ্বের দীর্ঘতম নদী কোনটি? (সাধারণ জ্ঞান - GK)",
+          options: ["Amazon River", "Nile River (নীলনদ)", "Yangtze", "Ganga"],
+          correct: 1
+        },
+        {
+          q: "Which space agency achieved historic milestones with Chandrayaan & Gaganyaan?",
+          qBn: "চন্দ্রযান ও গগনযান মহাকাশ অভিযানের জন্য কোন সংস্থা বিশ্বখ্যাত? (Current Affairs 2026)",
+          options: ["NASA", "ISRO (Indian Space Research Organisation)", "ESA", "JAXA"],
+          correct: 1
+        },
         {
           q: "What is the chemical formula of rust on iron?",
           qBn: "লোহায় মরিচা পড়ার রাসায়নিক সংকেত কোনটি? (ভৌতবিজ্ঞান)",
           options: ["Fe2O3.xH2O", "FeO", "Fe3O4", "Fe(OH)3"],
           correct: 0
+        }
+      ],
+      literature: [
+        {
+          q: "Who was awarded the Nobel Prize in Literature for 'Gitanjali' in 1913?",
+          qBn: "১৯১৩ সালে 'গীতাঞ্জলি' কাব্যগ্রন্থের জন্য সাহিত্যে কে নোবেল পুরস্কার পান?",
+          options: ["Kazi Nazrul Islam", "Rabindranath Tagore (রবীন্দ্রনাথ ঠাকুর)", "Bankim Chandra", "Sarat Chandra"],
+          correct: 1
         },
         {
-          q: "Which of the following is an exothermic reaction?",
-          qBn: "নিচের কোনটি তাপমোচী (Exothermic) বিক্রিয়ার উদাহরণ?",
-          options: ["Respiration (শ্বসন)", "Photosynthesis (সালোকসংশ্লেষ)", "Electrolysis of water", "Melting of ice"],
+          q: "Who composed the Indian National Song 'Vande Mataram'?",
+          qBn: "ভারতের জাতীয় গান 'বন্দে মাতরম' কার রচিত?",
+          options: ["Bankim Chandra Chattopadhyay", "Rabindranath Tagore", "Sri Aurobindo", "Michael Madhusudan"],
+          correct: 0
+        },
+        {
+          q: "Which famous poet is known as the 'Bidrohi Kabi' of Bengali literature?",
+          qBn: "বাংলা সাহিত্যে 'বিদ্রোহী কবি' নামে কে খ্যাত?",
+          options: ["Jibanananda Das", "Kazi Nazrul Islam (কাজী নজরুল ইসলাম)", "Sukanta", "Satyendranath"],
+          correct: 1
+        }
+      ],
+      history: [
+        {
+          q: "In which year did the historic Revolt of 1857 start?",
+          qBn: "ঐতিহাসিক ১৮৫৭ সালের মহাবিদ্রোহ কোন সালে শুরু হয়েছিল?",
+          options: ["1857", "1757", "1885", "1905"],
+          correct: 0
+        },
+        {
+          q: "Who was regarded as the 'Father of Indian Renaissance'?",
+          qBn: "কাকে 'ভারতীয় নবজাগরণের জনক' বলা হয়?",
+          options: ["Raja Ram Mohan Roy (রাজা রামমোহন রায়)", "Swami Vivekananda", "Vidyasagar", "Tagore"],
+          correct: 0
+        },
+        {
+          q: "In which year did Mahatma Gandhi launch the 'Quit India Movement'?",
+          qBn: "গান্ধীজি কোন সালে 'ভারত ছাড়ো আন্দোলন' শুরু করেছিলেন?",
+          options: ["1942", "1930", "1920", "1947"],
+          correct: 0
+        }
+      ],
+      gk: [
+        {
+          q: "Which is the longest river in the world?",
+          qBn: "বিশ্বের দীর্ঘতম নদী কোনটি?",
+          options: ["Amazon River", "Nile River (নীলনদ)", "Yangtze", "Ganga"],
+          correct: 1
+        },
+        {
+          q: "Who was the first President of Independent India?",
+          qBn: "স্বাধীন ভারতের প্রথম রাষ্ট্রপতি কে ছিলেন?",
+          options: ["Dr. Rajendra Prasad (ড. রাজেন্দ্র প্রসাদ)", "Dr. S. Radhakrishnan", "Nehru", "Ambedkar"],
+          correct: 0
+        },
+        {
+          q: "Which layer of atmosphere protects Earth from UV radiation?",
+          qBn: "বায়ুমণ্ডলের কোন স্তর পৃথিবীকে ক্ষতিকারক অতিবেগুনি রশ্মি থেকে রক্ষা করে?",
+          options: ["Troposphere", "Ozone Layer / Stratosphere (ওজোন স্তর)", "Mesosphere", "Thermosphere"],
+          correct: 1
+        }
+      ],
+      current_affairs: [
+        {
+          q: "Which space agency achieved milestones with Chandrayaan & Gaganyaan?",
+          qBn: "চন্দ্রযান ও গগনযান অভিযানের জন্য কোন মহাকাশ গবেষণা সংস্থা প্রশংসিত?",
+          options: ["NASA", "ISRO (Indian Space Research Organisation)", "ESA", "JAXA"],
+          correct: 1
+        },
+        {
+          q: "Which Indian city is known as the 'Silicon Valley of India'?",
+          qBn: "প্রযুক্তির কেন্দ্র হিসেবে ভারতের কোন শহরকে 'সিলিকন ভ্যালি' বলা হয়?",
+          options: ["Bengaluru (বেঙ্গালুরু)", "Hyderabad", "Mumbai", "Kolkata"],
+          correct: 0
+        },
+        {
+          q: "What is the official distance of an Olympic Marathon race?",
+          qBn: "অলিম্পিক ও আন্তর্জাতিক প্রতিযোগিতায় একটি ফুল ম্যারাথনের দৈর্ঘ্য কত?",
+          options: ["42.195 km", "21.097 km", "50 km", "10 km"],
+          correct: 0
+        }
+      ],
+      phys_1: [
+        {
+          q: "What is the chemical formula of rust on iron?",
+          qBn: "লোহায় মরিচা পড়ার রাসায়নিক সংকেত কোনটি?",
+          options: ["Fe2O3.xH2O", "FeO", "Fe3O4", "Fe(OH)3"],
           correct: 0
         }
       ],
@@ -819,45 +896,19 @@
           qBn: "ফুসফুস থেকে হৃদপিণ্ডে অক্সিজেনযুক্ত রক্ত বহন করে কোন রক্তনালী?",
           options: ["Pulmonary Artery", "Pulmonary Vein (ফুসফুসীয় শিরা)", "Aorta", "Vena Cava"],
           correct: 1
-        },
-        {
-          q: "What is the structural and functional unit of kidney?",
-          qBn: "বৃক্কের (Kidney) গঠনগত ও কার্যগত একক কোনটি?",
-          options: ["Neuron", "Nephron (নেফ্রন)", "Alveoli", "Glomerulus"],
-          correct: 1
         }
       ],
       math_1: [
         {
-          q: "If discriminant D > 0, what are the nature of roots?",
-          qBn: "যদি নিরূপক D > 0 হয়, তবে সমীকরণের বীজদ্বয় কেমন হবে?",
-          options: ["Real and Distinct (বাস্তব ও অসমান)", "Real and Equal", "Imaginary", "Zero"],
-          correct: 0
-        },
-        {
-          q: "Sum of roots (α + β) for 2x² - 8x + 6 = 0 is:",
-          qBn: "2x² - 8x + 6 = 0 সমীকরণের বীজদ্বয়ের সমষ্টি কত?",
-          options: ["4", "-4", "3", "8"],
-          correct: 0
-        }
-      ],
-      cs_1: [
-        {
-          q: "Which protocol encrypts data transmission over web?",
-          qBn: "ইন্টারনেটে সুরক্ষিত যোগাযোগের জন্য কোন প্রোটোকল ব্যবহৃত হয়?",
-          options: ["HTTPS", "HTTP", "FTP", "SMTP"],
-          correct: 0
-        },
-        {
-          q: "What does CSS stand for in web design?",
-          qBn: "ওয়েব ডিজাইনে CSS এর পূর্ণরূপ কী?",
-          options: ["Cascading Style Sheets", "Creative Style System", "Computer Style Sheet", "Color Syntax"],
+          q: "For quadratic equation ax² + bx + c = 0, what is discriminant (D)?",
+          qBn: "ax² + bx + c = 0 সমীকরণের নিরূপক কোনটি?",
+          options: ["b² - 4ac", "b² + 4ac", "4ac - b²", "√b² - 4ac"],
           correct: 0
         }
       ]
     };
 
-    let currentQuestions = [...class10QuestionsMap.daily];
+    let currentQuestions = [...allQuestionsMap.daily];
     let currentQIndex = 0;
     let score = 0;
     let correctCount = 0;
@@ -868,7 +919,7 @@
     let fiftyFiftyUsed = false;
 
     function switchScreen(screenName) {
-      const screens = ['dashboard', 'quiz', 'result', 'chapters', 'leaderboard', 'rewards', 'shop', 'admin'];
+      const screens = ['dashboard', 'quiz', 'result', 'chapters', 'leaderboard', 'rewards', 'shop'];
       screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
         if (el) el.classList.add('hidden');
@@ -886,7 +937,7 @@
     }
 
     function startQuiz(type) {
-      currentQuestions = class10QuestionsMap[type] || class10QuestionsMap.daily;
+      currentQuestions = allQuestionsMap[type] || allQuestionsMap.daily;
       currentQIndex = 0;
       score = 0;
       correctCount = 0;

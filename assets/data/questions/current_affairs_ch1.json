@@ -1,0 +1,57 @@
+{
+  "chapter_id": "ca_ch_01",
+  "chapter_title": "Current Affairs 2026: Summits, Sports & Science",
+  "chapter_title_bn": "সাম্প্রতিক ঘটনাবলী ২০২৬: খেলাধুলা, বিজ্ঞান ও বিশ্ব সংবাদ",
+  "questions": [
+    {
+      "id": "ca_01",
+      "question": "Which space agency achieved historic milestones with the Chandrayaan and Gaganyaan human spaceflight programs?",
+      "question_bn": "চন্দ্রযান ও গগনযান মহাকাশ অভিযানের জন্য কোন সংস্থা বিশ্বব্যাপী প্রশংসিত?",
+      "options": ["NASA", "ISRO (Indian Space Research Organisation)", "ESA", "JAXA"],
+      "correct_index": 1,
+      "explanation": "ISRO has achieved landmark milestones with lunar exploration and India's indigenous human spaceflight mission Gaganyaan.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "ca_02",
+      "question": "What is the primary objective of the global COP Climate Summits?",
+      "question_bn": "আন্তর্জাতিক COP জলবায়ু শীর্ষ সম্মেলনের মূল লক্ষ্য কোনটি?",
+      "options": ["Combating Global Climate Change & Carbon Reduction", "Space Exploration", "International Trade Tariffs", "Olympic Games Planning"],
+      "correct_index": 0,
+      "explanation": "COP (Conference of the Parties) summits bring world leaders together to accelerate climate action under the Paris Agreement.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "ca_03",
+      "question": "Which international forum represents the world's premier group of major developed and emerging economies?",
+      "question_bn": "বিশ্বের প্রধান উন্নত ও উন্নয়নশীল দেশগুলোর শীর্ষ অর্থনৈতিক জোট কোনটি?",
+      "options": ["G20", "NATO", "OPEC", "SAARC"],
+      "correct_index": 0,
+      "explanation": "The G20 represents around 85% of global GDP and two-thirds of the world population.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "ca_04",
+      "question": "Which Indian city is famously regarded as the 'Silicon Valley of India' for technology innovation?",
+      "question_bn": "প্রযুক্তি ও তথ্যপ্রযুক্তির কেন্দ্র হিসেবে ভারতের কোন শহরকে 'সিলিকন ভ্যালি অফ ইন্ডিয়া' বলা হয়?",
+      "options": ["Bengaluru (বেঙ্গালুরু)", "Hyderabad", "Mumbai", "Kolkata"],
+      "correct_index": 0,
+      "explanation": "Bengaluru is India's leading IT hub, housing thousands of tech startups and global R&D centers.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "ca_05",
+      "question": "In Olympic sports, what is the distance of a standard Marathon race?",
+      "question_bn": "অলিম্পিক ও আন্তর্জাতিক প্রতিযোগিতায় একটি ফুল ম্যারাথন দৌড়ের দৈর্ঘ্য কত?",
+      "options": ["42.195 km", "21.097 km", "50 km", "10 km"],
+      "correct_index": 0,
+      "explanation": "The official standard marathon distance is 42.195 kilometers (26 miles 385 yards).",
+      "points": 10,
+      "time_limit_sec": 15
+    }
+  ]
+}

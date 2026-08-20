@@ -1,9 +1,9 @@
 {
-  "board_name": "Class 10 Board Examination (১০ম শ্রেণি বোর্ড পরীক্ষা)",
+  "board_name": "Class 10 Board Examination & Competitive Prep (১০ম শ্রেণি ও প্রতিযোগিতা কুইজ)",
   "categories": [
     {
       "category_id": "cat_phys_sci",
-      "category_name": "Physical Science (ভৌতবিজ্ঞান ও রসায়ন)",
+      "category_name": "Physical Science (ভৌতবিজ্ঞান)",
       "category_icon": "assets/icons/chapter_quiz_3d.png",
       "color_hex": "#3B82F6",
       "total_chapters": 4,
@@ -13,7 +13,7 @@
           "chapter_number": 1,
           "title": "Chemical Reactions & Equations",
           "title_bn": "রাসায়নিক বিক্রিয়া ও সমীকরণ",
-          "description": "Combination, decomposition, displacement, and redox reactions",
+          "description": "Combination, decomposition, displacement, and redox",
           "total_questions": 10,
           "json_file": "assets/data/questions/class10_phys_ch1.json",
           "is_unlocked": true,
@@ -25,42 +25,18 @@
           "chapter_number": 2,
           "title": "Acids, Bases and Salts",
           "title_bn": "অ্যাসিড, ক্ষারক ও লবণ",
-          "description": "pH scale, indicators, neutralization, and baking soda/plaster of paris",
+          "description": "pH scale, neutralization, baking soda & salts",
           "total_questions": 10,
           "json_file": "assets/data/questions/class10_phys_ch2.json",
           "is_unlocked": true,
           "stars": 2,
           "best_score": 80
-        },
-        {
-          "chapter_id": "phys_ch_03",
-          "chapter_number": 3,
-          "title": "Light: Reflection & Refraction",
-          "title_bn": "আলো: প্রতিফলন ও প্রতিসরণ",
-          "description": "Spherical mirrors, lenses, power of lens, and Snell's law",
-          "total_questions": 10,
-          "json_file": "assets/data/questions/class10_phys_ch3.json",
-          "is_unlocked": false,
-          "stars": 0,
-          "best_score": 0
-        },
-        {
-          "chapter_id": "phys_ch_04",
-          "chapter_number": 4,
-          "title": "Electricity & Magnetism",
-          "title_bn": "তড়িৎ ও চৌম্বক প্রভাব",
-          "description": "Ohm's law, resistance in series/parallel, Joule's law of heating",
-          "total_questions": 10,
-          "json_file": "assets/data/questions/class10_phys_ch4.json",
-          "is_unlocked": false,
-          "stars": 0,
-          "best_score": 0
         }
       ]
     },
     {
       "category_id": "cat_life_sci",
-      "category_name": "Life Science & Biology (জীবনবিজ্ঞান)",
+      "category_name": "Life Science (জীবনবিজ্ঞান)",
       "category_icon": "assets/icons/practice_target_3d.png",
       "color_hex": "#10B981",
       "total_chapters": 3,
@@ -70,36 +46,12 @@
           "chapter_number": 1,
           "title": "Life Processes",
           "title_bn": "জীবনের মৌলিক প্রক্রিয়া",
-          "description": "Nutrition, respiration, transportation, and excretion",
+          "description": "Nutrition, respiration, circulation, and excretion",
           "total_questions": 10,
           "json_file": "assets/data/questions/class10_bio_ch1.json",
           "is_unlocked": true,
           "stars": 3,
           "best_score": 90
-        },
-        {
-          "chapter_id": "bio_ch_02",
-          "chapter_number": 2,
-          "title": "Control and Coordination",
-          "title_bn": "নিয়ন্ত্রণ ও সমন্বয়",
-          "description": "Human brain, nervous system, reflex action, and plant hormones",
-          "total_questions": 10,
-          "json_file": "assets/data/questions/class10_bio_ch2.json",
-          "is_unlocked": true,
-          "stars": 1,
-          "best_score": 60
-        },
-        {
-          "chapter_id": "bio_ch_03",
-          "chapter_number": 3,
-          "title": "Heredity and Evolution",
-          "title_bn": "বংশগতি ও বিবর্তন",
-          "description": "Mendel's laws, chromosomes, DNA, and human sex determination",
-          "total_questions": 10,
-          "json_file": "assets/data/questions/class10_bio_ch3.json",
-          "is_unlocked": false,
-          "stars": 0,
-          "best_score": 0
         }
       ]
     },
@@ -108,28 +60,49 @@
       "category_name": "Mathematics (গণিত)",
       "category_icon": "assets/icons/coin_and_gem_3d.png",
       "color_hex": "#F59E0B",
-      "total_chapters": 3,
+      "total_chapters": 2,
       "chapters": [
         {
           "chapter_id": "math_ch_01",
           "chapter_number": 1,
           "title": "Quadratic Equations & Polynomials",
-          "title_bn": "একচল বিশিষ্ট দ্বিঘাত সমীকরণ ও বহুপদী",
+          "title_bn": "দ্বিঘাত সমীকরণ ও বহুপদী",
           "description": "Roots of equation, discriminant, Sridhar Acharya formula",
           "total_questions": 10,
           "json_file": "assets/data/questions/class10_math_ch1.json",
           "is_unlocked": true,
           "stars": 3,
           "best_score": 100
+        }
+      ]
+    },
+    {
+      "category_id": "cat_literature",
+      "category_name": "Literature (সাহিত্য - বাংলা ও ইংরেজি)",
+      "category_icon": "assets/icons/chapter_quiz_3d.png",
+      "color_hex": "#EC4899",
+      "total_chapters": 2,
+      "chapters": [
+        {
+          "chapter_id": "lit_ch_01",
+          "chapter_number": 1,
+          "title": "Bengali Literature & Great Writers",
+          "title_bn": "বাংলা সাহিত্য ও প্রখ্যাত সাহিত্যিক",
+          "description": "রবীন্দ্রনাথ, নজরুল, বঙ্কিমচন্দ্র, শরৎচন্দ্র ও বিখ্যাত গ্রন্থাবলী",
+          "total_questions": 10,
+          "json_file": "assets/data/questions/literature_ch1.json",
+          "is_unlocked": true,
+          "stars": 3,
+          "best_score": 100
         },
         {
-          "chapter_id": "math_ch_02",
+          "chapter_id": "lit_ch_02",
           "chapter_number": 2,
-          "title": "Trigonometry & Heights/Distances",
-          "title_bn": "ত্রিকোণমিতি ও উচ্চতা-দূরত্ব",
-          "description": "sin, cos, tan identities, standard angles (30, 45, 60, 90)",
+          "title": "English Literature & Poetry",
+          "title_bn": "ইংরেজি সাহিত্য ও বিশ্ব কবিতা",
+          "description": "Shakespeare, Wordsworth, Keats, and literary terms",
           "total_questions": 10,
-          "json_file": "assets/data/questions/class10_math_ch2.json",
+          "json_file": "assets/data/questions/literature_ch2.json",
           "is_unlocked": false,
           "stars": 0,
           "best_score": 0
@@ -137,10 +110,85 @@
       ]
     },
     {
+      "category_id": "cat_history",
+      "category_name": "History (ইতিহাস)",
+      "category_icon": "assets/icons/battle_swords_3d.png",
+      "color_hex": "#E11D48",
+      "total_chapters": 2,
+      "chapters": [
+        {
+          "chapter_id": "hist_ch_01",
+          "chapter_number": 1,
+          "title": "Indian Freedom Movement & Renaissance",
+          "title_bn": "ভারতের স্বাধীনতা সংগ্রাম ও নবজাগরণ",
+          "description": "১৮৫৭ মহাবিদ্রোহ, গান্ধীজি, সুভাষচন্দ্র বসু, ভগৎ সিং ও স্বাধীন ভারত",
+          "total_questions": 10,
+          "json_file": "assets/data/questions/history_ch1.json",
+          "is_unlocked": true,
+          "stars": 3,
+          "best_score": 100
+        },
+        {
+          "chapter_id": "hist_ch_02",
+          "chapter_number": 2,
+          "title": "Ancient & Medieval India",
+          "title_bn": "প্রাচীন ও মধ্যযুগীয় ভারতবর্ষ",
+          "description": "হরপ্পা সভ্যতা, মৌর্য সাম্রাজ্য, গুপ্ত যুগ ও মুঘল শাসন",
+          "total_questions": 10,
+          "json_file": "assets/data/questions/history_ch2.json",
+          "is_unlocked": false,
+          "stars": 0,
+          "best_score": 0
+        }
+      ]
+    },
+    {
+      "category_id": "cat_gk",
+      "category_name": "General Knowledge (সাধারণ জ্ঞান - GK)",
+      "category_icon": "assets/icons/practice_target_3d.png",
+      "color_hex": "#06B6D4",
+      "total_chapters": 2,
+      "chapters": [
+        {
+          "chapter_id": "gk_ch_01",
+          "chapter_number": 1,
+          "title": "World & India Superlatives, Discoveries & Awards",
+          "title_bn": "ভারত ও বিশ্বের প্রথম, আবিষ্কার ও নোবেল পুরস্কার",
+          "description": "ভূগোল, মহাকাশ, জাতীয় প্রতীক, সংবিধান ও আন্তর্জাতিক সংস্থা",
+          "total_questions": 10,
+          "json_file": "assets/data/questions/gk_ch1.json",
+          "is_unlocked": true,
+          "stars": 3,
+          "best_score": 100
+        }
+      ]
+    },
+    {
+      "category_id": "cat_current_affairs",
+      "category_name": "Current Affairs (সাম্প্রতিক ঘটনাবলী)",
+      "category_icon": "assets/icons/streak_fire_3d.png",
+      "color_hex": "#8B5CF6",
+      "total_chapters": 2,
+      "chapters": [
+        {
+          "chapter_id": "ca_ch_01",
+          "chapter_number": 1,
+          "title": "Current Affairs 2026: Summits, Sports & Science",
+          "title_bn": "সাম্প্রতিক ঘটনাবলী ২০২৬: খেলাধুলা, বিজ্ঞান ও বিশ্ব সংবাদ",
+          "description": "চন্দ্রযান মিশন, অলিম্পিক, নোবেল প্রাইজ ২০২৬, শীর্ষ আন্তর্জাতিক সম্মেলন",
+          "total_questions": 10,
+          "json_file": "assets/data/questions/current_affairs_ch1.json",
+          "is_unlocked": true,
+          "stars": 3,
+          "best_score": 100
+        }
+      ]
+    },
+    {
       "category_id": "cat_cs_it",
       "category_name": "Computer Science & IT (কম্পিউটার বিজ্ঞান)",
       "category_icon": "assets/icons/shop_stall_3d.png",
-      "color_hex": "#A855F7",
+      "color_hex": "#6366F1",
       "total_chapters": 2,
       "chapters": [
         {
@@ -154,18 +202,6 @@
           "is_unlocked": true,
           "stars": 3,
           "best_score": 100
-        },
-        {
-          "chapter_id": "cs_ch_02",
-          "chapter_number": 2,
-          "title": "Cyber Ethics & Digital Security",
-          "title_bn": "সাইবার নিরাপত্তা ও ডিজিটাল এথিক্স",
-          "description": "Phishing, malware, encryption, firewalls, and digital footprint",
-          "total_questions": 10,
-          "json_file": "assets/data/questions/class10_cs_ch2.json",
-          "is_unlocked": false,
-          "stars": 0,
-          "best_score": 0
         }
       ]
     }

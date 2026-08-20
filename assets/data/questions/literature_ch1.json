@@ -1,0 +1,57 @@
+{
+  "chapter_id": "lit_ch_01",
+  "chapter_title": "Bengali Literature & Great Writers",
+  "chapter_title_bn": "বাংলা সাহিত্য ও প্রখ্যাত সাহিত্যিক",
+  "questions": [
+    {
+      "id": "lit_01",
+      "question": "Who was awarded the Nobel Prize in Literature for 'Gitanjali' in 1913?",
+      "question_bn": "১৯১৩ সালে 'গীতাঞ্জলি' কাব্যগ্রন্থের জন্য সাহিত্যে কে নোবেল পুরস্কার পেয়েছিলেন?",
+      "options": ["Kazi Nazrul Islam", "Rabindranath Tagore (রবীন্দ্রনাথ ঠাকুর)", "Bankim Chandra Chattopadhyay", "Sarat Chandra Chattopadhyay"],
+      "correct_index": 1,
+      "explanation": "Rabindranath Tagore became the first non-European and first Asian to win the Nobel Prize in Literature in 1913.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "lit_02",
+      "question": "Who composed the Indian National Song 'Vande Mataram'?",
+      "question_bn": "ভারতের জাতীয় গান 'বন্দে মাতরম' কার রচিত?",
+      "options": ["Bankim Chandra Chattopadhyay (বঙ্কিমচন্দ্র চট্টোপাধ্যায়)", "Rabindranath Tagore", "Sri Aurobindo", "Michael Madhusudan Dutt"],
+      "correct_index": 0,
+      "explanation": "'Vande Mataram' was written by Bankim Chandra Chattopadhyay in his 1882 novel 'Anandamath'.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "lit_03",
+      "question": "Which famous poet is known as the 'Bidrohi Kabi' (Rebel Poet) of Bengali literature?",
+      "question_bn": "বাংলা সাহিত্যে 'বিদ্রোহী কবি' নামে কে খ্যাত?",
+      "options": ["Jibanananda Das", "Kazi Nazrul Islam (কাজী নজরুল ইসলাম)", "Sukanta Bhattacharya", "Satyendranath Dutta"],
+      "correct_index": 1,
+      "explanation": "Kazi Nazrul Islam is hailed as 'Bidrohi Kabi' for his fierce revolutionary poetry advocating equality and freedom.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "lit_04",
+      "question": "Who created the iconic detective character 'Feluda' (Pradosh Chandra Mitter)?",
+      "question_bn": "বিখ্যাত গোয়েন্দা চরিত্র 'ফেলুদা' (প্রদোষচন্দ্র মিত্র)-র স্রষ্টা কে?",
+      "options": ["Sharadindu Bandyopadhyay", "Satyajit Ray (সত্যজিৎ রায়)", "Nihar Ranjan Gupta", "Hemendra Kumar Roy"],
+      "correct_index": 1,
+      "explanation": "Legendary filmmaker and author Satyajit Ray created the popular detective Feluda.",
+      "points": 10,
+      "time_limit_sec": 15
+    },
+    {
+      "id": "lit_05",
+      "question": "Who wrote the famous epic poem 'Meghnad Badh Kavya' in blank verse?",
+      "question_bn": "অমিত্রাক্ষর ছন্দে রচিত বিখ্যাত মহাকাব্য 'মেঘনাদবধ কাব্য' কার রচনা?",
+      "options": ["Michael Madhusudan Dutt (মাইকেল মধুসূদন দত্ত)", "Iswar Chandra Vidyasagar", "Dinabandhu Mitra", "Hemchandra Banerjee"],
+      "correct_index": 0,
+      "explanation": "Michael Madhusudan Dutt pioneered modern Bengali poetry and introduced blank verse in 'Meghnad Badh Kavya' (1861).",
+      "points": 10,
+      "time_limit_sec": 15
+    }
+  ]
+}
