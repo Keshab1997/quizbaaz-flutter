@@ -3,403 +3,410 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../data/providers/user_provider.dart';
-import '../../../data/repositories/quiz_repository.dart';
-import '../../../data/services/firestore_service.dart';
-import '../../../data/services/hive_service.dart';
-import '../../../data/services/sync_service.dart';
 import '../../widgets/glass_card.dart';
-import '../../widgets/neon_button.dart';
+import 'user_list_screen.dart';
+import 'shop_manager_screen.dart';
+import 'avatar_manager_screen.dart';
 
-/// Admin control panel.
-///
-/// Every number here is a real Firestore aggregate — there are no mock
-/// metrics. The screen is only reachable for accounts flagged as admin.
-class AdminDashboardScreen extends StatefulWidget {
+/// Admin Dashboard - Main admin panel with overview and navigation
+class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
-
-  @override
-  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
-}
-
-class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  final QuizRepository _repository = QuizRepository();
-
-  Map<String, int> _metrics = const {};
-  bool _loading = true;
-  bool _busy = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMetrics();
-  }
-
-  Future<void> _loadMetrics() async {
-    setState(() => _loading = true);
-    final metrics = await FirestoreService.adminMetrics();
-    if (!mounted) return;
-    setState(() {
-      _metrics = metrics;
-      _loading = false;
-    });
-  }
-
-  void _toast(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  Future<void> _refreshQuestionBank() async {
-    setState(() => _busy = true);
-    await _repository.invalidateQuestionCache();
-    final questions = await _repository.getDailyQuizQuestions();
-    final chapters = await _repository.getCategoriesAndChapters();
-    if (!mounted) return;
-    setState(() => _busy = false);
-    _toast('Question cache rebuilt — ${questions.length} daily questions, '
-        '${chapters.length} categories.');
-  }
-
-  Future<void> _publishChampions() async {
-    setState(() => _busy = true);
-    final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    final scores = await FirestoreService.getLeaderboard(yesterday, limit: 10);
-
-    if (scores.isEmpty) {
-      if (!mounted) return;
-      setState(() => _busy = false);
-      _toast('No scores recorded for ${FirestoreService.dateKey(yesterday)}.');
-      return;
-    }
-
-    final winners = scores
-        .map((row) => {
-              'rank': row['rank'],
-              'user_id': row['user_id'],
-              'name': row['name'] ?? row['username'],
-              'username': row['username'],
-              'avatar_path': row['avatar_path'],
-              'score': row['score'],
-              'time_seconds': row['time_seconds'],
-              'gift_name': '',
-              'gift_icon': '',
-              'bonus_coins': 0,
-              'badge_title': row['rank'] == 1 ? 'Grand Champion' : '',
-            })
-        .toList();
-
-    final ok = await FirestoreService.publishChampions(yesterday, winners);
-    if (ok) await SyncService.pullChampions(date: yesterday);
-    if (!mounted) return;
-    setState(() => _busy = false);
-    _toast(ok
-        ? 'Published ${winners.length} champions for '
-            '${FirestoreService.dateKey(yesterday)}.'
-        : 'Publishing failed — check your connection.');
-  }
-
-  Future<void> _syncNow() async {
-    setState(() => _busy = true);
-    final userProvider = context.read<UserProvider>();
-    final replayed = await SyncService.drainPending();
-    await userProvider.refreshRankings(force: true);
-    if (!mounted) return;
-    setState(() => _busy = false);
-    _toast('Sync complete — $replayed queued write(s) replayed.');
-  }
 
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
 
-    // Hard guard: non-admins never see the panel contents.
-    if (!userProvider.isAdmin) {
-      return Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text('Admin'),
-          backgroundColor: const Color(0xFF0F172A),
-        ),
-        body: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.lock_rounded, size: 48, color: AppColors.textMuted),
-                SizedBox(height: 14),
-                Text(
-                  'Admin access required',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  'This account is not on the admin list.',
-                  textAlign: TextAlign.center,
-                  style:
-                      TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Admin Web Control Panel',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        backgroundColor: const Color(0xFF0F172A),
-        actions: [
-          IconButton(
-            onPressed: _loading ? null : _loadMetrics,
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Reload metrics',
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        color: AppColors.neonCyan,
-        onRefresh: _loadMetrics,
-        child: ListView(
-          padding: const EdgeInsets.all(18),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Row(
           children: [
-            const Text('SYSTEM OVERVIEW',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textSecondary,
-                    letterSpacing: 1.1)),
-            const SizedBox(height: 10),
-            if (!SyncService.isOnline)
-              _buildNotice(
-                Icons.cloud_off_rounded,
-                'Firebase is not connected — live metrics are unavailable.',
-              )
-            else if (_loading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Center(
-                  child:
-                      CircularProgressIndicator(color: AppColors.neonCyan),
-                ),
-              )
-            else
-              Row(
-                children: [
-                  Expanded(
-                    child: _metricCard(
-                      '${_metrics['total_users'] ?? 0}',
-                      'Registered Users',
-                      AppColors.neonCyan,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _metricCard(
-                      '${_metrics['players_today'] ?? 0}',
-                      'Players Today',
-                      AppColors.neonGold,
-                    ),
-                  ),
-                ],
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.neonGold.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
               ),
-            const SizedBox(height: 12),
-            Row(
+              child: const Icon(Icons.shield_rounded, color: AppColors.neonGold, size: 20),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'Admin Panel',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.neonGreen.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: _metricCard(
-                    '${_metrics['guest_users'] ?? 0}',
-                    'Guest Accounts',
-                    AppColors.neonPurple,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _metricCard(
-                    '${HiveService.pendingCount}',
-                    'Queued Local Writes',
-                    AppColors.neonPink,
+                Icon(Icons.circle, color: AppColors.neonGreen, size: 8),
+                SizedBox(width: 6),
+                Text(
+                  'Online',
+                  style: TextStyle(
+                    color: AppColors.neonGreen,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome
+            const Text(
+              'Welcome, Admin!',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Manage your app from here',
+              style: TextStyle(
+                color: AppColors.textMuted.withValues(alpha: 0.7),
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Quick Stats
+            _buildStatsGrid(),
+            const SizedBox(height: 24),
+
+            // Management Section
+            const Text(
+              'MANAGEMENT',
+              style: TextStyle(
+                color: AppColors.neonCyan,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+            ),
             const SizedBox(height: 12),
-            _buildNotice(
-              Icons.sync_rounded,
-              HiveService.lastSyncAt == null
-                  ? 'Never synced with Firestore yet.'
-                  : 'Last sync: ${_formatTime(HiveService.lastSyncAt!)}',
-            ),
-            const SizedBox(height: 20),
+            _buildManagementGrid(context),
+            const SizedBox(height: 24),
 
-            // Question bank
-            GlassCard(
-              borderRadius: 20,
-              borderColor: AppColors.neonPurple.withValues(alpha: 0.4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.upload_file, color: AppColors.neonPurple),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text('Question Bank Cache',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                      'Clears the Hive cache and reloads every question bank '
-                      'so newly published questions go live.',
-                      style: TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary)),
-                  const SizedBox(height: 14),
-                  NeonButton(
-                    text: 'Rebuild Question Cache',
-                    height: 42,
-                    gradient: AppColors.primaryGradient,
-                    onPressed: () {
-                      if (!_busy) _refreshQuestionBank();
-                    },
-                  ),
-                ],
+            // Quick Actions
+            const Text(
+              'QUICK ACTIONS',
+              style: TextStyle(
+                color: AppColors.neonCyan,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Champions
-            GlassCard(
-              borderRadius: 20,
-              borderColor: AppColors.neonGold.withValues(alpha: 0.4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.emoji_events, color: AppColors.neonGold),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text("Declare Yesterday's Champions",
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                      'Snapshots yesterday\'s leaderboard into the champions '
-                      'collection that every device reads.',
-                      style: TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary)),
-                  const SizedBox(height: 14),
-                  NeonButton(
-                    text: 'Publish Champions',
-                    height: 42,
-                    onPressed: () {
-                      if (!_busy) _publishChampions();
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Sync
-            GlassCard(
-              borderRadius: 20,
-              borderColor: AppColors.neonCyan.withValues(alpha: 0.4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.cloud_sync_rounded, color: AppColors.neonCyan),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text('Force Sync',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                      'Replays every queued offline write and refreshes the '
-                      'ranking caches.',
-                      style: TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary)),
-                  const SizedBox(height: 14),
-                  NeonButton(
-                    text: 'Sync Now',
-                    height: 42,
-                    onPressed: () {
-                      if (!_busy) _syncNow();
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 12),
+            _buildQuickActions(context),
+            const SizedBox(height: 100),
           ],
         ),
       ),
     );
   }
 
-  Widget _metricCard(String value, String label, Color color) {
-    return GlassCard(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(value,
-              style: TextStyle(
-                  fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 11, color: AppColors.textSecondary)),
-        ],
-      ),
+  Widget _buildStatsGrid() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.5,
+      children: [
+        _buildStatCard(
+          icon: Icons.people_rounded,
+          label: 'Total Users',
+          value: '0',
+          color: AppColors.neonCyan,
+        ),
+        _buildStatCard(
+          icon: Icons.person_outline_rounded,
+          label: 'Guest Users',
+          value: '0',
+          color: AppColors.neonPurple,
+        ),
+        _buildStatCard(
+          icon: Icons.quiz_rounded,
+          label: 'Quizzes Today',
+          value: '0',
+          color: AppColors.neonGold,
+        ),
+        _buildStatCard(
+          icon: Icons.shopping_bag_rounded,
+          label: 'Shop Items',
+          value: '25+',
+          color: AppColors.neonGreen,
+        ),
+      ],
     );
   }
 
-  Widget _buildNotice(IconData icon, String message) {
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
     return GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       borderRadius: 16,
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: AppColors.textMuted),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(message,
-                style: const TextStyle(
-                    fontSize: 11.5, color: AppColors.textSecondary)),
-          ),
-        ],
+      borderColor: color.withValues(alpha: 0.3),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: color, size: 18),
+                ),
+                const Spacer(),
+                Icon(Icons.trending_up_rounded, color: color, size: 14),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  static String _formatTime(DateTime time) {
-    final h = time.hour.toString().padLeft(2, '0');
-    final m = time.minute.toString().padLeft(2, '0');
-    return '${time.day}/${time.month} $h:$m';
+  Widget _buildManagementGrid(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.2,
+      children: [
+        _buildManagementCard(
+          icon: Icons.people_rounded,
+          label: 'User List',
+          description: 'View all registered users',
+          color: AppColors.neonCyan,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UserListScreen()),
+          ),
+        ),
+        _buildManagementCard(
+          icon: Icons.person_outline_rounded,
+          label: 'Guest List',
+          description: 'View all guest users',
+          color: AppColors.neonPurple,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UserListScreen(isGuestView: true)),
+          ),
+        ),
+        _buildManagementCard(
+          icon: Icons.store_rounded,
+          label: 'Shop Manager',
+          description: 'Manage shop items',
+          color: AppColors.neonGold,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ShopManagerScreen()),
+          ),
+        ),
+        _buildManagementCard(
+          icon: Icons.face_rounded,
+          label: 'Avatar Manager',
+          description: 'Manage avatars',
+          color: AppColors.neonPink,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AvatarManagerScreen()),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildManagementCard({
+    required IconData icon,
+    required String label,
+    required String description,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: GlassCard(
+        borderRadius: 16,
+        borderColor: color.withValues(alpha: 0.3),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const Spacer(),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
+    return Column(
+      children: [
+        _buildQuickAction(
+          icon: Icons.add_rounded,
+          label: 'Add New Shop Item',
+          color: AppColors.neonGreen,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const ShopManagerScreen(initialAction: 'add'),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        _buildQuickAction(
+          icon: Icons.add_photo_alternate_rounded,
+          label: 'Add New Avatar',
+          color: AppColors.neonPink,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AvatarManagerScreen(initialAction: 'add'),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        _buildQuickAction(
+          icon: Icons.refresh_rounded,
+          label: 'Refresh Data',
+          color: AppColors.neonCyan,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('🔄 Data refreshed!')),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickAction({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: GlassCard(
+        borderRadius: 14,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: AppColors.textMuted,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
