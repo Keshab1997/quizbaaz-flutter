@@ -76,7 +76,7 @@ class SyncService {
         'user_id': user.userId,
         'username': user.username,
         'name': user.fullName,
-        'avatar_path': user.avatarPath,
+        'avatar_path': user.effectiveAvatar,
         'score': score,
         'time_seconds': timeSeconds,
         'streak': user.dailyStreak,

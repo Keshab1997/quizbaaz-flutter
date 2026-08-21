@@ -55,17 +55,12 @@ class QuizResultScreen extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 10),
-                  // Trophy / 3D Asset
+                  // Trophy / 3D Asset — show the player's selected avatar
+                  // (local asset or cloud/Google photo) instead of a hardcoded mascot.
                   Center(
-                    child: Image.asset(
-                      AppAssets.heroBoy,
-                      height: 150,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.military_tech,
-                        size: 90,
-                        color: AppColors.neonGold,
-                      ),
+                    child: _ResultAvatar(
+                      avatar: userProvider.user.effectiveAvatar,
+                      fallbackAsset: AppAssets.heroBoy,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -301,6 +296,49 @@ class QuizResultScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Shows the player's selected profile avatar (local asset or cloud/Google
+/// photo). Falls back to the classic mascot when the avatar can't be loaded.
+class _ResultAvatar extends StatelessWidget {
+  final String avatar;
+  final String fallbackAsset;
+
+  const _ResultAvatar({required this.avatar, required this.fallbackAsset});
+
+  bool get _isRemote =>
+      avatar.startsWith('http://') || avatar.startsWith('https://');
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isRemote) {
+      return Image.network(
+        avatar,
+        height: 150,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => Image.asset(
+          fallbackAsset,
+          height: 150,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.military_tech,
+            size: 90,
+            color: AppColors.neonGold,
+          ),
+        ),
+      );
+    }
+    return Image.asset(
+      avatar.isNotEmpty ? avatar : fallbackAsset,
+      height: 150,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => const Icon(
+        Icons.military_tech,
+        size: 90,
+        color: AppColors.neonGold,
+      ),
     );
   }
 }
