@@ -14,6 +14,65 @@ class ShopService {
   static FirebaseFirestore get _db => FirebaseFirestore.instance;
   static bool get isReady => Firebase.apps.isNotEmpty;
 
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // 👥 USERS
+  // ═══════════════════════════════════════════════════════════════════════
+
+  /// Get users from Firestore for the admin panel.
+  static Future<List<Map<String, dynamic>>> getUsers({bool guestsOnly = false}) async {
+    if (!isReady) return [];
+    try {
+      Query<Map<String, dynamic>> query = _db.collection('users');
+      if (guestsOnly) {
+        query = query.where('is_guest', isEqualTo: true);
+      }
+      final snapshot = await query.limit(200).get();
+      final users = snapshot.docs
+          .map((doc) => {
+                ...doc.data(),
+                'id': doc.id,
+              })
+          .toList();
+      users.sort((a, b) {
+        final aName = (a['username'] ?? a['full_name'] ?? '').toString().toLowerCase();
+        final bName = (b['username'] ?? b['full_name'] ?? '').toString().toLowerCase();
+        return aName.compareTo(bName);
+      });
+      return users;
+    } catch (e) {
+      debugPrint('ShopService: getUsers error - $e');
+      return [];
+    }
+  }
+
+  /// Update admin-editable user fields.
+  static Future<bool> updateUser(String userId, Map<String, dynamic> fields) async {
+    if (!isReady || userId.isEmpty) return false;
+    try {
+      await _db.collection('users').doc(userId).set({
+        ...fields,
+        'updated_at': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return true;
+    } catch (e) {
+      debugPrint('ShopService: updateUser error - $e');
+      return false;
+    }
+  }
+
+  /// Delete a user document from Firestore.
+  static Future<bool> deleteUser(String userId) async {
+    if (!isReady || userId.isEmpty) return false;
+    try {
+      await _db.collection('users').doc(userId).delete();
+      return true;
+    } catch (e) {
+      debugPrint('ShopService: deleteUser error - $e');
+      return false;
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════════════
   // 🛒 SHOP ITEMS
   // ═══════════════════════════════════════════════════════════════════════
@@ -40,12 +99,13 @@ class ShopService {
     try {
       final snapshot = await _db.collection(_shopItems)
           .where('is_active', isEqualTo: true)
-          .orderBy('created_at', descending: true)
           .get();
-      return snapshot.docs.map((doc) => {
+      final items = snapshot.docs.map((doc) => {
         ...doc.data(),
         'id': doc.id,
       }).toList();
+      items.sort((a, b) => (b['created_at'] ?? '').toString().compareTo((a['created_at'] ?? '').toString()));
+      return items;
     } catch (e) {
       debugPrint('ShopService: getShopItems error - $e');
       return [];
@@ -95,11 +155,13 @@ class ShopService {
       if (category != null && category != 'all') {
         query = query.where('category', isEqualTo: category);
       }
-      final snapshot = await query.orderBy('created_at', descending: true).get();
-      return snapshot.docs.map((doc) => {
+      final snapshot = await query.get();
+      final avatars = snapshot.docs.map((doc) => {
         ...(doc as DocumentSnapshot).data() as Map<String, dynamic>,
         'id': doc.id,
       }).toList();
+      avatars.sort((a, b) => (b['created_at'] ?? '').toString().compareTo((a['created_at'] ?? '').toString()));
+      return avatars;
     } catch (e) {
       debugPrint('ShopService: getAvatars error - $e');
       return [];
