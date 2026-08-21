@@ -1398,22 +1398,26 @@ class _MarqueeTextState extends State<_MarqueeText>
         return SizedBox(
           height: textHeight,
           child: ClipRect(
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                final dx = -_controller.value * (textWidth + _gap);
-                return Transform.translate(
-                  offset: Offset(dx, 0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(widget.text, maxLines: 1, style: widget.style),
-                      const SizedBox(width: _gap),
-                      Text(widget.text, maxLines: 1, style: widget.style),
-                    ],
-                  ),
-                );
-              },
+            child: OverflowBox(
+              alignment: Alignment.centerLeft,
+              maxWidth: double.infinity,
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  final dx = -_controller.value * (textWidth + _gap);
+                  return Transform.translate(
+                    offset: Offset(dx, 0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(widget.text, maxLines: 1, style: widget.style),
+                        const SizedBox(width: _gap),
+                        Text(widget.text, maxLines: 1, style: widget.style),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         );
