@@ -886,7 +886,13 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
           children: [
             const Icon(Icons.lock_rounded, color: AppColors.neonGold),
             const SizedBox(width: 8),
-            Text(itemName),
+            Expanded(
+              child: Text(
+                itemName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         content: Text(
