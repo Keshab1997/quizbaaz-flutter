@@ -75,6 +75,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         ? Image.network(
             safeAvatar,
             fit: BoxFit.cover,
+            alignment: const Alignment(0, -0.72),
             loadingBuilder: (context, child, progress) => progress == null
                 ? child
                 : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
@@ -83,6 +84,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         : Image.asset(
             safeAvatar,
             fit: BoxFit.cover,
+            alignment: const Alignment(0, -0.72),
             errorBuilder: (_, __, ___) => const Icon(Icons.person_rounded, color: Colors.white),
           );
 
