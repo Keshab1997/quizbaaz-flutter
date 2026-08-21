@@ -235,7 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: ClipOval(
                   child: _avatarImage(
                     user.effectiveAvatar,
-                    alignment: const Alignment(0, -0.25),
+                    alignment: const Alignment(0, -0.5),
                   ),
                 ),
               ),
