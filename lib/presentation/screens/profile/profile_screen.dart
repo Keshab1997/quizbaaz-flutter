@@ -8,6 +8,7 @@ import '../../../data/models/user_stats.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 import 'avatar_selection_screen.dart';
+import '../shop/purchase_history_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -414,6 +415,69 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 24),
+
+            // My Purchases
+            _buildSectionTitle(Icons.shopping_bag_rounded, 'My Purchases'),
+            const SizedBox(height: 12),
+            GlassCard(
+              borderRadius: 20,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PurchaseHistoryScreen(),
+                  ),
+                );
+              },
+              child: Row(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.neonGold.withValues(alpha: 0.28),
+                          AppColors.neonGold.withValues(alpha: 0.08),
+                        ],
+                      ),
+                      border: Border.all(
+                          color: AppColors.neonGold.withValues(alpha: 0.4)),
+                    ),
+                    child: const Icon(Icons.receipt_long_rounded,
+                        color: AppColors.neonGold, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Purchase History',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 3),
+                        Text(
+                          'View everything you bought from the shop',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded,
+                      color: AppColors.textMuted, size: 22),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
 
             // Settings Section
             _buildSectionTitle(Icons.settings_rounded, 'Settings'),
