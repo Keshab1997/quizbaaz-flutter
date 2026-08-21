@@ -1314,12 +1314,10 @@ class _QuickAction {
 class _MarqueeText extends StatefulWidget {
   final String text;
   final TextStyle style;
-  final Duration duration;
 
   const _MarqueeText(
     this.text, {
     required this.style,
-    this.duration = const Duration(seconds: 6),
   });
 
   @override
@@ -1330,6 +1328,9 @@ class _MarqueeTextState extends State<_MarqueeText>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
+  /// How long one full scroll loop takes.
+  static const Duration _scrollDuration = Duration(seconds: 6);
+
   /// Horizontal gap between the two copies of the text that make the scroll
   /// loop look seamless.
   static const double _gap = 48;
@@ -1339,7 +1340,7 @@ class _MarqueeTextState extends State<_MarqueeText>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: widget.duration,
+      duration: _scrollDuration,
     );
   }
 
