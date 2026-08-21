@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import '../../../core/constants/app_colors.dart';
-import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 import 'user_list_screen.dart';
 import 'shop_manager_screen.dart';
@@ -14,8 +11,6 @@ class AdminDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.watch<UserProvider>();
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -398,7 +393,7 @@ class AdminDashboardScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.arrow_forward_ios_rounded,
                 color: AppColors.textMuted,
                 size: 16,

@@ -573,7 +573,7 @@ class _AddEditItemSheetState extends State<AddEditItemSheet> {
                 ),
                 value: _isCosmetic,
                 onChanged: (value) => setState(() => _isCosmetic = value),
-                activeColor: AppColors.neonCyan,
+                activeThumbColor: AppColors.neonCyan,
               ),
               const SizedBox(height: 24),
 
@@ -785,7 +785,7 @@ class _AddEditItemSheetState extends State<AddEditItemSheet> {
     required ValueChanged<String?> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       onChanged: onChanged,
       style: const TextStyle(color: AppColors.textPrimary),
       decoration: InputDecoration(

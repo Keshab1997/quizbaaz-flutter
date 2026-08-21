@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../widgets/glass_card.dart';
 
 /// Screen to view all users or guests
 class UserListScreen extends StatefulWidget {

@@ -296,7 +296,7 @@ class _AddEditAvatarSheetState extends State<_AddEditAvatarSheet> {
               prefixIcon: const Icon(Icons.face_rounded, color: AppColors.neonCyan), filled: true, fillColor: Colors.white.withValues(alpha: 0.05),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))))),
           const SizedBox(height: 16),
-          DropdownButtonFormField<String>(value: _selectedCategory, style: const TextStyle(color: AppColors.textPrimary),
+          DropdownButtonFormField<String>(initialValue: _selectedCategory, style: const TextStyle(color: AppColors.textPrimary),
             decoration: InputDecoration(labelText: 'Category', labelStyle: const TextStyle(color: AppColors.textSecondary),
               prefixIcon: const Icon(Icons.category_rounded, color: AppColors.neonCyan), filled: true, fillColor: Colors.white.withValues(alpha: 0.05),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)))),
@@ -306,7 +306,7 @@ class _AddEditAvatarSheetState extends State<_AddEditAvatarSheet> {
           const SizedBox(height: 16),
           SwitchListTile(title: const Text('Premium Avatar', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
             subtitle: const Text('Requires purchase in shop', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
-            value: _isPremium, onChanged: (value) => setState(() => _isPremium = value), activeColor: AppColors.neonGold),
+            value: _isPremium, onChanged: (value) => setState(() => _isPremium = value), activeThumbColor: AppColors.neonGold),
           if (_isPremium) ...[
             const SizedBox(height: 16),
             TextField(controller: _priceController, keyboardType: TextInputType.number, style: const TextStyle(color: AppColors.textPrimary),
