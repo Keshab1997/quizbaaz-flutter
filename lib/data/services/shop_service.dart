@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+
+import 'hive_service.dart';
 
 /// Firestore service for managing shop items and avatars
 ///
@@ -228,6 +232,8 @@ class ShopService {
       }, SetOptions(merge: true));
       await _logAdminAction(action: 'save', entity: 'avatar', entityId: id, details: {'name': name, 'category': category});
       _clearError();
+      // Keep the local avatar cache in sync so users see the change quickly.
+      unawaited(refreshAvatarCache());
       return true;
     } catch (e) {
       _setError('saveAvatar', e);
@@ -235,26 +241,122 @@ class ShopService {
     }
   }
 
-  /// Get all avatars from Firestore
-  static Future<List<Map<String, dynamic>>> getAvatars({String? category}) async {
-    if (!isReady) { lastError = 'Firebase is not ready or offline'; return []; }
-    try {
-      Query query = _db.collection(_avatars).where('is_active', isEqualTo: true);
-      if (category != null && category != 'all') {
-        query = query.where('category', isEqualTo: category);
+  // ─────────────────────────────────────────────────────────────────────
+  // 🧊 CLOUD AVATAR CACHE (Hive TTL cache — cuts Firestore reads hard)
+  //
+  // Strategy: cache-first / stale-while-revalidate.
+  //  * Fresh cache (< TTL)  → served instantly, zero Firestore reads.
+  //  * Stale cache (> TTL)  → served instantly, refreshed in background.
+  //  * No cache / offline-fail → fallback to whatever is cached.
+  // Admin screens pass `forceRefresh: true` to always hit Firestore.
+  // ─────────────────────────────────────────────────────────────────────
+  static const _avatarsCacheKey = 'cloud_avatars_v1';
+  static const _avatarsCacheTtl = Duration(hours: 6);
+
+  /// Returns all active cloud avatars, served from the local Hive cache
+  /// whenever possible so Firestore is not called on every screen open.
+  static Future<List<Map<String, dynamic>>> getAvatars({
+    String? category,
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh) {
+      // 1) Fresh cache → instant, no network at all.
+      final fresh = HiveService.cacheGetList(
+        _avatarsCacheKey,
+        maxAge: _avatarsCacheTtl,
+      );
+      if (fresh.isNotEmpty) return _filterAndSortAvatars(fresh, category);
+
+      // 2) Stale cache → still serve instantly, refresh quietly in background.
+      final stale = HiveService.cacheGetList(_avatarsCacheKey);
+      if (stale.isNotEmpty) {
+        unawaited(refreshAvatarCache());
+        return _filterAndSortAvatars(stale, category);
       }
-      final snapshot = await query.get();
-      final avatars = snapshot.docs.map((doc) => {
-        ...(doc as DocumentSnapshot).data() as Map<String, dynamic>,
-        'id': doc.id,
-      }).toList();
-      avatars.sort((a, b) => (b['created_at'] ?? '').toString().compareTo((a['created_at'] ?? '').toString()));
+    }
+
+    // 3) No cache at all → fetch from Firestore (and cache the result).
+    return _fetchAndCacheAvatars(category: category);
+  }
+
+  /// Refetches avatars from Firestore into the local cache. Called in the
+  /// background when the cache is stale, and after every admin mutation.
+  static Future<List<Map<String, dynamic>>> refreshAvatarCache() =>
+      _fetchAndCacheAvatars();
+
+  static Future<List<Map<String, dynamic>>> _fetchAndCacheAvatars({
+    String? category,
+  }) async {
+    if (!isReady) {
+      lastError = 'Firebase is not ready or offline';
+      // Offline with no cache: return whatever stale data we may have.
+      return _filterAndSortAvatars(
+        HiveService.cacheGetList(_avatarsCacheKey),
+        category,
+      );
+    }
+    try {
+      final snapshot = await _db
+          .collection(_avatars)
+          .where('is_active', isEqualTo: true)
+          .get();
+      final avatars = snapshot.docs
+          .map((doc) => {..._sanitizeForCache(doc.data()), 'id': doc.id})
+          .toList();
+
+      // Cache the full unfiltered list so every category is served locally.
+      if (isReady) {
+        try {
+          await HiveService.cachePut(_avatarsCacheKey, avatars);
+        } catch (e) {
+          debugPrint('ShopService: avatar cache write skipped - $e');
+        }
+      }
       _clearError();
-      return avatars;
+      return _filterAndSortAvatars(avatars, category);
     } catch (e) {
       _setError('getAvatars', e);
-      return [];
+      // Network failed → degrade gracefully to stale cache instead of an
+      // empty screen.
+      return _filterAndSortAvatars(
+        HiveService.cacheGetList(_avatarsCacheKey),
+        category,
+      );
     }
+  }
+
+  /// Firestore `Timestamp`/`DateTime` values are not JSON-encodable, so they
+  /// are normalised to ISO-8601 strings before the list is written to the
+  /// Hive cache (otherwise `jsonEncode` inside HiveService would throw and
+  /// the cache would silently never populate).
+  static Map<String, dynamic> _sanitizeForCache(Map<String, dynamic> doc) {
+    return doc.map((key, value) {
+      if (value is Timestamp) {
+        return MapEntry(key, value.toDate().toIso8601String());
+      }
+      if (value is DateTime) {
+        return MapEntry(key, value.toIso8601String());
+      }
+      return MapEntry(key, value);
+    });
+  }
+
+  static List<Map<String, dynamic>> _filterAndSortAvatars(
+    List<Map<String, dynamic>> avatars,
+    String? category,
+  ) {
+    var list = [...avatars];
+    if (category != null && category != 'all') {
+      list = list
+          .where((a) => (a['category'] ?? '').toString() == category)
+          .toList();
+    }
+    list.sort(
+      (a, b) => (b['created_at'] ?? '')
+          .toString()
+          .compareTo((a['created_at'] ?? '').toString()),
+    );
+    return list;
   }
 
   /// Delete an avatar (soft delete)
@@ -267,6 +369,8 @@ class ShopService {
       });
       await _logAdminAction(action: 'delete', entity: 'avatar', entityId: avatarId);
       _clearError();
+      // Keep the local avatar cache in sync after a delete.
+      unawaited(refreshAvatarCache());
       return true;
     } catch (e) {
       _setError('deleteAvatar', e);

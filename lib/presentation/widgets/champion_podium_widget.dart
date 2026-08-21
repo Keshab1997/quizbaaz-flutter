@@ -4,6 +4,7 @@ import '../../core/constants/app_assets.dart';
 import '../../data/models/champion_model.dart';
 import 'glass_card.dart';
 import 'name_effect_text.dart';
+import 'cached_avatar.dart';
 
 class ChampionPodiumWidget extends StatelessWidget {
   final ChampionModel? champion;
@@ -21,15 +22,12 @@ class ChampionPodiumWidget extends StatelessWidget {
   Widget _championAvatar(String avatar) {
     final safeAvatar = avatar.isNotEmpty ? avatar : AppAssets.championBoy;
     if (_isNetworkAvatar(safeAvatar)) {
-      return Image.network(
-        safeAvatar,
+      return CachedAvatar(
+        url: safeAvatar,
         fit: BoxFit.cover,
-        loadingBuilder: (context, child, progress) => progress == null
-            ? child
-            : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        errorBuilder: (context, error, stackTrace) => const Center(
-          child: Icon(Icons.person, size: 48, color: AppColors.neonGold),
-        ),
+        fallbackIcon: Icons.person,
+        fallbackIconColor: AppColors.neonGold,
+        fallbackIconSize: 48,
       );
     }
     return Image.asset(

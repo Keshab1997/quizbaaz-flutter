@@ -9,6 +9,7 @@ import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/purchase_celebration.dart';
 import 'purchase_history_screen.dart';
+import '../../widgets/cached_avatar.dart';
 
 /// Maps shop item IDs to their avatar asset paths.
 String? _avatarPathForItem(String itemId) {
@@ -520,17 +521,13 @@ class _ShopItemCard extends StatelessWidget {
             child: hasCloudImage
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      cloudImageUrl!,
+                    child: CachedAvatar(
+                      url: cloudImageUrl!,
                       fit: BoxFit.cover,
-                      loadingBuilder: (ctx, child, progress) =>
-                          progress == null ? child : Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: accent,
-                            ),
-                          ),
-                      errorBuilder: (_, __, ___) => Icon(icon, color: accent, size: 26),
+                      progressColor: accent,
+                      fallbackIcon: icon,
+                      fallbackIconColor: accent,
+                      fallbackIconSize: 26,
                     ),
                   )
                 : avatarPath != null

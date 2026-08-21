@@ -9,6 +9,7 @@ import '../../../data/providers/battle_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
+import '../../widgets/cached_avatar.dart';
 
 class BattleScreen extends StatelessWidget {
   const BattleScreen({super.key});
@@ -286,13 +287,12 @@ class _ArenaView extends StatelessWidget {
   Widget _battleAvatar(UserModel user) {
     final avatar = user.effectiveAvatar.isNotEmpty ? user.effectiveAvatar : AppAssets.maleAvatar;
     final image = _isNetworkAvatar(avatar)
-        ? Image.network(
-            avatar,
+        ? CachedAvatar(
+            url: avatar,
             fit: BoxFit.cover,
-            loadingBuilder: (context, child, progress) => progress == null
-                ? child
-                : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            errorBuilder: (_, __, ___) => const Icon(Icons.person_rounded, color: Colors.white, size: 28),
+            fallbackIcon: Icons.person_rounded,
+            fallbackIconColor: Colors.white,
+            fallbackIconSize: 28,
           )
         : Image.asset(
             avatar,

@@ -8,6 +8,7 @@ import '../../../data/models/user_model.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/cached_avatar.dart';
 
 /// Screen where users can browse and select their profile avatar.
 /// Shows all available avatars: default, free, and premium (from shop).
@@ -142,19 +143,13 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
 
   Widget _avatarImage(String avatar, {BoxFit fit = BoxFit.contain}) {
     if (_isNetworkAvatar(avatar)) {
-      return Image.network(
-        avatar,
+      return CachedAvatar(
+        url: avatar,
         fit: fit,
         width: double.infinity,
         height: double.infinity,
-        loadingBuilder: (context, child, progress) => progress == null
-            ? child
-            : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        errorBuilder: (_, __, ___) => const Icon(
-          Icons.person_rounded,
-          color: Colors.white,
-          size: 40,
-        ),
+        fallbackIcon: Icons.person_rounded,
+        fallbackIconColor: Colors.white,
       );
     }
     return Image.asset(
@@ -687,12 +682,10 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
             children: [
               // Cloud Image
               imageUrl.isNotEmpty
-                  ? Image.network(
-                      imageUrl,
+                  ? CachedAvatar(
+                      url: imageUrl,
                       fit: BoxFit.cover,
-                      loadingBuilder: (ctx, child, progress) =>
-                          progress == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                      errorBuilder: (_, __, ___) => Container(
+                      fallbackBuilder: (_) => Container(
                         color: Colors.white.withValues(alpha: 0.05),
                         child: const Icon(Icons.cloud_off_rounded, color: AppColors.textMuted, size: 40),
                       ),

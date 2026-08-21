@@ -7,6 +7,7 @@ import '../../../data/models/champion_model.dart';
 import '../../../data/models/leaderboard_model.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/name_effect_text.dart';
+import '../../widgets/cached_avatar.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -73,14 +74,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   Widget _leaderboardAvatar(String avatar, double size, {Color? backgroundColor}) {
     final safeAvatar = avatar.isNotEmpty ? avatar : AppAssets.maleAvatar;
     final image = _isNetworkAvatar(safeAvatar)
-        ? Image.network(
-            safeAvatar,
+        ? CachedAvatar(
+            url: safeAvatar,
             fit: BoxFit.cover,
             alignment: const Alignment(0, -0.72),
-            loadingBuilder: (context, child, progress) => progress == null
-                ? child
-                : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            errorBuilder: (_, __, ___) => const Icon(Icons.person_rounded, color: Colors.white),
+            fallbackIcon: Icons.person_rounded,
+            fallbackIconColor: Colors.white,
           )
         : Image.asset(
             safeAvatar,

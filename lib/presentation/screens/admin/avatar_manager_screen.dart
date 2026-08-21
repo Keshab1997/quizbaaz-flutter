@@ -7,6 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/services/imgbb_service.dart';
 import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/cached_avatar.dart';
 
 /// Admin screen to manage Firestore avatars.
 class AvatarManagerScreen extends StatefulWidget {
@@ -65,7 +66,7 @@ class _AvatarManagerScreenState extends State<AvatarManagerScreen> {
   }
 
   Future<List<_AdminAvatar>> _loadAvatars() async {
-    final rows = await ShopService.getAvatars();
+    final rows = await ShopService.getAvatars(forceRefresh: true); // admin sees live data
     return rows.map(_AdminAvatar.fromMap).toList();
   }
 
@@ -204,15 +205,13 @@ class _AvatarManagerScreenState extends State<AvatarManagerScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: avatar.imageUrl.isNotEmpty
-                ? Image.network(
-                    avatar.imageUrl,
+                ? CachedAvatar(
+                    url: avatar.imageUrl,
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
-                    loadingBuilder: (context, child, progress) => progress == null
-                        ? child
-                        : const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.neonPink)),
-                    errorBuilder: (_, __, ___) => _avatarPlaceholder(),
+                    progressColor: AppColors.neonPink,
+                    fallbackBuilder: (_) => _avatarPlaceholder(),
                   )
                 : _avatarPlaceholder(),
           ),

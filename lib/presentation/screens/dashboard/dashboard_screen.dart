@@ -22,6 +22,7 @@ import '../history/quiz_history_screen.dart';
 import '../profile/profile_screen.dart';
 import '../rewards/rewards_screen.dart';
 import '../shop/shop_screen.dart';
+import '../../widgets/cached_avatar.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -179,20 +180,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     double fallbackSize = 28,
   }) {
     if (_isNetworkAvatar(avatar)) {
-      return Image.network(
-        avatar,
+      return CachedAvatar(
+        url: avatar,
         fit: fit,
         alignment: alignment,
         width: width,
         height: height,
-        loadingBuilder: (context, child, progress) => progress == null
-            ? child
-            : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        errorBuilder: (_, __, ___) => Icon(
-          fallbackIcon,
-          color: Colors.white,
-          size: fallbackSize,
-        ),
+        fallbackIcon: fallbackIcon,
+        fallbackIconColor: Colors.white,
+        fallbackIconSize: fallbackSize,
       );
     }
 

@@ -9,6 +9,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import 'review_answers_screen.dart';
+import '../../widgets/cached_avatar.dart';
 
 class QuizResultScreen extends StatelessWidget {
   const QuizResultScreen({super.key});
@@ -314,20 +315,14 @@ class _ResultAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (_isRemote) {
-      return Image.network(
-        avatar,
+      return CachedAvatar(
+        url: avatar,
         height: 150,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => Image.asset(
-          fallbackAsset,
-          height: 150,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) => const Icon(
-            Icons.military_tech,
-            size: 90,
-            color: AppColors.neonGold,
-          ),
-        ),
+        fallbackAsset: fallbackAsset,
+        fallbackIcon: Icons.military_tech,
+        fallbackIconColor: AppColors.neonGold,
+        fallbackIconSize: 90,
       );
     }
     return Image.asset(

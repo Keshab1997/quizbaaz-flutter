@@ -11,6 +11,7 @@ import '../../widgets/name_effect_text.dart';
 import 'avatar_selection_screen.dart';
 import '../shop/purchase_history_screen.dart';
 import '../../../data/models/shop_item.dart';
+import '../../widgets/cached_avatar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -654,17 +655,13 @@ class ProfileScreen extends StatelessWidget {
     final isRemoteAvatar = avatar.startsWith('http://') || avatar.startsWith('https://');
 
     if (isRemoteAvatar) {
-      return Image.network(
-        avatar,
+      return CachedAvatar(
+        url: avatar,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Image.asset(
-          user.avatarPath,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 60, color: Colors.white),
-        ),
-        loadingBuilder: (ctx, child, progress) => progress == null
-            ? child
-            : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        fallbackAsset: user.avatarPath,
+        fallbackIcon: Icons.person,
+        fallbackIconColor: Colors.white,
+        fallbackIconSize: 60,
       );
     }
 
