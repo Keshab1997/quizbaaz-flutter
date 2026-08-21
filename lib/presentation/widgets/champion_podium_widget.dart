@@ -14,6 +14,32 @@ class ChampionPodiumWidget extends StatelessWidget {
     this.onViewProfile,
   });
 
+  bool _isNetworkAvatar(String avatar) =>
+      avatar.startsWith('http://') || avatar.startsWith('https://');
+
+  Widget _championAvatar(String avatar) {
+    final safeAvatar = avatar.isNotEmpty ? avatar : AppAssets.championBoy;
+    if (_isNetworkAvatar(safeAvatar)) {
+      return Image.network(
+        safeAvatar,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) => progress == null
+            ? child
+            : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        errorBuilder: (context, error, stackTrace) => const Center(
+          child: Icon(Icons.person, size: 48, color: AppColors.neonGold),
+        ),
+      );
+    }
+    return Image.asset(
+      safeAvatar,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => const Center(
+        child: Icon(Icons.person, size: 48, color: AppColors.neonGold),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final champ = champion;
@@ -108,13 +134,7 @@ class ChampionPodiumWidget extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: Image.asset(
-                    champ.avatarPath.isNotEmpty ? champ.avatarPath : AppAssets.championBoy,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(Icons.person, size: 48, color: AppColors.neonGold),
-                    ),
-                  ),
+                  child: _championAvatar(champ.avatarPath),
                 ),
               ),
               const SizedBox(width: 14),

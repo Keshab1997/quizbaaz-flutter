@@ -280,6 +280,35 @@ class _ArenaView extends StatelessWidget {
     );
   }
 
+  bool _isNetworkAvatar(String avatar) =>
+      avatar.startsWith('http://') || avatar.startsWith('https://');
+
+  Widget _battleAvatar(UserModel user) {
+    final avatar = user.effectiveAvatar.isNotEmpty ? user.effectiveAvatar : AppAssets.maleAvatar;
+    final image = _isNetworkAvatar(avatar)
+        ? Image.network(
+            avatar,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, progress) => progress == null
+                ? child
+                : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            errorBuilder: (_, __, ___) => const Icon(Icons.person_rounded, color: Colors.white, size: 28),
+          )
+        : Image.asset(
+            avatar,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const Icon(Icons.person_rounded, color: Colors.white, size: 28),
+          );
+
+    return Container(
+      width: 52,
+      height: 52,
+      clipBehavior: Clip.antiAlias,
+      decoration: const BoxDecoration(shape: BoxShape.circle),
+      child: image,
+    );
+  }
+
   Widget _scoreboard(BattleProvider battle, UserModel user) {
     return Row(
       children: [
@@ -299,10 +328,7 @@ class _ArenaView extends StatelessWidget {
       borderColor: AppColors.neonCyan.withValues(alpha: 0.5),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundImage: AssetImage(user.avatarPath.isNotEmpty ? user.avatarPath : AppAssets.maleAvatar),
-          ),
+          _battleAvatar(user),
           const SizedBox(height: 6),
           const Text('YOU', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonCyan)),
           const SizedBox(height: 2),

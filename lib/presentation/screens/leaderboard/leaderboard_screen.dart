@@ -66,6 +66,38 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
+  bool _isNetworkAvatar(String avatar) =>
+      avatar.startsWith('http://') || avatar.startsWith('https://');
+
+  Widget _leaderboardAvatar(String avatar, double size, {Color? backgroundColor}) {
+    final safeAvatar = avatar.isNotEmpty ? avatar : AppAssets.maleAvatar;
+    final image = _isNetworkAvatar(safeAvatar)
+        ? Image.network(
+            safeAvatar,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, progress) => progress == null
+                ? child
+                : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            errorBuilder: (_, __, ___) => const Icon(Icons.person_rounded, color: Colors.white),
+          )
+        : Image.asset(
+            safeAvatar,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const Icon(Icons.person_rounded, color: Colors.white),
+          );
+
+    return Container(
+      width: size,
+      height: size,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: backgroundColor ?? Colors.white10,
+      ),
+      child: image,
+    );
+  }
+
   Widget _buildTodayLeaderboardTab(
       List<LeaderboardItem> list, UserProvider userProvider) {
     if (list.isEmpty) {
@@ -196,12 +228,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 ),
               ),
               const SizedBox(width: 14),
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: AssetImage(
-                  user.avatarPath.isNotEmpty ? user.avatarPath : AppAssets.maleAvatar,
-                ),
-              ),
+              _leaderboardAvatar(user.effectiveAvatar, 40),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -283,14 +310,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircleAvatar(
-          radius: rank == 1 ? 30 : 24,
-          backgroundColor: color,
-          child: CircleAvatar(
-            radius: rank == 1 ? 28 : 22,
-            backgroundImage: AssetImage(
-              item.avatarPath.isNotEmpty ? item.avatarPath : AppAssets.heroBoy,
-            ),
+        Container(
+          width: rank == 1 ? 60 : 48,
+          height: rank == 1 ? 60 : 48,
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+          child: _leaderboardAvatar(
+            item.avatarPath.isNotEmpty ? item.avatarPath : AppAssets.heroBoy,
+            rank == 1 ? 56 : 44,
           ),
         ),
         const SizedBox(height: 6),
@@ -367,11 +394,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               ),
             ),
             const SizedBox(width: 14),
-            CircleAvatar(
-              radius: 18,
-              backgroundImage: AssetImage(
-                item.avatarPath.isNotEmpty ? item.avatarPath : AppAssets.maleAvatar,
-              ),
+            _leaderboardAvatar(
+              item.avatarPath.isNotEmpty ? item.avatarPath : AppAssets.maleAvatar,
+              36,
             ),
             const SizedBox(width: 12),
             Expanded(

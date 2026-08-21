@@ -98,11 +98,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _toggleMascotGender() {
-    setState(() => _isFemaleMascot = !_isFemaleMascot);
-    context.read<UserProvider>().toggleGender();
-  }
-
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
@@ -170,6 +165,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  bool _isNetworkAvatar(String avatar) =>
+      avatar.startsWith('http://') || avatar.startsWith('https://');
+
+  Widget _avatarImage(
+    String avatar, {
+    BoxFit fit = BoxFit.cover,
+    double? width,
+    double? height,
+    IconData fallbackIcon = Icons.person_rounded,
+    double fallbackSize = 28,
+  }) {
+    if (_isNetworkAvatar(avatar)) {
+      return Image.network(
+        avatar,
+        fit: fit,
+        width: width,
+        height: height,
+        loadingBuilder: (context, child, progress) => progress == null
+            ? child
+            : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        errorBuilder: (_, __, ___) => Icon(
+          fallbackIcon,
+          color: Colors.white,
+          size: fallbackSize,
+        ),
+      );
+    }
+
+    return Image.asset(
+      avatar,
+      fit: fit,
+      width: width,
+      height: height,
+      errorBuilder: (_, __, ___) => Icon(
+        fallbackIcon,
+        color: Colors.white,
+        size: fallbackSize,
+      ),
+    );
+  }
+
   Widget _buildHeader(UserModel user) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -177,7 +213,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Row(
           children: [
             GestureDetector(
-              onTap: _toggleMascotGender,
+              onTap: () => _openTab(3, const ProfileScreen()),
               child: Container(
                 width: 52,
                 height: 52,
@@ -194,15 +230,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 child: ClipOval(
-                  child: Image.asset(
-                    _isFemaleMascot ? AppAssets.femaleAvatar : AppAssets.maleAvatar,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.person_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
+                  child: _avatarImage(user.effectiveAvatar),
                 ),
               ),
             ),
@@ -945,15 +973,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Positioned(
                 left: 14,
                 bottom: -5,
-                child: Image.asset(
+                child: _avatarImage(
                   championAvatar,
                   height: 178,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.emoji_events_rounded,
-                    color: AppColors.neonGold,
-                    size: 90,
-                  ),
+                  fallbackIcon: Icons.emoji_events_rounded,
+                  fallbackSize: 90,
                 ),
               ),
               Positioned.fill(
@@ -1099,10 +1124,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ),
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: color.withValues(alpha: 0.18),
-                  backgroundImage: AssetImage(avatar),
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color.withValues(alpha: 0.18),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _avatarImage(avatar),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
