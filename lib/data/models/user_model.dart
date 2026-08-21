@@ -6,6 +6,10 @@ class UserModel {
   final String fullName;
   String avatarPath;
   String? avatarUrl; // Google profile photo URL (nullable)
+
+  /// Active name effect id (`fire_name`, `rainbow_name`, `gold_name`), or null
+  /// when no effect is equipped.
+  String? nameEffect;
   UserGender gender;
   int coins;
   int gems;
@@ -30,6 +34,7 @@ class UserModel {
     required this.fullName,
     required this.avatarPath,
     this.avatarUrl,
+    this.nameEffect,
     this.gender = UserGender.male,
     this.coins = 0,
     this.gems = 0,
@@ -105,6 +110,7 @@ class UserModel {
         'full_name': fullName,
         'avatar_path': avatarPath,
         'avatar_url': avatarUrl,
+        'name_effect': nameEffect,
         'gender': gender.name,
         'coins': coins,
         'gems': gems,
@@ -124,6 +130,7 @@ class UserModel {
       avatarPath: json['avatar_path'] as String? ??
           'assets/images/avatars/quizbaaz_avatar_boy.png',
       avatarUrl: json['avatar_url'] as String?,
+      nameEffect: json['name_effect'] as String?,
       gender:
           (json['gender'] as String? ?? 'male') == 'male' ? UserGender.male : UserGender.female,
       coins: (json['coins'] as num?)?.toInt() ?? 0,
@@ -172,6 +179,7 @@ class UserModel {
     String? fullName,
     String? avatarPath,
     String? avatarUrl,
+    String? nameEffect,
     UserGender? gender,
     int? coins,
     int? gems,
@@ -188,6 +196,7 @@ class UserModel {
       fullName: fullName ?? this.fullName,
       avatarPath: avatarPath ?? this.avatarPath,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      nameEffect: nameEffect ?? this.nameEffect,
       gender: gender ?? this.gender,
       coins: coins ?? this.coins,
       gems: gems ?? this.gems,

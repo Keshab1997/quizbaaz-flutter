@@ -66,6 +66,7 @@ class SyncService {
       username: user.username,
       fullName: user.fullName,
       avatarPath: user.effectiveAvatar,
+      nameEffect: user.nameEffect,
       score: score,
       timeSeconds: timeSeconds,
       streak: user.dailyStreak,
@@ -77,6 +78,7 @@ class SyncService {
         'username': user.username,
         'name': user.fullName,
         'avatar_path': user.effectiveAvatar,
+        'name_effect': user.nameEffect ?? '',
         'score': score,
         'time_seconds': timeSeconds,
         'streak': user.dailyStreak,
@@ -181,6 +183,7 @@ class SyncService {
               username: payload['username'] as String? ?? '',
               fullName: payload['name'] as String? ?? '',
               avatarPath: payload['avatar_path'] as String? ?? '',
+              nameEffect: payload['name_effect'] as String?,
               score: (payload['score'] as num?)?.toInt() ?? 0,
               timeSeconds: (payload['time_seconds'] as num?)?.toDouble() ?? 0,
               streak: (payload['streak'] as num?)?.toInt() ?? 0,
@@ -243,6 +246,7 @@ class SyncService {
       isAdmin: local.isAdmin || remote.isAdmin,
       lastStreakDate: _laterDate(local.lastStreakDate, remote.lastStreakDate),
       avatarUrl: local.avatarUrl ?? remote.avatarUrl,
+      nameEffect: local.nameEffect ?? remote.nameEffect,
     );
 
     // Inventory: keep the larger count per item.

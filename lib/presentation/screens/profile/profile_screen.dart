@@ -7,8 +7,10 @@ import '../../../data/providers/auth_provider.dart';
 import '../../../data/models/user_stats.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/name_effect_text.dart';
 import 'avatar_selection_screen.dart';
 import '../shop/purchase_history_screen.dart';
+import '../../../data/models/shop_item.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -112,8 +114,9 @@ class ProfileScreen extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
+                        NameEffectText(
                           user.fullName,
+                          effectId: user.nameEffect,
                           style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -474,6 +477,58 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const Icon(Icons.chevron_right_rounded,
                       color: AppColors.textMuted, size: 22),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Name Effect
+            _buildSectionTitle(Icons.auto_awesome_rounded, 'Name Effect'),
+            const SizedBox(height: 12),
+            GlassCard(
+              borderRadius: 20,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Give your name a special look on the leaderboard',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _buildNameEffectOption(
+                        context,
+                        userProvider,
+                        id: ShopItemIds.fireName,
+                        label: 'Fire',
+                        icon: Icons.local_fire_department_rounded,
+                        color: AppColors.neonRed,
+                      ),
+                      const SizedBox(width: 10),
+                      _buildNameEffectOption(
+                        context,
+                        userProvider,
+                        id: ShopItemIds.rainbowName,
+                        label: 'Rainbow',
+                        icon: Icons.palette_rounded,
+                        color: AppColors.neonPink,
+                      ),
+                      const SizedBox(width: 10),
+                      _buildNameEffectOption(
+                        context,
+                        userProvider,
+                        id: ShopItemIds.goldName,
+                        label: 'Gold',
+                        icon: Icons.auto_fix_high_rounded,
+                        color: AppColors.neonGold,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -976,6 +1031,87 @@ class ProfileScreen extends StatelessWidget {
           activeThumbColor: AppColors.neonCyan,
         ),
       ],
+    );
+  }
+
+  /// A single selectable name-effect tile. Owned effects toggle on tap;
+  /// unowned ones show a lock and point the player to the shop.
+  Widget _buildNameEffectOption(
+    BuildContext context,
+    UserProvider userProvider, {
+    required String id,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    final user = userProvider.user;
+    final owned = userProvider.ownsNameEffect(id);
+    final selected = user.nameEffect == id;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (!owned) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                duration: Duration(milliseconds: 1400),
+                content: Text('Buy this effect from the Shop first!'),
+              ),
+            );
+            return;
+          }
+          // Toggle: tap the active effect to remove it.
+          userProvider.setNameEffect(selected ? null : id);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+          decoration: BoxDecoration(
+            color: selected
+                ? color.withValues(alpha: 0.16)
+                : Colors.white.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected
+                  ? color.withValues(alpha: 0.8)
+                  : Colors.white.withValues(alpha: 0.12),
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                owned ? icon : Icons.lock_rounded,
+                color: owned ? color : AppColors.textMuted,
+                size: 22,
+              ),
+              const SizedBox(height: 6),
+              NameEffectText(
+                label,
+                effectId: owned ? id : null,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: owned ? Colors.white : AppColors.textMuted,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                selected
+                    ? 'ACTIVE'
+                    : (owned ? 'TAP TO USE' : 'LOCKED'),
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.4,
+                  color: selected
+                      ? color
+                      : (owned ? AppColors.textSecondary : AppColors.textMuted),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

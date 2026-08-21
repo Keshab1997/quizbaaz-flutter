@@ -6,6 +6,7 @@ import '../../../data/providers/user_provider.dart';
 import '../../../data/models/champion_model.dart';
 import '../../../data/models/leaderboard_model.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/name_effect_text.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -239,8 +240,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     Row(
                       children: [
                         Flexible(
-                          child: Text(
+                          child: NameEffectText(
                             user.fullName,
+                            effectId: user.nameEffect,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
@@ -323,8 +325,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           ),
         ),
         const SizedBox(height: 6),
-        Text(
+        NameEffectText(
           (item.name.isNotEmpty ? item.name : item.username).split(' ').first,
+          effectId: item.nameEffect,
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         Text(
@@ -405,8 +408,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  NameEffectText(
                     item.name.isNotEmpty ? item.name : item.username,
+                    effectId: item.nameEffect,
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   Text(

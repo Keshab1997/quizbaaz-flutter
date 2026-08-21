@@ -3,6 +3,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_assets.dart';
 import '../../data/models/champion_model.dart';
 import 'glass_card.dart';
+import 'name_effect_text.dart';
 
 class ChampionPodiumWidget extends StatelessWidget {
   final ChampionModel? champion;
@@ -143,8 +144,9 @@ class ChampionPodiumWidget extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    NameEffectText(
                       champ.name.isNotEmpty ? champ.name : champ.username,
+                      effectId: champ.nameEffect,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

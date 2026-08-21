@@ -537,6 +537,20 @@ class UserProvider extends ChangeNotifier {
     _refreshLeaderboardAvatar();
   }
 
+  /// Applies a name effect (or clears it when [effectId] is null).
+  ///
+  /// The chosen effect is stored on the profile, mirrored to Firestore and
+  /// re-pushed to today's leaderboard entry so other players see it too.
+  void setNameEffect(String? effectId) {
+    _user.nameEffect = effectId;
+    notifyListeners();
+    _persistUser();
+    _refreshLeaderboardAvatar();
+  }
+
+  /// Whether the player owns the given cosmetic name effect.
+  bool ownsNameEffect(String effectId) => hasItem(effectId);
+
   /// Links a Google account, keeping all local progress.
   Future<void> linkGoogleAccount(
     String fullName,
@@ -551,6 +565,7 @@ class UserProvider extends ChangeNotifier {
       fullName: fullName,
       avatarPath: _user.avatarPath,
       avatarUrl: photoURL,
+      nameEffect: _user.nameEffect,
       gender: _user.gender,
       coins: _user.coins + (wasGuest ? _config.signupBonusCoins : 0),
       gems: _user.gems + (wasGuest ? _config.signupBonusGems : 0),

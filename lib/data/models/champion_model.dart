@@ -10,6 +10,7 @@ class ChampionModel {
   final String giftIcon;
   final int bonusCoins;
   final String badgeTitle;
+  final String nameEffect;
 
   ChampionModel({
     required this.rank,
@@ -23,6 +24,7 @@ class ChampionModel {
     required this.giftIcon,
     required this.bonusCoins,
     required this.badgeTitle,
+    this.nameEffect = '',
   });
 
   factory ChampionModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class ChampionModel {
       giftIcon: json['gift_icon'] ?? '',
       bonusCoins: json['bonus_coins'] ?? 0,
       badgeTitle: json['badge_title'] ?? '',
+      nameEffect: json['name_effect'] ?? '',
     );
   }
 }

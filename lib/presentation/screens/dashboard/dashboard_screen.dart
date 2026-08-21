@@ -11,6 +11,7 @@ import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/rewards_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/name_effect_text.dart';
 import '../../widgets/neon_button.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../battle/battle_screen.dart';
@@ -259,6 +260,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.2,
                 ),
+                effectId: user.nameEffect,
               ),
             ],
           ),
@@ -1002,8 +1004,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ],
                       ),
                       const SizedBox(height: 13),
-                      Text(
+                      NameEffectText(
                         champ.name.isNotEmpty ? champ.name : champ.username,
+                        effectId: champ.nameEffect,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -1131,8 +1134,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
+                  child: NameEffectText(
                     player.name.isNotEmpty ? player.name : player.username,
+                    effectId: player.nameEffect,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -1312,10 +1316,12 @@ class _QuickAction {
 class _MarqueeText extends StatefulWidget {
   final String text;
   final TextStyle style;
+  final String? effectId;
 
   const _MarqueeText(
     this.text, {
     required this.style,
+    this.effectId,
   });
 
   @override
@@ -1385,8 +1391,9 @@ class _MarqueeTextState extends State<_MarqueeText>
         if (!overflow) {
           return SizedBox(
             height: textHeight,
-            child: Text(
+            child: NameEffectText(
               widget.text,
+              effectId: widget.effectId,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: widget.style,
@@ -1409,9 +1416,19 @@ class _MarqueeTextState extends State<_MarqueeText>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(widget.text, maxLines: 1, style: widget.style),
+                        NameEffectText(
+                          widget.text,
+                          effectId: widget.effectId,
+                          maxLines: 1,
+                          style: widget.style,
+                        ),
                         const SizedBox(width: _gap),
-                        Text(widget.text, maxLines: 1, style: widget.style),
+                        NameEffectText(
+                          widget.text,
+                          effectId: widget.effectId,
+                          maxLines: 1,
+                          style: widget.style,
+                        ),
                       ],
                     ),
                   );

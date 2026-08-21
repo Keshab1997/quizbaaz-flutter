@@ -6,6 +6,7 @@ class LeaderboardItem {
   final int score;
   final double timeSeconds;
   final int streak;
+  final String nameEffect;
 
   LeaderboardItem({
     required this.rank,
@@ -15,6 +16,7 @@ class LeaderboardItem {
     required this.score,
     required this.timeSeconds,
     required this.streak,
+    this.nameEffect = '',
   });
 
   factory LeaderboardItem.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class LeaderboardItem {
       score: json['score'] ?? 0,
       timeSeconds: (json['time_seconds'] as num?)?.toDouble() ?? 0.0,
       streak: json['streak'] ?? 1,
+      nameEffect: json['name_effect'] ?? '',
     );
   }
 }
