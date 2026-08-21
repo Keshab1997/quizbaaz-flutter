@@ -235,7 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: ClipOval(
                   child: _avatarImage(
                     user.effectiveAvatar,
-                    alignment: Alignment.topCenter,
+                    alignment: const Alignment(0, -0.25),
                   ),
                 ),
               ),
@@ -1131,16 +1131,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 42,
+                  height: 42,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: color.withValues(alpha: 0.18),
+                    border: Border.all(color: color.withValues(alpha: 0.5)),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: _avatarImage(avatar, alignment: Alignment.topCenter),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     player.name.isNotEmpty ? player.name : player.username,
