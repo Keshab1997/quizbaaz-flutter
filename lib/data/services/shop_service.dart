@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
@@ -13,6 +14,54 @@ class ShopService {
 
   static FirebaseFirestore get _db => FirebaseFirestore.instance;
   static bool get isReady => Firebase.apps.isNotEmpty;
+  static String? lastError;
+
+  static void _clearError() => lastError = null;
+
+  static void _setError(String scope, Object error) {
+    lastError = '$scope: $error';
+    debugPrint('ShopService: $scope error - $error');
+  }
+
+  static Future<void> _logAdminAction({
+    required String action,
+    required String entity,
+    required String entityId,
+    Map<String, dynamic>? details,
+  }) async {
+    if (!isReady) return;
+    try {
+      final actor = FirebaseAuth.instance.currentUser;
+      await _db.collection('admin_audit_logs').add({
+        'action': action,
+        'entity': entity,
+        'entity_id': entityId,
+        'actor_uid': actor?.uid,
+        'actor_email': actor?.email,
+        'details': details ?? const <String, dynamic>{},
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('ShopService: audit log error - $e');
+    }
+  }
+
+  static bool _isAllowedShopCategory(String category) =>
+      const {'power_ups', 'shields', 'boosters', 'avatars', 'badges', 'effects', 'packs'}.contains(category);
+
+  static bool _isAllowedAvatarCategory(String category) =>
+      const {'male', 'female', 'premium'}.contains(category);
+
+  static Future<bool> _hasDuplicateName({
+    required String collection,
+    required String name,
+    required String currentId,
+  }) async {
+    final cleanName = name.trim().toLowerCase();
+    if (cleanName.isEmpty) return false;
+    final snapshot = await _db.collection(collection).where('name_key', isEqualTo: cleanName).limit(5).get();
+    return snapshot.docs.any((doc) => doc.id != currentId && doc.data()['is_active'] == true);
+  }
 
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -21,7 +70,7 @@ class ShopService {
 
   /// Get users from Firestore for the admin panel.
   static Future<List<Map<String, dynamic>>> getUsers({bool guestsOnly = false}) async {
-    if (!isReady) return [];
+    if (!isReady) { lastError = 'Firebase is not ready or offline'; return []; }
     try {
       Query<Map<String, dynamic>> query = _db.collection('users');
       if (guestsOnly) {
@@ -39,36 +88,41 @@ class ShopService {
         final bName = (b['username'] ?? b['full_name'] ?? '').toString().toLowerCase();
         return aName.compareTo(bName);
       });
+      _clearError();
       return users;
     } catch (e) {
-      debugPrint('ShopService: getUsers error - $e');
+      _setError('getUsers', e);
       return [];
     }
   }
 
   /// Update admin-editable user fields.
   static Future<bool> updateUser(String userId, Map<String, dynamic> fields) async {
-    if (!isReady || userId.isEmpty) return false;
+    if (!isReady || userId.isEmpty) { lastError = 'Firebase is not ready or user id is empty'; return false; }
     try {
       await _db.collection('users').doc(userId).set({
         ...fields,
         'updated_at': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+      await _logAdminAction(action: 'update', entity: 'user', entityId: userId, details: fields);
+      _clearError();
       return true;
     } catch (e) {
-      debugPrint('ShopService: updateUser error - $e');
+      _setError('updateUser', e);
       return false;
     }
   }
 
   /// Delete a user document from Firestore.
   static Future<bool> deleteUser(String userId) async {
-    if (!isReady || userId.isEmpty) return false;
+    if (!isReady || userId.isEmpty) { lastError = 'Firebase is not ready or user id is empty'; return false; }
     try {
       await _db.collection('users').doc(userId).delete();
+      await _logAdminAction(action: 'delete', entity: 'user', entityId: userId);
+      _clearError();
       return true;
     } catch (e) {
-      debugPrint('ShopService: deleteUser error - $e');
+      _setError('deleteUser', e);
       return false;
     }
   }
@@ -79,23 +133,37 @@ class ShopService {
 
   /// Save a shop item to Firestore
   static Future<bool> saveShopItem(Map<String, dynamic> item) async {
-    if (!isReady) return false;
+    if (!isReady) { lastError = 'Firebase is not ready or offline'; return false; }
     try {
       final id = item['id'] as String? ?? DateTime.now().millisecondsSinceEpoch.toString();
+      final name = (item['name'] ?? '').toString().trim();
+      final category = (item['category'] ?? '').toString();
+      final price = (item['price'] as num?)?.toInt() ?? 0;
+      if (name.isEmpty) { lastError = 'Item name is required'; return false; }
+      if (!_isAllowedShopCategory(category)) { lastError = 'Invalid shop category'; return false; }
+      if (price < 0) { lastError = 'Price cannot be negative'; return false; }
+      if (await _hasDuplicateName(collection: _shopItems, name: name, currentId: id)) {
+        lastError = 'Duplicate item name: $name';
+        return false;
+      }
       await _db.collection(_shopItems).doc(id).set({
         ...item,
+        'name': name,
+        'name_key': name.toLowerCase(),
         'updated_at': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+      await _logAdminAction(action: 'save', entity: 'shop_item', entityId: id, details: {'name': name, 'category': category});
+      _clearError();
       return true;
     } catch (e) {
-      debugPrint('ShopService: saveShopItem error - $e');
+      _setError('saveShopItem', e);
       return false;
     }
   }
 
   /// Get all shop items from Firestore
   static Future<List<Map<String, dynamic>>> getShopItems() async {
-    if (!isReady) return [];
+    if (!isReady) { lastError = 'Firebase is not ready or offline'; return []; }
     try {
       final snapshot = await _db.collection(_shopItems)
           .where('is_active', isEqualTo: true)
@@ -105,24 +173,27 @@ class ShopService {
         'id': doc.id,
       }).toList();
       items.sort((a, b) => (b['created_at'] ?? '').toString().compareTo((a['created_at'] ?? '').toString()));
+      _clearError();
       return items;
     } catch (e) {
-      debugPrint('ShopService: getShopItems error - $e');
+      _setError('getShopItems', e);
       return [];
     }
   }
 
   /// Delete a shop item (soft delete - set is_active to false)
   static Future<bool> deleteShopItem(String itemId) async {
-    if (!isReady) return false;
+    if (!isReady) { lastError = 'Firebase is not ready or offline'; return false; }
     try {
       await _db.collection(_shopItems).doc(itemId).update({
         'is_active': false,
         'updated_at': FieldValue.serverTimestamp(),
       });
+      await _logAdminAction(action: 'delete', entity: 'shop_item', entityId: itemId);
+      _clearError();
       return true;
     } catch (e) {
-      debugPrint('ShopService: deleteShopItem error - $e');
+      _setError('deleteShopItem', e);
       return false;
     }
   }
@@ -133,23 +204,40 @@ class ShopService {
 
   /// Save an avatar to Firestore
   static Future<bool> saveAvatar(Map<String, dynamic> avatar) async {
-    if (!isReady) return false;
+    if (!isReady) { lastError = 'Firebase is not ready or offline'; return false; }
     try {
       final id = avatar['id'] as String? ?? DateTime.now().millisecondsSinceEpoch.toString();
+      final name = (avatar['name'] ?? '').toString().trim();
+      final category = (avatar['category'] ?? '').toString();
+      final imageUrl = (avatar['image_url'] ?? '').toString().trim();
+      final price = (avatar['price'] as num?)?.toInt() ?? 0;
+      if (name.isEmpty) { lastError = 'Avatar name is required'; return false; }
+      if (imageUrl.isEmpty) { lastError = 'Avatar image is required'; return false; }
+      if (!_isAllowedAvatarCategory(category)) { lastError = 'Invalid avatar category'; return false; }
+      if (price < 0) { lastError = 'Price cannot be negative'; return false; }
+      if (await _hasDuplicateName(collection: _avatars, name: name, currentId: id)) {
+        lastError = 'Duplicate avatar name: $name';
+        return false;
+      }
       await _db.collection(_avatars).doc(id).set({
         ...avatar,
+        'name': name,
+        'image_url': imageUrl,
+        'name_key': name.toLowerCase(),
         'updated_at': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+      await _logAdminAction(action: 'save', entity: 'avatar', entityId: id, details: {'name': name, 'category': category});
+      _clearError();
       return true;
     } catch (e) {
-      debugPrint('ShopService: saveAvatar error - $e');
+      _setError('saveAvatar', e);
       return false;
     }
   }
 
   /// Get all avatars from Firestore
   static Future<List<Map<String, dynamic>>> getAvatars({String? category}) async {
-    if (!isReady) return [];
+    if (!isReady) { lastError = 'Firebase is not ready or offline'; return []; }
     try {
       Query query = _db.collection(_avatars).where('is_active', isEqualTo: true);
       if (category != null && category != 'all') {
@@ -161,24 +249,27 @@ class ShopService {
         'id': doc.id,
       }).toList();
       avatars.sort((a, b) => (b['created_at'] ?? '').toString().compareTo((a['created_at'] ?? '').toString()));
+      _clearError();
       return avatars;
     } catch (e) {
-      debugPrint('ShopService: getAvatars error - $e');
+      _setError('getAvatars', e);
       return [];
     }
   }
 
   /// Delete an avatar (soft delete)
   static Future<bool> deleteAvatar(String avatarId) async {
-    if (!isReady) return false;
+    if (!isReady) { lastError = 'Firebase is not ready or offline'; return false; }
     try {
       await _db.collection(_avatars).doc(avatarId).update({
         'is_active': false,
         'updated_at': FieldValue.serverTimestamp(),
       });
+      await _logAdminAction(action: 'delete', entity: 'avatar', entityId: avatarId);
+      _clearError();
       return true;
     } catch (e) {
-      debugPrint('ShopService: deleteAvatar error - $e');
+      _setError('deleteAvatar', e);
       return false;
     }
   }
@@ -189,7 +280,7 @@ class ShopService {
 
   /// Get admin dashboard stats
   static Future<Map<String, int>> getAdminStats() async {
-    if (!isReady) return {};
+    if (!isReady) { lastError = 'Firebase is not ready or offline'; return {}; }
     final stats = <String, int>{};
     try {
       // Total users
@@ -214,8 +305,9 @@ class ShopService {
       final avatars = await _db.collection(_avatars).where('is_active', isEqualTo: true).count().get();
       stats['avatars'] = avatars.count ?? 0;
 
+      _clearError();
     } catch (e) {
-      debugPrint('ShopService: getAdminStats error - $e');
+      _setError('getAdminStats', e);
     }
     return stats;
   }

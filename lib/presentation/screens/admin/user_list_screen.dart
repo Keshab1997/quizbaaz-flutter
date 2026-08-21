@@ -116,11 +116,12 @@ class _UserListScreenState extends State<UserListScreen> {
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator(color: AppColors.neonCyan))
                     : snapshot.hasError
-                        ? _buildEmptyState('Failed to load users', Icons.error_outline_rounded)
+                        ? _buildEmptyState('Failed to load users', Icons.error_outline_rounded, detail: ShopService.lastError)
                         : filteredUsers.isEmpty
                             ? _buildEmptyState(
                                 widget.isGuestView ? 'No Guest Users' : 'No Users Yet',
                                 widget.isGuestView ? Icons.person_outline_rounded : Icons.people_rounded,
+                                detail: ShopService.lastError,
                               )
                             : _buildUserList(filteredUsers),
               ),
@@ -261,7 +262,7 @@ class _UserListScreenState extends State<UserListScreen> {
     );
   }
 
-  Widget _buildEmptyState(String title, IconData icon) {
+  Widget _buildEmptyState(String title, IconData icon, {String? detail}) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -270,7 +271,11 @@ class _UserListScreenState extends State<UserListScreen> {
           const SizedBox(height: 16),
           Text(title, style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
-          const Text('Firestore data will appear here', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          Text(
+            detail?.isNotEmpty == true ? detail! : 'Firestore data will appear here',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          ),
         ],
       ),
     );
@@ -344,7 +349,7 @@ class _UserListScreenState extends State<UserListScreen> {
   Future<void> _toggleAdmin(Map<String, dynamic> user) async {
     final ok = await ShopService.updateUser(_userId(user), {'is_admin': user['is_admin'] != true});
     if (!mounted) return;
-    _showSnack(ok ? '✅ User role updated' : '❌ Failed to update role', ok);
+    _showSnack(ok ? '✅ User role updated' : '❌ ${ShopService.lastError ?? 'Failed to update role'}', ok);
     if (ok) setState(_refreshUsers);
   }
 
@@ -362,7 +367,7 @@ class _UserListScreenState extends State<UserListScreen> {
               Navigator.pop(ctx);
               final ok = await ShopService.deleteUser(_userId(user));
               if (!mounted) return;
-              _showSnack(ok ? '✅ User deleted' : '❌ Delete failed', ok);
+              _showSnack(ok ? '✅ User deleted' : '❌ ${ShopService.lastError ?? 'Delete failed'}', ok);
               if (ok) setState(_refreshUsers);
             },
             child: const Text('Delete', style: TextStyle(color: AppColors.neonRed)),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/models/shop_item.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../../data/services/shop_service.dart';
@@ -112,6 +113,23 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
       if (imageUrl == url) return avatar;
     }
     return null;
+  }
+
+  String _cloudAvatarInventoryId(Map<String, dynamic> avatar) =>
+      'cloud_avatar_${(avatar['id'] ?? avatar['image_url'] ?? '').toString()}';
+
+  ShopItem _cloudAvatarShopItem(Map<String, dynamic> avatar) {
+    final name = (avatar['name'] ?? 'Premium Cloud Avatar').toString();
+    return ShopItem(
+      id: _cloudAvatarInventoryId(avatar),
+      name: name,
+      description: 'Unlock cloud avatar: $name',
+      cost: (avatar['price'] as num?)?.toInt() ?? 50,
+      currency: ShopCurrency.gems,
+      quantity: 1,
+      isCosmetic: true,
+      category: 'avatars',
+    );
   }
 
   String _displayNameForAvatar(String avatar) {
@@ -369,7 +387,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                   isOwned: isOwned,
                   onTap: () {
                     if (isPremium && !isOwned) {
-                      _showPurchaseDialog(context, avatar);
+                      _showPurchaseDialog(context, userProvider, avatar);
                     } else {
                       setState(() => _selectedAvatar = avatar);
                     }
@@ -430,16 +448,22 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                   final isSelected = _selectedAvatar == imageUrl;
                   final category = (cloudAvatar['category'] ?? '').toString();
                   final isPremium = cloudAvatar['is_premium'] == true || category == 'premium';
+                  final isOwned = !isPremium || userProvider.hasItem(_cloudAvatarInventoryId(cloudAvatar));
 
                   return _buildCloudAvatarCard(
                     cloudAvatar: cloudAvatar,
                     imageUrl: imageUrl,
                     isSelected: isSelected,
                     isPremium: isPremium,
+                    isOwned: isOwned,
                     onTap: () {
-                      if (isPremium) {
-                        // Check if owned
-                        _showPurchaseDialog(context, imageUrl);
+                      if (isPremium && !isOwned) {
+                        _showPurchaseDialog(
+                          context,
+                          userProvider,
+                          imageUrl,
+                          purchaseItem: _cloudAvatarShopItem(cloudAvatar),
+                        );
                       } else {
                         setState(() => _selectedAvatar = imageUrl);
                       }
@@ -633,6 +657,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     required String imageUrl,
     required bool isSelected,
     required bool isPremium,
+    required bool isOwned,
     required VoidCallback onTap,
   }) {
     final name = cloudAvatar['name'] as String? ?? 'Avatar';
@@ -716,6 +741,32 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                   ),
                 ),
               ),
+
+              if (isPremium && !isOwned)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  child: const Center(
+                    child: Icon(Icons.lock_rounded, color: AppColors.neonGold, size: 36),
+                  ),
+                ),
+
+              if (isPremium)
+                Positioned(
+                  bottom: 38,
+                  left: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.neonGold.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.5)),
+                    ),
+                    child: Text(
+                      isOwned ? 'OWNED' : '${(cloudAvatar['price'] as num?)?.toInt() ?? 50} 💎',
+                      style: const TextStyle(color: AppColors.neonGold, fontSize: 10, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                ),
 
               // Name
               Positioned(
@@ -807,10 +858,17 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     Navigator.pop(context);
   }
 
-  void _showPurchaseDialog(BuildContext context, String avatar) {
+  void _showPurchaseDialog(
+    BuildContext context,
+    UserProvider userProvider,
+    String avatar, {
+    ShopItem? purchaseItem,
+  }) {
     String itemName;
 
-    if (avatar == AppAssets.vipAvatar) {
+    if (purchaseItem != null) {
+      itemName = purchaseItem.name;
+    } else if (avatar == AppAssets.vipAvatar) {
       itemName = 'VIP Golden Avatar';
     } else if (avatar == AppAssets.goldenKnightAvatar) {
       itemName = 'Golden Knight Avatar';
@@ -831,8 +889,10 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
             Text(itemName),
           ],
         ),
-        content: const Text(
-          'This is a premium avatar. Visit the Shop to purchase it first!',
+        content: Text(
+          purchaseItem == null
+              ? 'This is a premium avatar. Visit the Shop to purchase it first!'
+              : 'Unlock this cloud avatar for ${purchaseItem.cost} gems?',
         ),
         actions: [
           TextButton(
@@ -844,11 +904,30 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               backgroundColor: AppColors.neonGold,
             ),
             onPressed: () {
+              if (purchaseItem == null) {
+                Navigator.pop(ctx);
+                Navigator.pop(context); // Go back to profile
+                return;
+              }
+              final result = userProvider.purchaseItem(purchaseItem);
               Navigator.pop(ctx);
-              Navigator.pop(context); // Go back to profile
-              // Navigate to shop (you can add this navigation)
+              if (result == PurchaseStatus.success) {
+                setState(() => _selectedAvatar = avatar);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('✅ $itemName unlocked!'), backgroundColor: AppColors.neonGreen),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(result == PurchaseStatus.alreadyOwned
+                        ? 'You already own this avatar.'
+                        : 'Not enough gems to unlock this avatar.'),
+                    backgroundColor: AppColors.neonRed,
+                  ),
+                );
+              }
             },
-            child: const Text('Go to Shop', style: TextStyle(color: Colors.black)),
+            child: Text(purchaseItem == null ? 'Go to Shop' : 'Unlock', style: const TextStyle(color: Colors.black)),
           ),
         ],
       ),

@@ -131,9 +131,9 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator(color: AppColors.neonGreen))
                     : snapshot.hasError
-                        ? _buildEmptyState('Failed to load shop items')
+                        ? _buildEmptyState('Failed to load shop items', detail: ShopService.lastError)
                         : filteredItems.isEmpty
-                            ? _buildEmptyState('No Firestore shop items found')
+                            ? _buildEmptyState('No Firestore shop items found', detail: ShopService.lastError)
                             : _buildItemsList(filteredItems),
               ),
             ],
@@ -194,6 +194,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
 
   Widget _buildItemCard(ShopItem item) {
     final isCoins = item.costsCoins;
+    final iconUrl = _itemIconUrls[item.id] ?? '';
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
@@ -202,14 +203,23 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  width: 44,
+                  height: 44,
                   color: AppColors.neonCyan.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  child: iconUrl.isNotEmpty
+                      ? Image.network(
+                          iconUrl,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) => progress == null
+                              ? child
+                              : const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.neonCyan)),
+                          errorBuilder: (_, __, ___) => const Icon(Icons.inventory_2_rounded, color: AppColors.neonCyan, size: 20),
+                        )
+                      : const Icon(Icons.inventory_2_rounded, color: AppColors.neonCyan, size: 20),
                 ),
-                child: const Icon(Icons.inventory_2_rounded, color: AppColors.neonCyan, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -255,7 +265,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
     );
   }
 
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(String message, {String? detail}) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -264,7 +274,11 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
           const SizedBox(height: 14),
           Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
-          const Text('Use Add Item to create Firestore data', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          Text(
+            detail?.isNotEmpty == true ? detail! : 'Use Add Item to create Firestore data',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -305,7 +319,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
               final success = await ShopService.deleteShopItem(item.id);
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(success ? '✅ ${item.name} deleted' : '❌ Delete failed'),
+                content: Text(success ? '✅ ${item.name} deleted' : '❌ ${ShopService.lastError ?? 'Delete failed'}'),
                 backgroundColor: success ? AppColors.neonGreen : AppColors.neonRed,
               ));
               if (success) setState(_refreshItems);
@@ -785,16 +799,32 @@ class _AddEditItemSheetState extends State<AddEditItemSheet> {
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
+      final price = int.tryParse(_priceController.text.trim());
+      final quantity = int.tryParse(_quantityController.text.trim());
+      final iconUrl = _uploadedImageUrl ?? widget.iconUrl ?? '';
+      if (price == null || price < 0) {
+        _showError('Price must be 0 or more.');
+        return;
+      }
+      if (quantity == null || quantity < 1) {
+        _showError('Quantity must be at least 1.');
+        return;
+      }
+      if (iconUrl.isEmpty) {
+        _showError('Please upload an item image before saving.');
+        return;
+      }
+
       final itemData = {
         'id': widget.item?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'description': _descController.text.trim(),
         'category': _selectedCategory,
-        'price': int.tryParse(_priceController.text) ?? 0,
+        'price': price,
         'currency': _selectedCurrency,
-        'quantity': int.tryParse(_quantityController.text) ?? 1,
+        'quantity': quantity,
         'is_cosmetic': _isCosmetic,
-        'icon_url': _uploadedImageUrl ?? widget.iconUrl ?? '',
+        'icon_url': iconUrl,
         'is_active': true,
         'created_at': DateTime.now().toIso8601String(),
       };
@@ -807,11 +837,17 @@ class _AddEditItemSheetState extends State<AddEditItemSheet> {
           SnackBar(
             content: Text(success
                 ? (widget.item != null ? '✅ Item updated!' : '✅ Item added!')
-                : '❌ Failed to save. Try again.'),
+                : '❌ ${ShopService.lastError ?? 'Failed to save. Try again.'}'),
             backgroundColor: success ? AppColors.neonGreen : AppColors.neonRed,
           ),
         );
       }
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('❌ $message'), backgroundColor: AppColors.neonRed),
+    );
   }
 }

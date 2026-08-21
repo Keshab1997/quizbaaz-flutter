@@ -132,9 +132,9 @@ class _AvatarManagerScreenState extends State<AvatarManagerScreen> {
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator(color: AppColors.neonPink))
                     : snapshot.hasError
-                        ? _buildEmptyState('Failed to load avatars')
+                        ? _buildEmptyState('Failed to load avatars', detail: ShopService.lastError)
                         : filteredAvatars.isEmpty
-                            ? _buildEmptyState('No Firestore avatars found')
+                            ? _buildEmptyState('No Firestore avatars found', detail: ShopService.lastError)
                             : _buildAvatarGrid(filteredAvatars),
               ),
             ],
@@ -258,7 +258,7 @@ class _AvatarManagerScreenState extends State<AvatarManagerScreen> {
     return Container(color: Colors.white.withValues(alpha: 0.05), child: const Center(child: Icon(Icons.person_rounded, color: AppColors.textMuted, size: 44)));
   }
 
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(String message, {String? detail}) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -267,7 +267,11 @@ class _AvatarManagerScreenState extends State<AvatarManagerScreen> {
           const SizedBox(height: 14),
           Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
-          const Text('Use Add Avatar to create Firestore data', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          Text(
+            detail?.isNotEmpty == true ? detail! : 'Use Add Avatar to create Firestore data',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -307,7 +311,7 @@ class _AvatarManagerScreenState extends State<AvatarManagerScreen> {
               Navigator.pop(ctx);
               final success = await ShopService.deleteAvatar(avatar.id);
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? '✅ Avatar deleted' : '❌ Delete failed'), backgroundColor: success ? AppColors.neonGreen : AppColors.neonRed));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success ? '✅ Avatar deleted' : '❌ ${ShopService.lastError ?? 'Delete failed'}'), backgroundColor: success ? AppColors.neonGreen : AppColors.neonRed));
               if (success) setState(_refreshAvatars);
             },
             child: const Text('Delete', style: TextStyle(color: AppColors.neonRed)),
@@ -448,13 +452,29 @@ class _AddEditAvatarSheetState extends State<_AddEditAvatarSheet> {
   }
 
   void _saveAvatar() async {
+    final name = _nameController.text.trim();
+    final imageUrl = _uploadedImageUrl ?? '';
+    final price = int.tryParse(_priceController.text.trim()) ?? 0;
+    if (name.isEmpty) {
+      _showError('Avatar name is required.');
+      return;
+    }
+    if (imageUrl.isEmpty) {
+      _showError('Please upload an avatar image before saving.');
+      return;
+    }
+    if (_isPremium && price < 0) {
+      _showError('Price must be 0 or more.');
+      return;
+    }
+
     final avatarData = {
       'id': widget.avatar?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      'name': _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'New Avatar',
+      'name': name,
       'category': _selectedCategory,
-      'image_url': _uploadedImageUrl ?? '',
+      'image_url': imageUrl,
       'is_premium': _isPremium,
-      'price': _isPremium ? (int.tryParse(_priceController.text) ?? 50) : 0,
+      'price': _isPremium ? price : 0,
       'is_active': true,
       'created_at': DateTime.now().toIso8601String(),
     };
@@ -465,10 +485,16 @@ class _AddEditAvatarSheetState extends State<_AddEditAvatarSheet> {
       Navigator.pop(context, success);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? (widget.avatar == null ? '✅ Avatar added!' : '✅ Avatar updated!') : '❌ Failed to save. Try again.'),
+          content: Text(success ? (widget.avatar == null ? '✅ Avatar added!' : '✅ Avatar updated!') : '❌ ${ShopService.lastError ?? 'Failed to save. Try again.'}'),
           backgroundColor: success ? AppColors.neonPink : AppColors.neonRed,
         ),
       );
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('❌ $message'), backgroundColor: AppColors.neonRed),
+    );
   }
 }
