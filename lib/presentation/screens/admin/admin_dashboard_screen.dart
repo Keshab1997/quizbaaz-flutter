@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
 import 'user_list_screen.dart';
 import 'shop_manager_screen.dart';
@@ -129,39 +130,54 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 
   Widget _buildStatsGrid() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.0,
-      children: [
-        _buildStatCard(
-          icon: Icons.people_rounded,
-          label: 'Total Users',
-          value: '0',
-          color: AppColors.neonCyan,
-        ),
-        _buildStatCard(
-          icon: Icons.person_outline_rounded,
-          label: 'Guest Users',
-          value: '0',
-          color: AppColors.neonPurple,
-        ),
-        _buildStatCard(
-          icon: Icons.quiz_rounded,
-          label: 'Quizzes Today',
-          value: '0',
-          color: AppColors.neonGold,
-        ),
-        _buildStatCard(
-          icon: Icons.shopping_bag_rounded,
-          label: 'Shop Items',
-          value: '25+',
-          color: AppColors.neonGreen,
-        ),
-      ],
+    return FutureBuilder<Map<String, int>>(
+      future: ShopService.getAdminStats(),
+      builder: (context, snapshot) {
+        final stats = snapshot.data ?? const <String, int>{};
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final hasError = snapshot.hasError;
+
+        String statValue(String key) {
+          if (isLoading) return '...';
+          if (hasError) return '--';
+          return '${stats[key] ?? 0}';
+        }
+
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.0,
+          children: [
+            _buildStatCard(
+              icon: Icons.people_rounded,
+              label: 'Total Users',
+              value: statValue('total_users'),
+              color: AppColors.neonCyan,
+            ),
+            _buildStatCard(
+              icon: Icons.person_outline_rounded,
+              label: 'Guest Users',
+              value: statValue('guest_users'),
+              color: AppColors.neonPurple,
+            ),
+            _buildStatCard(
+              icon: Icons.quiz_rounded,
+              label: 'Quizzes Today',
+              value: statValue('players_today'),
+              color: AppColors.neonGold,
+            ),
+            _buildStatCard(
+              icon: Icons.shopping_bag_rounded,
+              label: 'Shop Items',
+              value: statValue('shop_items'),
+              color: AppColors.neonGreen,
+            ),
+          ],
+        );
+      },
     );
   }
 
