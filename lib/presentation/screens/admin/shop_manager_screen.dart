@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/shop_item.dart';
+import '../../../data/services/imgbb_service.dart';
 import '../../widgets/glass_card.dart';
 
 /// Admin screen to manage shop items
@@ -16,7 +20,6 @@ class ShopManagerScreen extends StatefulWidget {
 
 class _ShopManagerScreenState extends State<ShopManagerScreen> {
   String _selectedCategory = 'all';
-  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -305,7 +308,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _AddEditItemSheet(),
+      builder: (context) => const AddEditItemSheet(),
     );
   }
 
@@ -314,7 +317,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _AddEditItemSheet(item: item),
+      builder: (context) => AddEditItemSheet(item: item),
     );
   }
 
@@ -346,16 +349,16 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
 }
 
 /// Bottom sheet for adding/editing shop items
-class _AddEditItemSheet extends StatefulWidget {
+class AddEditItemSheet extends StatefulWidget {
   final ShopItem? item;
   
-  const _AddEditItemSheet({this.item});
+  const AddEditItemSheet({super.key, this.item});
 
   @override
-  State<_AddEditItemSheet> createState() => _AddEditItemSheetState();
+  State<AddEditItemSheet> createState() => _AddEditItemSheetState();
 }
 
-class _AddEditItemSheetState extends State<_AddEditItemSheet> {
+class _AddEditItemSheetState extends State<AddEditItemSheet> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _descController;
@@ -364,6 +367,12 @@ class _AddEditItemSheetState extends State<_AddEditItemSheet> {
   String _selectedCategory = 'power_ups';
   String _selectedCurrency = 'coins';
   bool _isCosmetic = false;
+  
+  // Image upload
+  File? _selectedImage;
+  String? _uploadedImageUrl;
+  bool _isUploading = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -375,6 +384,64 @@ class _AddEditItemSheetState extends State<_AddEditItemSheet> {
     _selectedCategory = widget.item?.category ?? 'power_ups';
     _selectedCurrency = widget.item?.costsCoins ?? true ? 'coins' : 'gems';
     _isCosmetic = widget.item?.isCosmetic ?? false;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descController.dispose();
+    _priceController.dispose();
+    _quantityController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+          _isUploading = true;
+        });
+
+        // Upload to ImageBB
+        final url = await ImgBBService.uploadFile(_selectedImage!);
+
+        if (url != null) {
+          setState(() {
+            _uploadedImageUrl = url;
+            _isUploading = false;
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Image uploaded successfully!'),
+                backgroundColor: AppColors.neonGreen,
+              ),
+            );
+          }
+        } else {
+          setState(() => _isUploading = false);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('❌ Image upload failed. Try again.'),
+                backgroundColor: AppColors.neonRed,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      setState(() => _isUploading = false);
+      debugPrint('Image picker error: $e');
+    }
   }
 
   @override
@@ -413,6 +480,10 @@ class _AddEditItemSheetState extends State<_AddEditItemSheet> {
                   ),
                 ],
               ),
+              const SizedBox(height: 20),
+
+              // Image Upload Section
+              _buildImageUploadSection(),
               const SizedBox(height: 20),
 
               // Name
@@ -505,27 +576,6 @@ class _AddEditItemSheetState extends State<_AddEditItemSheet> {
               ),
               const SizedBox(height: 24),
 
-              // Upload Icon Button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: ImageBB upload
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('ImageBB upload coming soon!')),
-                    );
-                  },
-                  icon: const Icon(Icons.cloud_upload_rounded),
-                  label: const Text('Upload Icon (ImageBB)'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.neonCyan,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(color: AppColors.neonCyan.withValues(alpha: 0.3)),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
               // Save Button
               SizedBox(
                 width: double.infinity,
@@ -551,6 +601,139 @@ class _AddEditItemSheetState extends State<_AddEditItemSheet> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildImageUploadSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _uploadedImageUrl != null
+              ? AppColors.neonGreen.withValues(alpha: 0.5)
+              : AppColors.neonCyan.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Preview or Upload UI
+          if (_selectedImage != null) ...[
+            // Image Preview
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(
+                _selectedImage!,
+                height: 120,
+                width: 120,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (_isUploading)
+              const Column(
+                children: [
+                  CircularProgressIndicator(color: AppColors.neonCyan),
+                  SizedBox(height: 8),
+                  Text(
+                    'Uploading to ImageBB...',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  ),
+                ],
+              )
+            else if (_uploadedImageUrl != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.check_circle, color: AppColors.neonGreen, size: 18),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Uploaded!',
+                    style: TextStyle(
+                      color: AppColors.neonGreen,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  TextButton(
+                    onPressed: _pickImage,
+                    child: const Text('Change'),
+                  ),
+                ],
+              )
+            else
+              TextButton.icon(
+                onPressed: _pickImage,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Retry Upload'),
+              ),
+          ] else ...[
+            // Upload Prompt
+            Icon(
+              Icons.cloud_upload_rounded,
+              size: 48,
+              color: AppColors.neonCyan.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Upload Item Icon',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Max 32MB • PNG, JPG, GIF',
+              style: TextStyle(
+                color: AppColors.textMuted.withValues(alpha: 0.7),
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _pickImage,
+              icon: const Icon(Icons.upload_rounded),
+              label: const Text('Choose from Gallery'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.neonCyan,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          // ImageBB URL display
+          if (_uploadedImageUrl != null)
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.link_rounded, color: AppColors.neonCyan, size: 14),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      _uploadedImageUrl!,
+                      style: const TextStyle(
+                        color: AppColors.neonCyan,
+                        fontSize: 10,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -630,11 +813,11 @@ class _AddEditItemSheetState extends State<_AddEditItemSheet> {
 
   void _saveItem() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Save to Firestore
+      // TODO: Save to Firestore with _uploadedImageUrl
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(widget.item != null ? 'Item updated!' : 'Item added!'),
+          content: Text(widget.item != null ? '✅ Item updated!' : '✅ Item added!'),
           backgroundColor: AppColors.neonGreen,
         ),
       );
