@@ -171,6 +171,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _avatarImage(
     String avatar, {
     BoxFit fit = BoxFit.cover,
+    Alignment alignment = Alignment.center,
     double? width,
     double? height,
     IconData fallbackIcon = Icons.person_rounded,
@@ -180,6 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return Image.network(
         avatar,
         fit: fit,
+        alignment: alignment,
         width: width,
         height: height,
         loadingBuilder: (context, child, progress) => progress == null
@@ -196,6 +198,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Image.asset(
       avatar,
       fit: fit,
+      alignment: alignment,
       width: width,
       height: height,
       errorBuilder: (_, __, ___) => Icon(
@@ -1132,7 +1135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: color.withValues(alpha: 0.18),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: _avatarImage(avatar),
+                  child: _avatarImage(avatar, alignment: Alignment.topCenter),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
