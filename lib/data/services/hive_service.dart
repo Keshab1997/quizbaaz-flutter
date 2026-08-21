@@ -59,7 +59,7 @@ class HiveService {
   /// own string and they can all be invalidated in one place.
   static const cacheLeaderboard = 'leaderboard_today';
   static const cacheChampions = 'champions_yesterday';
-  static const cacheChapters = 'chapters_list';
+  static const cacheChapters = 'chapters_list_v2';
   static const cacheDailyQuiz = 'daily_quiz_questions';
   static const cacheShopItems = 'shop_items';
 
