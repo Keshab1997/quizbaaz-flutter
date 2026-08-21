@@ -218,9 +218,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             GestureDetector(
               onTap: () => _openTab(3, const ProfileScreen()),
               child: Container(
-                width: 62,
-                height: 62,
-                padding: const EdgeInsets.all(2.5),
+                width: 72,
+                height: 72,
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: AppColors.primaryGradient,
