@@ -932,7 +932,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     final championAvatar =
-        champ.avatarPath.isNotEmpty ? champ.avatarPath : AppAssets.championBoy;
+        champ.avatarPath.isNotEmpty ? champ.avatarPath : AppAssets.maleAvatar;
     final prizeLabel = _championPrizeLabel(champ);
 
     return Container(

@@ -488,6 +488,7 @@ class UserProvider extends ChangeNotifier {
     _user.toggleGender();
     notifyListeners();
     _persistUser();
+    _refreshLeaderboardAvatar();
   }
 
   void setGuestMode(bool isGuest) {
@@ -508,6 +509,7 @@ class UserProvider extends ChangeNotifier {
     _user.setGender(gender);
     notifyListeners();
     _persistUser();
+    _refreshLeaderboardAvatar();
   }
 
   /// Updates the user's avatar.
@@ -532,6 +534,7 @@ class UserProvider extends ChangeNotifier {
     }
     notifyListeners();
     _persistUser();
+    _refreshLeaderboardAvatar();
   }
 
   /// Links a Google account, keeping all local progress.
@@ -583,6 +586,7 @@ class UserProvider extends ChangeNotifier {
     );
     notifyListeners();
     _persistUser();
+    _refreshLeaderboardAvatar();
   }
 
   /// Sign-out: clears the local profile and every cached value.
@@ -601,5 +605,22 @@ class UserProvider extends ChangeNotifier {
   Future<void> _persistUser() async {
     await HiveService.saveUser(_user);
     await SyncService.pushUser(_user);
+  }
+
+  /// Re-syncs today's leaderboard entry with the player's current avatar.
+  ///
+  /// The leaderboard entry is normally written once when the daily quiz is
+  /// finished. If the player changes their avatar afterwards, the home screen
+  /// leaderboard preview and champion card would still show the stale one.
+  /// This re-pushes the entry (Firestore merges by user id) so the freshly
+  /// chosen avatar shows up immediately. Skipped for guests and for players
+  /// who haven't played today's daily quiz (no entry to update).
+  Future<void> _refreshLeaderboardAvatar() async {
+    if (_user.isGuest || !_user.playedTodayDailyQuiz) return;
+    await SyncService.pushLeaderboardEntry(
+      user: _user,
+      score: _stats.bestDailyScore,
+      timeSeconds: _stats.bestDailyTimeSeconds,
+    );
   }
 }
