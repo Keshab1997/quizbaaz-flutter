@@ -218,16 +218,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             GestureDetector(
               onTap: () => _openTab(3, const ProfileScreen()),
               child: Container(
-                width: 52,
-                height: 52,
-                padding: const EdgeInsets.all(2),
+                width: 62,
+                height: 62,
+                padding: const EdgeInsets.all(2.5),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: AppColors.primaryGradient,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.neonPurple.withValues(alpha: 0.36),
-                      blurRadius: 18,
+                      color: AppColors.neonPurple.withValues(alpha: 0.4),
+                      blurRadius: 20,
                       spreadRadius: 2,
                     ),
                   ],
@@ -240,30 +240,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 11),
+            const SizedBox(width: 13),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '$_greeting, ${user.fullName}  👋',
+                    '$_greeting  👋',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    user.fullName.isNotEmpty ? user.fullName : user.username,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: AppColors.textPrimary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  const Text(
-                    'Ready to beat your best score?',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ],
