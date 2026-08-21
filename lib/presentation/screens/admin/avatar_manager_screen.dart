@@ -209,6 +209,9 @@ class _AvatarManagerScreenState extends State<AvatarManagerScreen> {
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
+                    loadingBuilder: (context, child, progress) => progress == null
+                        ? child
+                        : const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.neonPink)),
                     errorBuilder: (_, __, ___) => _avatarPlaceholder(),
                   )
                 : _avatarPlaceholder(),
@@ -406,7 +409,7 @@ class _AddEditAvatarSheetState extends State<_AddEditAvatarSheet> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))))),
           ],
           const SizedBox(height: 24),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _saveAvatar,
+          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _isUploading ? null : _saveAvatar,
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.neonPink, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
             child: Text(widget.avatar == null ? 'Add Avatar' : 'Update Avatar', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)))),
         ]),

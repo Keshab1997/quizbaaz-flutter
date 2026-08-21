@@ -27,7 +27,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   void initState() {
     super.initState();
     final userProvider = context.read<UserProvider>();
-    _selectedAvatar = userProvider.user.avatarPath;
+    _selectedAvatar = userProvider.user.effectiveAvatar;
     _loadCloudAvatars();
   }
 
@@ -89,7 +89,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
       body: Column(
         children: [
           // Current Avatar Preview
-          _buildCurrentAvatarPreview(user.avatarPath),
+          _buildCurrentAvatarPreview(user.effectiveAvatar),
 
           // Category Tabs
           _buildCategoryTabs(),
@@ -99,6 +99,55 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
             child: _buildAvatarGrid(userProvider),
           ),
         ],
+      ),
+    );
+  }
+
+  bool _isNetworkAvatar(String avatar) =>
+      avatar.startsWith('http://') || avatar.startsWith('https://');
+
+  Map<String, dynamic>? _cloudAvatarForUrl(String url) {
+    for (final avatar in _cloudAvatars) {
+      final imageUrl = (avatar['image_url'] ?? avatar['avatar_url'] ?? '').toString();
+      if (imageUrl == url) return avatar;
+    }
+    return null;
+  }
+
+  String _displayNameForAvatar(String avatar) {
+    final cloudAvatar = _cloudAvatarForUrl(avatar);
+    if (cloudAvatar != null) {
+      return (cloudAvatar['name'] ?? 'Cloud Avatar').toString();
+    }
+    return _getAvatarName(avatar);
+  }
+
+  Widget _avatarImage(String avatar, {BoxFit fit = BoxFit.contain}) {
+    if (_isNetworkAvatar(avatar)) {
+      return Image.network(
+        avatar,
+        fit: fit,
+        width: double.infinity,
+        height: double.infinity,
+        loadingBuilder: (context, child, progress) => progress == null
+            ? child
+            : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        errorBuilder: (_, __, ___) => const Icon(
+          Icons.person_rounded,
+          color: Colors.white,
+          size: 40,
+        ),
+      );
+    }
+    return Image.asset(
+      avatar,
+      fit: fit,
+      width: double.infinity,
+      height: double.infinity,
+      errorBuilder: (_, __, ___) => const Icon(
+        Icons.person_rounded,
+        color: Colors.white,
+        size: 40,
       ),
     );
   }
@@ -135,17 +184,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(15),
-                    child: Image.asset(
-                      currentAvatar,
-                      fit: BoxFit.contain,
-                      width: 84,
-                      height: 84,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.person_rounded,
-                        color: Colors.white,
-                        size: 40,
-                      ),
-                    ),
+                    child: _avatarImage(currentAvatar),
                   ),
                 ),
               ),
@@ -164,7 +203,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _getAvatarName(currentAvatar),
+                      _displayNameForAvatar(currentAvatar),
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16,
@@ -296,9 +335,12 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     }
 
     // Filter cloud avatars by category
-    final cloudAvatars = _selectedCategory == 'all'
-        ? _cloudAvatars
-        : _cloudAvatars.where((a) => a['category'] == _selectedCategory).toList();
+    final cloudAvatars = _cloudAvatars.where((avatar) {
+      final category = (avatar['category'] ?? '').toString();
+      final isPremium = avatar['is_premium'] == true || category == 'premium';
+      if (_selectedCategory == 'premium') return isPremium;
+      return category == _selectedCategory && !isPremium;
+    }).toList();
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
@@ -384,9 +426,10 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   final cloudAvatar = cloudAvatars[index];
-                  final imageUrl = cloudAvatar['image_url'] as String? ?? '';
+                  final imageUrl = (cloudAvatar['image_url'] ?? cloudAvatar['avatar_url'] ?? '').toString();
                   final isSelected = _selectedAvatar == imageUrl;
-                  final isPremium = cloudAvatar['is_premium'] ?? false;
+                  final category = (cloudAvatar['category'] ?? '').toString();
+                  final isPremium = cloudAvatar['is_premium'] == true || category == 'premium';
 
                   return _buildCloudAvatarCard(
                     cloudAvatar: cloudAvatar,
@@ -734,19 +777,25 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   void _saveAvatar(BuildContext context, UserProvider userProvider) {
     if (_selectedAvatar == null) return;
 
-    // Determine gender from avatar
-    final isFemale = _selectedAvatar!.contains('female') ||
-        _selectedAvatar!.contains('girl');
+    final selected = _selectedAvatar!;
+    final cloudAvatar = _cloudAvatarForUrl(selected);
+    final cloudCategory = (cloudAvatar?['category'] ?? '').toString();
+    final isFemale = cloudCategory == 'female' ||
+        selected.contains('female') ||
+        selected.contains('girl');
+    final isMale = cloudCategory == 'male' ||
+        selected.contains('male') ||
+        selected.contains('boy');
 
-    // Update avatar path directly
-    userProvider.updateAvatar(_selectedAvatar!);
-
-    // Update gender if needed
+    // Update gender before avatar, because updateGender resets the fallback
+    // local avatar path. Then updateAvatar stores either local or cloud image.
     if (isFemale && userProvider.user.gender != UserGender.female) {
       userProvider.updateGender(UserGender.female);
-    } else if (!isFemale && userProvider.user.gender != UserGender.male) {
+    } else if (isMale && userProvider.user.gender != UserGender.male) {
       userProvider.updateGender(UserGender.male);
     }
+
+    userProvider.updateAvatar(selected);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

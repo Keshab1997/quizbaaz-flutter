@@ -67,28 +67,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(21),
-                          child: user.hasGoogleAvatar
-                              ? Image.network(
-                                  user.avatarUrl!,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => Image.asset(
-                                    user.effectiveAvatar,
-                                    fit: BoxFit.contain,
-                                  ),
-                                  loadingBuilder: (ctx, child, progress) =>
-                                      progress == null
-                                          ? child
-                                          : const Center(
-                                              child: CircularProgressIndicator(
-                                                  strokeWidth: 2)),
-                                )
-                              : Image.asset(
-                                  user.effectiveAvatar,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(Icons.person,
-                                          size: 60, color: Colors.white),
-                                ),
+                          child: _buildProfileAvatar(user),
                         ),
                       ),
                     ),
@@ -548,6 +527,32 @@ class ProfileScreen extends StatelessWidget {
           if (trailing != null) trailing,
         ],
       ),
+    );
+  }
+
+  Widget _buildProfileAvatar(UserModel user) {
+    final avatar = user.effectiveAvatar;
+    final isRemoteAvatar = avatar.startsWith('http://') || avatar.startsWith('https://');
+
+    if (isRemoteAvatar) {
+      return Image.network(
+        avatar,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Image.asset(
+          user.avatarPath,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 60, color: Colors.white),
+        ),
+        loadingBuilder: (ctx, child, progress) => progress == null
+            ? child
+            : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+
+    return Image.asset(
+      avatar,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 60, color: Colors.white),
     );
   }
 

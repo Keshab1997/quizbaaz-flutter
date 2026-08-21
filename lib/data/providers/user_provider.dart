@@ -510,9 +510,26 @@ class UserProvider extends ChangeNotifier {
     _persistUser();
   }
 
-  /// Updates the user's avatar path.
+  /// Updates the user's avatar.
+  ///
+  /// Local assets are stored in [avatarPath]. Remote/cloud avatars are stored
+  /// in [avatarUrl] while keeping [avatarPath] as a safe local fallback for
+  /// older widgets that still use AssetImage.
   void updateAvatar(String avatarPath) {
-    _user.avatarPath = avatarPath;
+    final isRemoteAvatar = avatarPath.startsWith('http://') || avatarPath.startsWith('https://');
+    if (isRemoteAvatar) {
+      _user.avatarUrl = avatarPath;
+      if (_user.avatarPath.startsWith('http://') ||
+          _user.avatarPath.startsWith('https://') ||
+          _user.avatarPath.isEmpty) {
+        _user.avatarPath = _user.gender == UserGender.male
+            ? 'assets/images/avatars/quizbaaz_avatar_boy.png'
+            : 'assets/images/avatars/quizbaaz_avatar_girl.png';
+      }
+    } else {
+      _user.avatarPath = avatarPath;
+      _user.avatarUrl = null;
+    }
     notifyListeners();
     _persistUser();
   }
