@@ -210,115 +210,108 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHeader(UserModel user) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 365;
-        return Row(
-          children: [
-            GestureDetector(
-              onTap: () => _openTab(3, const ProfileScreen()),
-              child: Container(
-                width: 72,
-                height: 72,
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: AppColors.primaryGradient,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.neonPurple.withValues(alpha: 0.4),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: ClipOval(
-                  child: _avatarImage(
-                    user.effectiveAvatar,
-                    alignment: const Alignment(0, -0.72),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$_greeting  👋',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    user.fullName.isNotEmpty ? user.fullName : user.username,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            _buildCurrencyPill(
-              icon: Icons.monetization_on_rounded,
-              value: '${user.coins}',
-              color: AppColors.neonGold,
-            ),
-            if (!compact) ...[
-              const SizedBox(width: 6),
-              _buildCurrencyPill(
-                icon: Icons.diamond_rounded,
-                value: '${user.gems}',
-                color: AppColors.neonPurple,
-              ),
-            ],
-            const SizedBox(width: 7),
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.055),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-                  ),
-                  child: const Icon(
-                    Icons.notifications_none_rounded,
-                    color: AppColors.textPrimary,
-                    size: 19,
-                  ),
-                ),
-                Positioned(
-                  top: 5,
-                  right: 5,
-                  child: Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppColors.neonRed,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => _openTab(3, const ProfileScreen()),
+          child: Container(
+            width: 72,
+            height: 72,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppColors.primaryGradient,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neonPurple.withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  spreadRadius: 2,
                 ),
               ],
             ),
+            child: ClipOval(
+              child: _avatarImage(
+                user.effectiveAvatar,
+                alignment: const Alignment(0, -0.72),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 13),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '$_greeting  👋',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                user.fullName.isNotEmpty ? user.fullName : user.username,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        _buildCurrencyPill(
+          icon: Icons.monetization_on_rounded,
+          value: '${user.coins}',
+          color: AppColors.neonGold,
+        ),
+        const SizedBox(width: 6),
+        _buildCurrencyPill(
+          icon: Icons.diamond_rounded,
+          value: '${user.gems}',
+          color: AppColors.neonPurple,
+        ),
+        const SizedBox(width: 7),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.055),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+              ),
+              child: const Icon(
+                Icons.notifications_none_rounded,
+                color: AppColors.textPrimary,
+                size: 19,
+              ),
+            ),
+            Positioned(
+              top: 5,
+              right: 5,
+              child: Container(
+                width: 7,
+                height: 7,
+                decoration: const BoxDecoration(
+                  color: AppColors.neonRed,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
           ],
-        );
-      },
+        ),
+      ],
     );
   }
 
