@@ -31,7 +31,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _currentNavIndex = 0;
-  bool _isFemaleMascot = false;
+  final bool _isFemaleMascot = false;
 
   @override
   void initState() {
