@@ -5,6 +5,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/shop_item.dart';
 import '../../../data/providers/user_provider.dart';
+import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/purchase_celebration.dart';
 import 'purchase_history_screen.dart';
@@ -34,6 +35,29 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> {
   String _selectedCategory = 'all';
+  List<Map<String, dynamic>> _cloudItems = [];
+  bool _isLoadingCloud = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCloudItems();
+  }
+
+  Future<void> _loadCloudItems() async {
+    setState(() => _isLoadingCloud = true);
+    try {
+      final items = await ShopService.getShopItems();
+      if (mounted) {
+        setState(() {
+          _cloudItems = items;
+          _isLoadingCloud = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingCloud = false);
+    }
+  }
 
   IconData _iconFor(String itemId) {
     switch (itemId) {
@@ -165,6 +189,13 @@ class _ShopScreenState extends State<ShopScreen> {
     return ShopCatalog.itemsByCategory(_selectedCategory);
   }
 
+  List<Map<String, dynamic>> get _filteredCloudItems {
+    if (_selectedCategory == 'all') {
+      return _cloudItems;
+    }
+    return _cloudItems.where((item) => item['category'] == _selectedCategory).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final userProvider = context.watch<UserProvider>();
@@ -267,7 +298,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   ),
                 ),
 
-                // Items
+                // Local Items
                 ..._filteredItems.map((item) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
@@ -281,6 +312,72 @@ class _ShopScreenState extends State<ShopScreen> {
                     ),
                   );
                 }),
+
+                // Cloud Items (from Firestore)
+                if (_filteredCloudItems.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16, bottom: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.neonCyan.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.cloud_rounded, color: AppColors.neonCyan, size: 14),
+                              SizedBox(width: 4),
+                              Text(
+                                'CLOUD ITEMS',
+                                style: TextStyle(
+                                  color: AppColors.neonCyan,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ..._filteredCloudItems.map((cloudItem) {
+                    final shopItem = ShopItem(
+                      id: cloudItem['id'] ?? '',
+                      name: cloudItem['name'] ?? 'Item',
+                      description: cloudItem['description'] ?? '',
+                      cost: cloudItem['price'] ?? 0,
+                      currency: cloudItem['currency'] == 'gems' ? ShopCurrency.gems : ShopCurrency.coins,
+                      quantity: cloudItem['quantity'] ?? 1,
+                      isCosmetic: cloudItem['is_cosmetic'] ?? false,
+                      category: cloudItem['category'] ?? 'power_ups',
+                    );
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: _ShopItemCard(
+                        item: shopItem,
+                        icon: Icons.inventory_2_rounded,
+                        accent: AppColors.neonCyan,
+                        owned: 0,
+                        affordable: userProvider.canAfford(shopItem),
+                        onBuy: () => _handleBuy(context, userProvider, shopItem),
+                        cloudImageUrl: cloudItem['icon_url'],
+                      ),
+                    );
+                  }),
+                ],
+
+                // Loading indicator
+                if (_isLoadingCloud)
+                  const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.neonCyan),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -389,6 +486,7 @@ class _ShopItemCard extends StatelessWidget {
   final int owned;
   final bool affordable;
   final VoidCallback onBuy;
+  final String? cloudImageUrl;
 
   const _ShopItemCard({
     required this.item,
@@ -397,18 +495,20 @@ class _ShopItemCard extends StatelessWidget {
     required this.owned,
     required this.affordable,
     required this.onBuy,
+    this.cloudImageUrl,
   });
 
   @override
   Widget build(BuildContext context) {
     final avatarPath = _avatarPathForItem(item.id);
+    final hasCloudImage = cloudImageUrl != null && cloudImageUrl!.isNotEmpty;
 
     return GlassCard(
       borderRadius: 18,
       borderColor: accent.withValues(alpha: 0.3),
       child: Row(
         children: [
-          // Icon or Avatar Preview
+          // Icon, Avatar Preview, or Cloud Image
           Container(
             width: 52,
             height: 52,
@@ -417,16 +517,32 @@ class _ShopItemCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: accent.withValues(alpha: 0.4)),
             ),
-            child: avatarPath != null
+            child: hasCloudImage
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      avatarPath,
+                    child: Image.network(
+                      cloudImageUrl!,
                       fit: BoxFit.cover,
+                      loadingBuilder: (ctx, child, progress) =>
+                          progress == null ? child : Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: accent,
+                            ),
+                          ),
                       errorBuilder: (_, __, ___) => Icon(icon, color: accent, size: 26),
                     ),
                   )
-                : Icon(icon, color: accent, size: 26),
+                : avatarPath != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          avatarPath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(icon, color: accent, size: 26),
+                        ),
+                      )
+                    : Icon(icon, color: accent, size: 26),
           ),
           const SizedBox(width: 14),
 

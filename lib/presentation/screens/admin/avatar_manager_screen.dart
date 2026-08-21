@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/services/imgbb_service.dart';
+import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
 
 /// Admin screen to manage avatars
@@ -359,8 +360,28 @@ class _AddEditAvatarSheetState extends State<_AddEditAvatarSheet> {
     );
   }
 
-  void _saveAvatar() {
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Avatar added!'), backgroundColor: AppColors.neonPink));
+  void _saveAvatar() async {
+    final avatarData = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'name': _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'New Avatar',
+      'category': _selectedCategory,
+      'image_url': _uploadedImageUrl ?? '',
+      'is_premium': _isPremium,
+      'price': _isPremium ? (int.tryParse(_priceController.text) ?? 50) : 0,
+      'is_active': true,
+      'created_at': DateTime.now().toIso8601String(),
+    };
+
+    final success = await ShopService.saveAvatar(avatarData);
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '✅ Avatar added!' : '❌ Failed to save. Try again.'),
+          backgroundColor: success ? AppColors.neonPink : AppColors.neonRed,
+        ),
+      );
+    }
   }
 }

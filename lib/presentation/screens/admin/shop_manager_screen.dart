@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/shop_item.dart';
 import '../../../data/services/imgbb_service.dart';
+import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
 
 /// Admin screen to manage shop items
@@ -811,16 +812,35 @@ class _AddEditItemSheetState extends State<AddEditItemSheet> {
     );
   }
 
-  void _saveItem() {
+  void _saveItem() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Save to Firestore with _uploadedImageUrl
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(widget.item != null ? '✅ Item updated!' : '✅ Item added!'),
-          backgroundColor: AppColors.neonGreen,
-        ),
-      );
+      final itemData = {
+        'id': widget.item?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'name': _nameController.text.trim(),
+        'description': _descController.text.trim(),
+        'category': _selectedCategory,
+        'price': int.tryParse(_priceController.text) ?? 0,
+        'currency': _selectedCurrency,
+        'quantity': int.tryParse(_quantityController.text) ?? 1,
+        'is_cosmetic': _isCosmetic,
+        'icon_url': _uploadedImageUrl ?? '',
+        'is_active': true,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      final success = await ShopService.saveShopItem(itemData);
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success
+                ? (widget.item != null ? '✅ Item updated!' : '✅ Item added!')
+                : '❌ Failed to save. Try again.'),
+            backgroundColor: success ? AppColors.neonGreen : AppColors.neonRed,
+          ),
+        );
+      }
     }
   }
 }

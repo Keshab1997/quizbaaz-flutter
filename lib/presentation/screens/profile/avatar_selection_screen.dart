@@ -5,6 +5,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/providers/user_provider.dart';
+import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
 
 /// Screen where users can browse and select their profile avatar.
@@ -19,12 +20,30 @@ class AvatarSelectionScreen extends StatefulWidget {
 class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   String _selectedCategory = 'male';
   String? _selectedAvatar;
+  List<Map<String, dynamic>> _cloudAvatars = [];
+  bool _isLoadingCloud = false;
 
   @override
   void initState() {
     super.initState();
     final userProvider = context.read<UserProvider>();
     _selectedAvatar = userProvider.user.avatarPath;
+    _loadCloudAvatars();
+  }
+
+  Future<void> _loadCloudAvatars() async {
+    setState(() => _isLoadingCloud = true);
+    try {
+      final avatars = await ShopService.getAvatars();
+      if (mounted) {
+        setState(() {
+          _cloudAvatars = avatars;
+          _isLoadingCloud = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingCloud = false);
+    }
   }
 
   @override
@@ -270,43 +289,137 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
         break;
       case 'premium':
         avatars = AppAssets.premiumAvatars;
-        // Check which premium avatars are owned
         ownedItems = _getOwnedPremiumAvatars(userProvider);
         break;
       default:
         avatars = AppAssets.maleAvatars;
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-      physics: const BouncingScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.85,
-      ),
-      itemCount: avatars.length,
-      itemBuilder: (context, index) {
-        final avatar = avatars[index];
-        final isSelected = _selectedAvatar == avatar;
-        final isPremium = _selectedCategory == 'premium';
-        final isOwned = !isPremium || ownedItems.contains(avatar);
+    // Filter cloud avatars by category
+    final cloudAvatars = _selectedCategory == 'all'
+        ? _cloudAvatars
+        : _cloudAvatars.where((a) => a['category'] == _selectedCategory).toList();
 
-        return _buildAvatarCard(
-          avatar: avatar,
-          isSelected: isSelected,
-          isPremium: isPremium,
-          isOwned: isOwned,
-          onTap: () {
-            if (isPremium && !isOwned) {
-              _showPurchaseDialog(context, avatar);
-            } else {
-              setState(() => _selectedAvatar = avatar);
-            }
-          },
-        );
-      },
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        // Local Avatars
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 0.85,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final avatar = avatars[index];
+                final isSelected = _selectedAvatar == avatar;
+                final isPremium = _selectedCategory == 'premium';
+                final isOwned = !isPremium || ownedItems.contains(avatar);
+
+                return _buildAvatarCard(
+                  avatar: avatar,
+                  isSelected: isSelected,
+                  isPremium: isPremium,
+                  isOwned: isOwned,
+                  onTap: () {
+                    if (isPremium && !isOwned) {
+                      _showPurchaseDialog(context, avatar);
+                    } else {
+                      setState(() => _selectedAvatar = avatar);
+                    }
+                  },
+                );
+              },
+              childCount: avatars.length,
+            ),
+          ),
+        ),
+
+        // Cloud Avatars Section
+        if (cloudAvatars.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.neonCyan.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.cloud_rounded, color: AppColors.neonCyan, size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          'CLOUD AVATARS',
+                          style: TextStyle(
+                            color: AppColors.neonCyan,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.85,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final cloudAvatar = cloudAvatars[index];
+                  final imageUrl = cloudAvatar['image_url'] as String? ?? '';
+                  final isSelected = _selectedAvatar == imageUrl;
+                  final isPremium = cloudAvatar['is_premium'] ?? false;
+
+                  return _buildCloudAvatarCard(
+                    cloudAvatar: cloudAvatar,
+                    imageUrl: imageUrl,
+                    isSelected: isSelected,
+                    isPremium: isPremium,
+                    onTap: () {
+                      if (isPremium) {
+                        // Check if owned
+                        _showPurchaseDialog(context, imageUrl);
+                      } else {
+                        setState(() => _selectedAvatar = imageUrl);
+                      }
+                    },
+                  );
+                },
+                childCount: cloudAvatars.length,
+              ),
+            ),
+          ),
+        ],
+
+        // Loading indicator
+        if (_isLoadingCloud)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(
+                child: CircularProgressIndicator(color: AppColors.neonCyan),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -465,6 +578,125 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                     ),
                   ),
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCloudAvatarCard({
+    required Map<String, dynamic> cloudAvatar,
+    required String imageUrl,
+    required bool isSelected,
+    required bool isPremium,
+    required VoidCallback onTap,
+  }) {
+    final name = cloudAvatar['name'] as String? ?? 'Avatar';
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.neonCyan.withValues(alpha: 0.8)
+                : isPremium
+                    ? AppColors.neonGold.withValues(alpha: 0.3)
+                    : Colors.white.withValues(alpha: 0.1),
+            width: isSelected ? 3 : 1.5,
+          ),
+          boxShadow: isSelected
+              ? [BoxShadow(color: AppColors.neonCyan.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2)]
+              : null,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Cloud Image
+              imageUrl.isNotEmpty
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (ctx, child, progress) =>
+                          progress == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                      errorBuilder: (_, __, ___) => Container(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        child: const Icon(Icons.cloud_off_rounded, color: AppColors.textMuted, size: 40),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      child: const Icon(Icons.cloud_rounded, color: AppColors.textMuted, size: 40),
+                    ),
+
+              // Selected indicator
+              if (isSelected)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.neonCyan,
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: AppColors.neonCyan.withValues(alpha: 0.5), blurRadius: 10)],
+                    ),
+                    child: const Icon(Icons.check_rounded, color: Colors.white, size: 18),
+                  ),
+                ),
+
+              // Cloud badge
+              Positioned(
+                top: 10,
+                left: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.neonCyan.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.cloud_rounded, color: AppColors.neonCyan, size: 10),
+                      SizedBox(width: 3),
+                      Text(
+                        'CLOUD',
+                        style: TextStyle(color: AppColors.neonCyan, fontSize: 8, fontWeight: FontWeight.w900),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Name
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black.withValues(alpha: 0.8)],
+                    ),
+                  ),
+                  child: Text(
+                    name,
+                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
