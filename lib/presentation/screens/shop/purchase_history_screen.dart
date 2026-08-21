@@ -423,19 +423,23 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               // Category tag
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: catColor.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  history.categoryDisplayName,
-                                  style: TextStyle(
-                                    color: catColor,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w700,
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: catColor.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    history.categoryDisplayName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: catColor,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
                               ),
