@@ -310,6 +310,7 @@ class _UserListScreenState extends State<UserListScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
+                    final navigator = Navigator.of(ctx);
                     final ok = await ShopService.updateUser(_userId(user), {
                       'username': usernameController.text.trim(),
                       'full_name': fullNameController.text.trim(),
@@ -317,7 +318,7 @@ class _UserListScreenState extends State<UserListScreen> {
                       'gems': int.tryParse(gemsController.text.trim()) ?? 0,
                     });
                     if (!mounted) return;
-                    Navigator.pop(ctx);
+                    navigator.pop();
                     _showSnack(ok ? '✅ User updated' : '❌ Update failed', ok);
                     if (ok) setState(_refreshUsers);
                   },
