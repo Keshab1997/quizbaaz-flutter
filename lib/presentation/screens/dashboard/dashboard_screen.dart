@@ -242,10 +242,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              _MarqueeText(
                 '$_greeting  👋',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 11.5,
@@ -253,10 +251,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 3),
-              Text(
+              _MarqueeText(
                 user.fullName.isNotEmpty ? user.fullName : user.username,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 17,
@@ -1310,5 +1306,119 @@ class _QuickAction {
   final VoidCallback onTap;
 
   const _QuickAction(this.title, this.icon, this.color, this.onTap);
+}
+
+/// A single-line text that scrolls horizontally (marquee) when it overflows
+/// its available width, so long greetings and names stay fully readable on
+/// narrow screens instead of being truncated with an ellipsis.
+class _MarqueeText extends StatefulWidget {
+  final String text;
+  final TextStyle style;
+  final Duration duration;
+
+  const _MarqueeText(
+    this.text, {
+    required this.style,
+    this.duration = const Duration(seconds: 6),
+  });
+
+  @override
+  State<_MarqueeText> createState() => _MarqueeTextState();
+}
+
+class _MarqueeTextState extends State<_MarqueeText>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  /// Horizontal gap between the two copies of the text that make the scroll
+  /// loop look seamless.
+  static const double _gap = 48;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration,
+    );
+  }
+
+  @override
+  void didUpdateWidget(_MarqueeText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text) {
+      _controller.stop();
+      _controller.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final painter = TextPainter(
+          text: TextSpan(text: widget.text, style: widget.style),
+          maxLines: 1,
+          textDirection: TextDirection.ltr,
+        )..layout();
+
+        final textWidth = painter.width;
+        final textHeight = painter.height;
+        final overflow = textWidth > constraints.maxWidth;
+
+        // Drive the animation controller outside of build.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (overflow && !_controller.isAnimating) {
+            _controller.repeat();
+          } else if (!overflow && _controller.isAnimating) {
+            _controller.stop();
+            _controller.reset();
+          }
+        });
+
+        if (!overflow) {
+          return SizedBox(
+            height: textHeight,
+            child: Text(
+              widget.text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: widget.style,
+            ),
+          );
+        }
+
+        return SizedBox(
+          height: textHeight,
+          child: ClipRect(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                final dx = -_controller.value * (textWidth + _gap);
+                return Transform.translate(
+                  offset: Offset(dx, 0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(widget.text, maxLines: 1, style: widget.style),
+                      const SizedBox(width: _gap),
+                      Text(widget.text, maxLines: 1, style: widget.style),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
