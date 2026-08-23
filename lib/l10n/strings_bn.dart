@@ -293,25 +293,12 @@ const Map<String, String> kStringsBn = {
   'languageTitle': 'ভাষা',
   'languageSubtitle': 'অ্যাপের ইন্টারফেসের ভাষা বেছে নিন',
   'languageAppSection': 'অ্যাপের ভাষা',
-  'languageQuizSection': 'প্রশ্নের অনুবাদ',
   'languageSystemDefault': 'ডিভাইসের ভাষা',
   'languageChanged': '✅ ভাষা পরিবর্তন হয়েছে',
   'languageEnglish': 'English (ইংরেজি)',
   'languageBengali': 'বাংলা',
   'languageHindi': 'हिन्दी (হিন্দি)',
 
-  // ----------------------------------------------------- quiz  translation --
-  'translateButton': 'অনুবাদ',
-  'translateShowOriginal': 'মূল দেখুন',
-  'translateTo': 'প্রশ্ন অনুবাদ করুন',
-  'translating': 'অনুবাদ হচ্ছে...',
-  'translateFailed': 'অনুবাদ করা গেল না। ইন্টারনেট সংযোগ দেখুন।',
-  'translateOffline': 'অনুবাদের জন্য ইন্টারনেট সংযোগ দরকার।',
-  'translatedBy': 'স্বয়ংক্রিয়ভাবে অনুবাদিত',
-  'translatePickLanguage': 'ভাষা বেছে নিন',
-  'translateSearchLanguage': 'ভাষা খুঁজুন',
-  'translateDefaultHint':
-      'প্রশ্নগুলো স্বয়ংক্রিয়ভাবে এই ভাষায় খুলবে।',
 
   // ---------------------------------------------------------------- dates --
   'month1': 'জানু',

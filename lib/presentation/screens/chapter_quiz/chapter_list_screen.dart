@@ -209,7 +209,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                   chapterId: chapter.chapterId,
                   categoryTitle: categoryName,
                   chapterTitle: chapter.title,
-                  chapterTitleBn: chapter.titleBn,
+                  chapterTitleBn: chapter.titleText.resolve('bn'),
                 );
                 Navigator.push(
                   context,
@@ -258,10 +258,10 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (chapter.titleBn != null) ...[
+                  if (chapter.titleSecondary != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      chapter.titleBn!,
+                      chapter.titleSecondary!,
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,

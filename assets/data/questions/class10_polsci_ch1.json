@@ -1,7 +1,10 @@
 {
   "chapter_id": "polsci_ch_01",
-  "chapter_title": "Power Sharing",
-  "chapter_title_bn": "ক্ষমতার বণ্টন",
+  "chapter_title": {
+    "en": "Power Sharing",
+    "bn": "ক্ষমতার বণ্টন",
+    "hi": "सत्ता की साझेदारी"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

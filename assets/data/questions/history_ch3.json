@@ -1,7 +1,10 @@
 {
   "chapter_id": "hist_ch_03",
-  "chapter_title": "The Making of a Global World",
-  "chapter_title_bn": "একটি বিশ্বব্যাপী বিশ্বের নির্মাণ",
+  "chapter_title": {
+    "en": "The Making of a Global World",
+    "bn": "একটি বিশ্বব্যাপী বিশ্বের নির্মাণ",
+    "hi": "भूमंडलीकृत विश्व का बनना"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

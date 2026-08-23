@@ -1,7 +1,10 @@
 {
   "chapter_id": "hist_ch_04",
-  "chapter_title": "Print Culture and the Modern World",
-  "chapter_title_bn": "মুদ্রণ সংস্কৃতি ও আধুনিক বিশ্ব",
+  "chapter_title": {
+    "en": "Print Culture and the Modern World",
+    "bn": "মুদ্রণ সংস্কৃতি ও আধুনিক বিশ্ব",
+    "hi": "मुद्रण संस्कृति और आधुनिक विश्व"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

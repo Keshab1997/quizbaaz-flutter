@@ -1,7 +1,10 @@
 {
   "chapter_id": "phys_ch_07",
-  "chapter_title": "Electricity",
-  "chapter_title_bn": "তড়িৎ",
+  "chapter_title": {
+    "en": "Electricity",
+    "bn": "তড়িৎ",
+    "hi": "विद्युत"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

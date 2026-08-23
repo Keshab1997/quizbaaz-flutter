@@ -72,6 +72,7 @@ One public class per file.
 | Never write to Firestore from a widget | Writes go through `SyncService` or a repository, so offline queuing still works |
 | Never invent placeholder/demo data in the UI | Empty state is the designed behaviour for a fresh install |
 | Never hardcode a user-facing string | It must be translatable — see §5 |
+| Never machine-translate quiz content at runtime | Terminology accuracy, offline use and rate limits — content ships pre-translated |
 | Never put `S.*` inside a `const` expression | `S.foo` is a runtime getter; `const Text(S.cancel)` does not compile. Drop the *outer* `const` only, then re-add it to the children the analyzer flags |
 | Never hardcode a colour | Use `AppColors`; the neon palette is a brand asset |
 | Never hardcode an asset path in a widget | Declare in `pubspec.yaml` **and** reference via `AppAssets` |
@@ -146,41 +147,58 @@ language code, so the whole tree rebuilds and every `S.*` is re-read.
 **Fonts:** `AppTheme.darkThemeFor(languageCode)` — Hind Siliguri for Bangla
 (Poppins has no Bengali glyphs), Poppins otherwise.
 
-### 5.2 Quiz content (machine-translated, 36+ languages)
+### 5.2 Quiz content (pre-translated, shipped in JSON)
 
-`TranslationService` caches every result in the Hive cache box for 90 days,
-de-duplicates in-flight requests, and returns the original text on any failure.
+Questions carry all three languages in the asset files — there is **no runtime
+translation**. An earlier build machine-translated questions on the device and
+it was the wrong trade for exam prep: unreliable subject terminology, a network
+dependency in areas with poor connectivity, and rate limits. Do not reintroduce
+it.
 
-**Never call a provider directly, and never `Future.wait` a large batch.** The
-free endpoints answer **429** to a burst, and one quiz is ~60 strings. All
-requests go through a single-worker queue inside the service that spaces them
-out, backs off exponentially, cools a provider down after repeated 429s, and
-falls through `google → mymemory` (or straight to Cloud Translation when a key
-is present). Use `TranslationService.warm()` for background prefetch and
-`translateAll()` only for the handful of strings the user is about to see.
+`LocalizedText` (`lib/data/models/localized_text.dart`) is the shared shape:
 
-For a Play Store release, supply an official key so rate limiting stops being a
-concern:
-
-```bash
-flutter build apk --dart-define=TRANSLATE_API_KEY=xxxxx
+```json
+"question": { "en": "…", "bn": "…", "hi": "…" }
+"question": "…"                                  // English-only shorthand
 ```
 
-- Render question text with **`TranslatableText`**, not `Text`.
-- Put **one** `QuizTranslateButton` in the screen's **AppBar** — never a control
-  per question card. Pass a `texts` callback returning every string the screen
-  can show; picking a language pre-translates the whole batch so later
-  questions render instantly instead of fetching mid-countdown.
-- Hide the authored `question_bn` line while a translation is active.
+`resolve(lang)` falls back `requested → en → any → ''`, so a half-translated
+chapter degrades instead of blanking.
 
----
+Models expose **both** forms, and the UI should use the plain one:
+
+```dart
+question.question            // String, in the current UI language
+question.options             // List<String>, current UI language
+question.questionIn('en')    // a specific language (admin preview, secondary line)
+```
+
+So a screen just writes `Text(question.question)` — no context, no provider
+lookup, no `TranslatableText`. Changing the app language rebuilds the tree and
+the getters re-resolve.
+
+Same pattern for `ChapterModel.title` / `.description` and
+`CategoryModel.categoryName`. `ChapterModel.titleSecondary` returns the English
+title when the UI is not in English, which is why chapter cards show both —
+board students revise in English terminology.
+
+**Authoring:** see `docs/10_QUESTION_AUTHORING_GUIDE.md`, which includes the
+AI prompt for generating a batch. Always finish with:
+
+```bash
+python3 tool/validate_questions.py
+```
 
 ## 6. Data & assets
 
-- Question banks: JSON under `assets/data/` — see
-  `docs/03_JSON_DATA_SCHEMAS.md` for the exact Category → Chapter → Question
-  schema. Fields already support a `_bn` variant (`chapter_title_bn`,
-  `question_bn`).
+- Question banks: JSON under `assets/data/`. Every translatable field is a
+  `{en, bn, hi}` map — see `docs/10_QUESTION_AUTHORING_GUIDE.md` for the schema,
+  the rules and the AI prompt, and `docs/03_JSON_DATA_SCHEMAS.md` for the wider
+  Category → Chapter → Question tree.
+- `chapters_list.json` and each chapter bank both carry the chapter title; they
+  must agree, and `total_questions` must match the real count. The validator
+  treats a mismatch as an error — a card promising 20 questions and delivering
+  3 is worse than a card that says 3.
 - Generate new chapter scaffolding with `tool/generate_chapters.py`.
 - `docs/01`…`docs/09` are the architecture blueprints. **Read the matching doc
   before touching that subsystem.** `ADMIN_TODO.md` tracks admin work.
@@ -199,6 +217,7 @@ flutter build web               # used for admin + GUI testing
 python3 tool/gen_strings.py     # regenerate S, report translation gaps
 python3 tool/verify_l10n.py     # unknown keys · const misuse · bracket damage
 python3 tool/apply_l10n.py      # migrate raw English literals to S.* (re-runnable)
+python3 tool/validate_questions.py   # question banks: schema, ids, translations
 
 # After removing `const` from an expression that gained an S.* getter, the
 # analyzer will flag the children that are still const-able. Feed the report

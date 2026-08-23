@@ -1,7 +1,10 @@
 {
   "chapter_id": "phys_ch_02",
-  "chapter_title": "Acids, Bases and Salts",
-  "chapter_title_bn": "অ্যাসিড, ক্ষার ও লবণ",
+  "chapter_title": {
+    "en": "Acids, Bases and Salts",
+    "bn": "অ্যাসিড, ক্ষার ও লবণ",
+    "hi": "अम्ल, क्षारक एवं लवण"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

@@ -3,21 +3,17 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../data/providers/locale_provider.dart';
-import '../../../data/services/translation_service.dart';
 import '../../../l10n/app_strings.dart';
 import '../../widgets/glass_card.dart';
-import '../../widgets/translatable_text.dart';
 
 /// Language settings.
 ///
-/// Two separate controls on purpose:
-///
-/// * **App language** — hand-translated UI. Only the three catalogues we ship
-///   appear here, because a machine-translated button label is a bad first
-///   impression on a store listing.
-/// * **Quiz language** — machine translation for question content, which can
-///   be any of ~36 languages. A learner can read the interface in English and
-///   the questions in Tamil, which is a very common real preference.
+/// A single choice drives the entire app: interface *and* quiz content, since
+/// questions ship pre-translated in the same three languages. Keeping it to
+/// one control is the point — an earlier build had a second "quiz language"
+/// backed by runtime machine translation, which meant the app could show a
+/// screen in one language and its question in another, and depended on the
+/// network to do it.
 class LanguageScreen extends StatelessWidget {
   const LanguageScreen({super.key});
 
@@ -93,86 +89,6 @@ class LanguageScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 26),
-
-            // ----------------------------------------------- quiz language --
-            _SectionLabel(S.languageQuizSection),
-            const SizedBox(height: 10),
-            GlassCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    S.translateDefaultHint,
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      height: 1.45,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => showLanguagePickerSheet(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 13),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        color: Colors.white.withValues(alpha: 0.05),
-                        border: Border.all(
-                          color: AppColors.neonCyan.withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.translate_rounded,
-                              size: 19, color: AppColors.neonCyan),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              localeProvider.quizLanguage == null
-                                  ? S.translateShowOriginal
-                                  : TranslationService.languageName(
-                                      localeProvider.quizLanguage!),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ),
-                          const Icon(Icons.expand_more_rounded,
-                              color: AppColors.textSecondary),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.info_outline_rounded,
-                          size: 14,
-                          color: AppColors.textSecondary
-                              .withValues(alpha: 0.75)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${S.translatedBy} · ${S.translateOffline}',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            height: 1.4,
-                            color: AppColors.textSecondary
-                                .withValues(alpha: 0.75),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),

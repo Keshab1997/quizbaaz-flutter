@@ -1,57 +1,10 @@
 {
   "chapter_id": "gk_ch_01",
-  "chapter_title": "World & India Superlatives, Discoveries & Awards",
-  "chapter_title_bn": "ভারত ও বিশ্বের প্রথম, আবিষ্কার ও নোবেল পুরস্কার",
-  "questions": [
-    {
-      "id": "gk_01",
-      "question": "Which is the longest river in the world?",
-      "question_bn": "বিশ্বের দীর্ঘতম নদী কোনটি?",
-      "options": ["Amazon River", "Nile River (নীলনদ)", "Yangtze River", "Ganga River"],
-      "correct_index": 1,
-      "explanation": "The Nile River in Africa is the longest river in the world, spanning about 6,650 km.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "gk_02",
-      "question": "Who was the first President of Independent India?",
-      "question_bn": "স্বাধীন ভারতের প্রথম রাষ্ট্রপতি কে ছিলেন?",
-      "options": ["Dr. Rajendra Prasad (ড. রাজেন্দ্র প্রসাদ)", "Dr. S. Radhakrishnan", "Jawaharlal Nehru", "Dr. B. R. Ambedkar"],
-      "correct_index": 0,
-      "explanation": "Dr. Rajendra Prasad served as the first President of the Republic of India from 1950 to 1962.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "gk_03",
-      "question": "Which layer of the atmosphere protects Earth from harmful ultraviolet (UV) radiation?",
-      "question_bn": "বায়ুমণ্ডলের কোন স্তর পৃথিবীকে ক্ষতিকারক অতিবেগুনি রশ্মি থেকে রক্ষা করে?",
-      "options": ["Troposphere", "Ozone Layer / Stratosphere (ওজোন স্তর)", "Mesosphere", "Thermosphere"],
-      "correct_index": 1,
-      "explanation": "The Ozone layer located in the stratosphere absorbs the majority of the Sun's harmful ultraviolet radiation.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "gk_04",
-      "question": "Which is the highest peak in the world?",
-      "question_bn": "বিশ্বের সর্বোচ্চ পর্বতশৃঙ্গ কোনটি?",
-      "options": ["K2 (Godwin Austen)", "Mount Everest (মাউন্ট এভারেস্ট)", "Kangchenjunga", "Makalu"],
-      "correct_index": 1,
-      "explanation": "Mount Everest is Earth's highest mountain above sea level, located in the Mahalangur Himal sub-range of the Himalayas (8,848.86 m).",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "gk_05",
-      "question": "Who was the architect and Chairman of the Drafting Committee of the Indian Constitution?",
-      "question_bn": "ভারতীয় সংবিধানের খসড়া কমিটির সভাপতি ও প্রধান রূপকার কে ছিলেন?",
-      "options": ["Dr. B. R. Ambedkar (ড. বি. আর. আম্বেদকর)", "Sardar Vallabhbhai Patel", "Mahatma Gandhi", "Jawaharlal Nehru"],
-      "correct_index": 0,
-      "explanation": "Dr. Bhimrao Ramji Ambedkar is recognized as the chief architect of the Constitution of India.",
-      "points": 10,
-      "time_limit_sec": 15
-    }
-  ]
+  "chapter_title": {
+    "en": "World & India Superlatives, Discoveries & Awards",
+    "bn": "বিশ্ব ও ভারত — সর্বাধিক, আবিষ্কার ও পুরস্কার",
+    "hi": "विश्व व भारत: सर्वोच्च तथ्य, खोजें और पुरस्कार"
+  },
+  "class_standard": "Class 10",
+  "questions": []
 }

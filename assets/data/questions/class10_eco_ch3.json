@@ -1,7 +1,10 @@
 {
   "chapter_id": "eco_ch_03",
-  "chapter_title": "Money and Credit",
-  "chapter_title_bn": "অর্থ ও ঋণ",
+  "chapter_title": {
+    "en": "Money and Credit",
+    "bn": "অর্থ ও ঋণ",
+    "hi": "मुद्रा और साख"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

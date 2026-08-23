@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../data/providers/locale_provider.dart';
+import '../../../data/models/question_model.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../widgets/glass_card.dart';
-import '../../widgets/translatable_text.dart';
 import '../quiz_result/quiz_result_screen.dart';
 import '../../../l10n/app_strings.dart';
 
@@ -75,9 +74,6 @@ class DailyQuizScreen extends StatelessWidget {
                 ],
               ),
             ),
-          // One-tap translation for the whole quiz.
-          QuizTranslateButton(texts: () => _allQuizTexts(quiz)),
-
           // Score
           Container(
             margin: const EdgeInsets.only(right: 16),
@@ -543,24 +539,11 @@ class DailyQuizScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  /// Every string the quiz will ever render, so one tap on the translate
-  /// button can warm the cache for the whole session instead of stalling on
-  /// each new question while the timer runs.
-  List<String> _allQuizTexts(QuizProvider quiz) {
-    final texts = <String>[];
-    for (final q in quiz.questions) {
-      texts.add(q.question);
-      texts.addAll(q.options);
-      if (q.explanation.isNotEmpty) texts.add(q.explanation);
-    }
-    return texts;
-  }
-
-  Widget _buildQuestionCard(BuildContext context, dynamic question) {
-    // When the player has picked a translation language, the authored Bangla
-    // line is redundant noise — the stem is already in their language — so it
-    // is only shown in the untranslated (original) mode.
-    final translating = context.watch<LocaleProvider>().quizLanguage != null;
+  Widget _buildQuestionCard(BuildContext context, QuestionModel question) {
+    // Board students revise in English terminology even when reading Bangla or
+    // Hindi, so the English stem stays visible as a secondary line. On an
+    // English UI it would just repeat itself, hence the null.
+    final secondary = S.code == 'en' ? null : question.questionIn('en');
 
     return GlassCard(
       borderRadius: 22,
@@ -570,7 +553,7 @@ class DailyQuizScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TranslatableText(
+          Text(
             question.question,
             style: const TextStyle(
               fontSize: 18,
@@ -579,10 +562,10 @@ class DailyQuizScreen extends StatelessWidget {
               height: 1.35,
             ),
           ),
-          if (question.questionBn != null && !translating) ...[
+          if (secondary != null && secondary != question.question) ...[
             const SizedBox(height: 8),
             Text(
-              question.questionBn!,
+              secondary,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -598,7 +581,7 @@ class DailyQuizScreen extends StatelessWidget {
   Widget _buildOptionButton(
     BuildContext context,
     QuizProvider quiz,
-    dynamic question,
+    QuestionModel question,
     int index,
   ) {
     final isDisabled = quiz.disabledOptionIndices.contains(index);
@@ -669,7 +652,7 @@ class DailyQuizScreen extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: TranslatableText(
+                child: Text(
                   question.options[index],
                   style: TextStyle(
                     fontSize: 15,

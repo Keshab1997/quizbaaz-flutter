@@ -1,7 +1,10 @@
 {
   "chapter_id": "bio_ch_02",
-  "chapter_title": "Control and Coordination",
-  "chapter_title_bn": "নিয়ন্ত্রণ ও সমন্বয়",
+  "chapter_title": {
+    "en": "Control and Coordination",
+    "bn": "নিয়ন্ত্রণ ও সমন্বয়",
+    "hi": "नियंत्रण एवं समन्वय"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

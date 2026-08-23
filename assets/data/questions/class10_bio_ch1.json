@@ -1,58 +1,10 @@
 {
   "chapter_id": "bio_ch_01",
-  "chapter_title": "Life Processes",
-  "chapter_title_bn": "জীবনের মৌলিক প্রক্রিয়া (Class 10 Board)",
+  "chapter_title": {
+    "en": "Life Processes",
+    "bn": "জীবন প্রক্রিয়া",
+    "hi": "जैव प्रक्रम"
+  },
   "class_standard": "Class 10",
-  "questions": [
-    {
-      "id": "c10_b1_01",
-      "question": "Which enzyme present in saliva breaks down starch into simple sugars?",
-      "question_bn": "লালারসে উপস্থিত কোন উৎসেচক শ্বেতসারকে সরল শর্করায় রূপান্তরিত করে?",
-      "options": ["Pepsin", "Salivary Amylase (Ptyalin)", "Trypsin", "Lipase"],
-      "correct_index": 1,
-      "explanation": "Salivary Amylase (Ptyalin) begins carbohydrate digestion in the mouth.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "c10_b1_02",
-      "question": "In human circulatory system, which blood vessel carries oxygenated blood from lungs to heart?",
-      "question_bn": "ফুসফুস থেকে হৃদপিণ্ডে অক্সিজেনযুক্ত রক্ত বহন করে কোন রক্তনালী?",
-      "options": ["Pulmonary Artery", "Pulmonary Vein (ফুসফুসীয় শিরা)", "Aorta", "Vena Cava"],
-      "correct_index": 1,
-      "explanation": "The Pulmonary Vein is the only vein in the human body that carries oxygen-rich blood.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "c10_b1_03",
-      "question": "What is the structural and functional unit of the human kidney?",
-      "question_bn": "বৃক্কের (Kidney) গঠনগত ও কার্যগত একক কোনটি?",
-      "options": ["Neuron", "Nephron (নেফ্রন)", "Alveoli", "Glomerulus"],
-      "correct_index": 1,
-      "explanation": "Nephrons filter blood, reabsorb vital nutrients, and form urine.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "c10_b1_04",
-      "question": "Which plant tissue is responsible for the upward transport of water and dissolved minerals?",
-      "question_bn": "উদ্ভিদদেহে জল ও দ্রবীভূত খনিজ লবণ ঊর্ধ্বমুখী পরিবহনে সাহায্য করে কোন কলা?",
-      "options": ["Phloem", "Xylem (জাইলেম কলা)", "Parenchyma", "Collenchyma"],
-      "correct_index": 1,
-      "explanation": "Xylem vessels conduct water from roots to leaves via transpiration pull.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "c10_b1_05",
-      "question": "Where does the Krebs cycle (aerobic cellular respiration) take place inside a cell?",
-      "question_bn": "কোষের কোথায় ক্রেবস চক্র (Krebs cycle) সংঘটিত হয়?",
-      "options": ["Cytoplasm", "Mitochondria (মাইটোকনড্রিয়া)", "Nucleus", "Ribosome"],
-      "correct_index": 1,
-      "explanation": "Krebs cycle occurs in the mitochondrial matrix to produce ATP energy molecules.",
-      "points": 10,
-      "time_limit_sec": 15
-    }
-  ]
+  "questions": []
 }

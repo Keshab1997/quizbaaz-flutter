@@ -300,25 +300,12 @@ const Map<String, String> kStringsEn = {
   'languageTitle': 'Language',
   'languageSubtitle': 'Choose the language for the app interface',
   'languageAppSection': 'APP LANGUAGE',
-  'languageQuizSection': 'QUIZ TRANSLATION',
   'languageSystemDefault': 'System default',
   'languageChanged': '✅ Language changed',
   'languageEnglish': 'English',
   'languageBengali': 'বাংলা (Bengali)',
   'languageHindi': 'हिन्दी (Hindi)',
 
-  // ----------------------------------------------------- quiz  translation --
-  'translateButton': 'Translate',
-  'translateShowOriginal': 'Show original',
-  'translateTo': 'Translate question to',
-  'translating': 'Translating...',
-  'translateFailed': 'Could not translate. Check your connection.',
-  'translateOffline': 'Translation needs an internet connection.',
-  'translatedBy': 'Translated automatically',
-  'translatePickLanguage': 'Pick a language',
-  'translateSearchLanguage': 'Search language',
-  'translateDefaultHint':
-      'Questions will open in this language automatically.',
 
   // ---------------------------------------------------------------- dates --
   'month1': 'Jan',

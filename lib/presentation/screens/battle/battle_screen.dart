@@ -6,10 +6,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/question_model.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/providers/battle_provider.dart';
-import '../../../data/providers/locale_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
-import '../../widgets/translatable_text.dart';
 import '../../widgets/neon_button.dart';
 import '../../widgets/cached_avatar.dart';
 import '../../../l10n/app_strings.dart';
@@ -17,16 +15,6 @@ import '../../../l10n/app_strings.dart';
 class BattleScreen extends StatelessWidget {
   const BattleScreen({super.key});
 
-  /// Every string the battle can show, so one tap translates the whole match.
-  List<String> _allBattleTexts(BattleProvider battle) {
-    final texts = <String>[];
-    for (final q in battle.questions) {
-      texts.add(q.question);
-      texts.addAll(q.options);
-      if (q.explanation.isNotEmpty) texts.add(q.explanation);
-    }
-    return texts;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +24,6 @@ class BattleScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('1 vs 1 Battle', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        actions: [
-          QuizTranslateButton(texts: () => _allBattleTexts(battle)),
-        ],
       ),
       body: switch (battle.phase) {
         BattlePhase.setup => const _SetupView(),
@@ -381,6 +366,9 @@ class _ArenaView extends StatelessWidget {
   }
 
   Widget _questionCard(BuildContext context, QuestionModel question) {
+    // English stays as a secondary line for terminology, as in the daily quiz.
+    final secondary = S.code == 'en' ? null : question.questionIn('en');
+
     return GlassCard(
       borderRadius: 20,
       borderColor: AppColors.neonPurple.withValues(alpha: 0.3),
@@ -389,15 +377,14 @@ class _ArenaView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TranslatableText(
+          Text(
             question.question,
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary, height: 1.35),
           ),
-          if (question.questionBn != null &&
-              context.watch<LocaleProvider>().quizLanguage == null) ...[
+          if (secondary != null && secondary != question.question) ...[
             const SizedBox(height: 8),
             Text(
-              question.questionBn!,
+              secondary,
               style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ],
@@ -459,7 +446,7 @@ class _ArenaView extends StatelessWidget {
               Icon(icon, size: 18, color: text),
               const SizedBox(width: 10),
               Expanded(
-                child: TranslatableText(
+                child: Text(
                   option,
                   style: TextStyle(
                     fontSize: 14,

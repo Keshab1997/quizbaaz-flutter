@@ -1,7 +1,10 @@
 {
   "chapter_id": "phys_ch_06",
-  "chapter_title": "The Human Eye and the Colourful World",
-  "chapter_title_bn": "মানব চোখ ও রঙিন জগৎ",
+  "chapter_title": {
+    "en": "The Human Eye and the Colourful World",
+    "bn": "মানব চোখ ও রঙিন জগৎ",
+    "hi": "मानव नेत्र तथा रंगबिरंगा संसार"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

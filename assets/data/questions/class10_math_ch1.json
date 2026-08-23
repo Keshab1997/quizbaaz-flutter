@@ -1,7 +1,10 @@
 {
   "chapter_id": "math_ch_01",
-  "chapter_title": "Real Numbers",
-  "chapter_title_bn": "বাস্তব সংখ্যা",
+  "chapter_title": {
+    "en": "Real Numbers",
+    "bn": "বাস্তব সংখ্যা",
+    "hi": "वास्तविक संख्याएँ"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

@@ -1,7 +1,10 @@
 {
   "chapter_id": "phys_ch_05",
-  "chapter_title": "Light — Reflection and Refraction",
-  "chapter_title_bn": "আলো — প্রতিফলন ও প্রতিসরণ",
+  "chapter_title": {
+    "en": "Light — Reflection and Refraction",
+    "bn": "আলো — প্রতিফলন ও প্রতিসরণ",
+    "hi": "प्रकाश — परावर्तन तथा अपवर्तन"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

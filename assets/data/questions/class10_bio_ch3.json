@@ -1,7 +1,10 @@
 {
   "chapter_id": "bio_ch_03",
-  "chapter_title": "How do Organisms Reproduce?",
-  "chapter_title_bn": "জীবের প্রজনন",
+  "chapter_title": {
+    "en": "How do Organisms Reproduce?",
+    "bn": "জীবের প্রজনন",
+    "hi": "जीव जनन कैसे करते हैं?"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

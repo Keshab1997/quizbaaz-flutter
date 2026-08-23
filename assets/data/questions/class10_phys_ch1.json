@@ -1,63 +1,10 @@
 {
   "chapter_id": "phys_ch_01",
-  "chapter_title": "Chemical Reactions & Equations",
-  "chapter_title_bn": "রাসায়নিক বিক্রিয়া ও সমীকরণ (Class 10 Board)",
+  "chapter_title": {
+    "en": "Chemical Reactions & Equations",
+    "bn": "রাসায়নিক বিক্রিয়া ও সমীকরণ",
+    "hi": "रासायनिक अभिक्रियाएँ एवं समीकरण"
+  },
   "class_standard": "Class 10",
-  "questions": [
-    {
-      "id": "c10_p1_01",
-      "question": "What is the chemical formula of rust on iron?",
-      "question_bn": "লোহায় মরিচা পড়ার রাসায়নিক সংকেত কোনটি?",
-      "options": ["Fe2O3.xH2O", "FeO", "Fe3O4", "Fe(OH)3"],
-      "correct_index": 0,
-      "explanation": "Rust is hydrated ferric oxide: Fe2O3.xH2O, formed by the reaction of iron with oxygen and moisture.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "c10_p1_02",
-      "question": "Which of the following is an example of an exothermic reaction?",
-      "question_bn": "নিচের কোনটি তাপমোচী (Exothermic) বিক্রিয়ার উদাহরণ?",
-      "options": ["Respiration (শ্বসন প্রক্রিয়া)", "Photosynthesis (সালোকসংশ্লেষ)", "Electrolysis of water", "Melting of ice"],
-      "correct_index": 0,
-      "explanation": "Respiration breaks down glucose in the presence of oxygen, releasing energy in the form of ATP.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "c10_p1_03",
-      "question": "What gas is produced when dilute hydrochloric acid reacts with zinc granules?",
-      "question_bn": "জিঙ্কের সাথে লঘু হাইড্রোক্লোরিক অ্যাসিডের বিক্রিয়ায় কোন গ্যাস উৎপন্ন হয়?",
-      "options": ["Oxygen (O2)", "Hydrogen (H2)", "Chlorine (Cl2)", "Carbon Dioxide (CO2)"],
-      "correct_index": 1,
-      "explanation": "Zn + 2HCl → ZnCl2 + H2 ↑ (Hydrogen gas burns with a pop sound).",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "c10_p1_04",
-      "question": "Which chemical equation represents a displacement reaction?",
-      "question_bn": "নিচের কোন সমীকরণটি প্রতিস্থাপন বিক্রিয়া (Displacement Reaction) প্রকাশ করে?",
-      "options": [
-        "Fe + CuSO4 → FeSO4 + Cu",
-        "2H2 + O2 → 2H2O",
-        "CaCO3 → CaO + CO2",
-        "NaCl + AgNO3 → AgCl + NaNO3"
-      ],
-      "correct_index": 0,
-      "explanation": "Iron (Fe) is more reactive than Copper (Cu), so it displaces copper from copper sulphate solution.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "c10_p1_05",
-      "question": "What substance is used to prevent rancidity in packaged potato chips?",
-      "question_bn": "আলুর চিপসের প্যাকেটে জারণ রোধে (Rancidity প্রতিরোধে) কোন গ্যাস ভরা থাকে?",
-      "options": ["Oxygen", "Nitrogen", "Carbon dioxide", "Helium"],
-      "correct_index": 1,
-      "explanation": "Nitrogen is an unreactive antioxidant gas that prevents fats and oils from oxidizing.",
-      "points": 10,
-      "time_limit_sec": 15
-    }
-  ]
+  "questions": []
 }

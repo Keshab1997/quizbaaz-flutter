@@ -1,7 +1,10 @@
 {
   "chapter_id": "hist_ch_01",
-  "chapter_title": "The Rise of Nationalism in Europe",
-  "chapter_title_bn": "ইউরোপে জাতীয়তাবাদের উত্থান",
+  "chapter_title": {
+    "en": "The Rise of Nationalism in Europe",
+    "bn": "ইউরোপে জাতীয়তাবাদের উত্থান",
+    "hi": "यूरोप में राष्ट्रवाद का उदय"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

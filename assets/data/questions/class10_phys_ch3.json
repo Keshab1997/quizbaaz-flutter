@@ -1,7 +1,10 @@
 {
   "chapter_id": "phys_ch_03",
-  "chapter_title": "Metals and Non-metals",
-  "chapter_title_bn": "ধাতু ও অধাতু",
+  "chapter_title": {
+    "en": "Metals and Non-metals",
+    "bn": "ধাতু ও অধাতু",
+    "hi": "धातु एवं अधातु"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

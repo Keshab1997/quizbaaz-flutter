@@ -1,82 +1,10 @@
 {
   "chapter_id": "hist_ch_02",
-  "chapter_title": "Nationalism in India",
-  "chapter_title_bn": "ভারতের স্বাধীনতা সংগ্রাম ও জাতীয় আন্দোলন",
-  "questions": [
-    {
-      "id": "hist_01",
-      "question": "In which year did the historic Revolt of 1857 (Sepoy Mutiny) start?",
-      "question_bn": "ঐতিহাসিক ১৮৫৭ সালের মহাবিদ্রোহ (সিপাহী বিদ্রোহ) কোন সালে শুরু হয়েছিল?",
-      "options": [
-        "1857",
-        "1757",
-        "1885",
-        "1905"
-      ],
-      "correct_index": 0,
-      "explanation": "The 1857 rebellion began on 10 May 1857 in Meerut and spread across northern and central India.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "hist_02",
-      "question": "Who founded the 'Azad Hind Fauj' (Indian National Army - INA) and gave the call 'Give me blood, and I will give you freedom'?",
-      "question_bn": "'তোমরা আমাকে রক্ত দাও, আমি তোমাদের স্বাধীনতা দেব' — এই বিখ্যাত স্লোগান কার?",
-      "options": [
-        "Bhagat Singh",
-        "Netaji Subhash Chandra Bose (নেতাজি সুভাষচন্দ্র বসু)",
-        "Chandrasekhar Azad",
-        "Bal Gangadhar Tilak"
-      ],
-      "correct_index": 1,
-      "explanation": "Netaji Subhash Chandra Bose reorganized the Indian National Army (INA) and inspired millions in the fight for freedom.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "hist_03",
-      "question": "In which year did the Partition of Bengal take place under Viceroy Lord Curzon?",
-      "question_bn": "লর্ড কার্জনের আমলে কোন বছর বঙ্গভঙ্গ কার্যকর হয়েছিল?",
-      "options": [
-        "1905",
-        "1911",
-        "1919",
-        "1947"
-      ],
-      "correct_index": 0,
-      "explanation": "The Partition of Bengal took effect on 16 October 1905, triggering the widespread Swadeshi Movement.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "hist_04",
-      "question": "Who was regarded as the 'Father of Indian Renaissance'?",
-      "question_bn": "কাকে 'ভারতীয় নবজাগরণের জনক' (Father of Indian Renaissance) বলা হয়?",
-      "options": [
-        "Raja Ram Mohan Roy (রাজা রামমোহন রায়)",
-        "Swami Vivekananda",
-        "Ishwar Chandra Vidyasagar",
-        "Rabindranath Tagore"
-      ],
-      "correct_index": 0,
-      "explanation": "Raja Ram Mohan Roy fought against social evils like Sati and promoted modern education and rationalism.",
-      "points": 10,
-      "time_limit_sec": 15
-    },
-    {
-      "id": "hist_05",
-      "question": "In which year did Mahatma Gandhi launch the historic 'Quit India Movement' (ভারত ছাড়ো আন্দোলন)?",
-      "question_bn": "মহাত্মা গান্ধী কোন সালে ঐতিহাসিক 'ভারত ছাড়ো আন্দোলন' শুরু করেছিলেন?",
-      "options": [
-        "1942",
-        "1930",
-        "1920",
-        "1947"
-      ],
-      "correct_index": 0,
-      "explanation": "The Quit India Movement was launched at the Bombay session of the All-India Congress Committee on 8 August 1942.",
-      "points": 10,
-      "time_limit_sec": 15
-    }
-  ]
+  "chapter_title": {
+    "en": "Nationalism in India",
+    "bn": "ভারতে জাতীয়তাবাদ",
+    "hi": "भारत में राष्ट्रवाद"
+  },
+  "class_standard": "Class 10",
+  "questions": []
 }

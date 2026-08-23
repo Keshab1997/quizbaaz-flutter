@@ -1,7 +1,10 @@
 {
   "chapter_id": "bio_ch_05",
-  "chapter_title": "Our Environment",
-  "chapter_title_bn": "আমাদের পরিবেশ",
+  "chapter_title": {
+    "en": "Our Environment",
+    "bn": "আমাদের পরিবেশ",
+    "hi": "हमारा पर्यावरण"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

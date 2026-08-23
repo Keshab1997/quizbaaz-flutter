@@ -1,7 +1,10 @@
 {
   "chapter_id": "phys_ch_04",
-  "chapter_title": "Carbon and its Compounds",
-  "chapter_title_bn": "কার্বন ও তার যৌগ",
+  "chapter_title": {
+    "en": "Carbon and its Compounds",
+    "bn": "কার্বন ও তার যৌগ",
+    "hi": "कार्बन एवं उसके यौगिक"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

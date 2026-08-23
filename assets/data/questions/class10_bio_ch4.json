@@ -1,7 +1,10 @@
 {
   "chapter_id": "bio_ch_04",
-  "chapter_title": "Heredity",
-  "chapter_title_bn": "বংশগতি",
+  "chapter_title": {
+    "en": "Heredity",
+    "bn": "বংশগতি",
+    "hi": "आनुवंशिकता"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

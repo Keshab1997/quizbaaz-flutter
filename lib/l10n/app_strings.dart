@@ -366,24 +366,11 @@ class S {
   static String get languageTitle => raw('languageTitle');
   static String get languageSubtitle => raw('languageSubtitle');
   static String get languageAppSection => raw('languageAppSection');
-  static String get languageQuizSection => raw('languageQuizSection');
   static String get languageSystemDefault => raw('languageSystemDefault');
   static String get languageChanged => raw('languageChanged');
   static String get languageEnglish => raw('languageEnglish');
   static String get languageBengali => raw('languageBengali');
   static String get languageHindi => raw('languageHindi');
-
-  // ---- quiz  translation
-  static String get translateButton => raw('translateButton');
-  static String get translateShowOriginal => raw('translateShowOriginal');
-  static String get translateTo => raw('translateTo');
-  static String get translating => raw('translating');
-  static String get translateFailed => raw('translateFailed');
-  static String get translateOffline => raw('translateOffline');
-  static String get translatedBy => raw('translatedBy');
-  static String get translatePickLanguage => raw('translatePickLanguage');
-  static String get translateSearchLanguage => raw('translateSearchLanguage');
-  static String get translateDefaultHint => raw('translateDefaultHint');
 
   // ---- dates
   static String get month1 => raw('month1');

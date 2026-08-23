@@ -32,10 +32,10 @@
    - Visitors can explore the dashboard and play trial quizzes immediately without forced registration, boosting user acquisition.
 7. **🛡️ Dynamic Admin Web Control Panel:**
    - Bulk JSON/Excel question uploader, Daily Quiz scheduler, Yesterday's Winner dispatcher, and Gift courier tracker.
-8. **🌍 Multi-Language Interface (English · বাংলা · हिन्दी):**
-   - The full UI is hand-translated into three languages, picked automatically from the device locale and switchable any time from **Profile → Settings → Language**. The choice is stored locally and survives a restart, and the app font swaps to Hind Siliguri for Bangla so no glyph is ever missing.
-9. **🌐 One-Tap Question Translation (36+ languages):**
-   - A **Translate** chip on every question card converts the question, all options and the explanation into any of 36+ languages on demand — Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Urdu, Arabic, Spanish and more. Translations are cached on-device forever, so each question costs one request once and then works offline. Interface language and question language are independent: read the app in English and the questions in Tamil if that is what helps.
+8. **🌍 Fully Trilingual (English · বাংলা · हिन्दी):**
+   - Interface *and* quiz content in three languages from one switch. Picked automatically from the device locale, changeable any time from **Profile → Settings → Language**, stored locally and kept across restarts. The font swaps to Hind Siliguri for Bangla so no glyph is ever missing.
+9. **📚 Trilingual Question Bank:**
+   - Every question, option and explanation is authored in all three languages and shipped inside the app — so it works with no network, opens instantly, and uses correct board terminology instead of a machine's guess. `tool/validate_questions.py` refuses to let an incomplete or inconsistent bank reach a build.
 
 ---
 
@@ -86,7 +86,6 @@ quizbaaz-flutter/
 * **Frontend Framework:** Flutter 3.x (Dart 3.x)
 * **State Management:** Provider / Riverpod
 * **Localisation:** `flutter_localizations` + hand-written catalogues in `lib/l10n/` (en, bn, hi)
-* **Machine Translation:** rate-limited request queue with provider fallback (keyless Google → MyMemory → Cloud Translation) and a 90-day on-device Hive cache. Supply `--dart-define=TRANSLATE_API_KEY=...` at build time for an official, un-throttled key.
 * **Typography:** Google Fonts (`Poppins` for en/hi, `Hind Siliguri` for bn)
 * **Visual Effects:** Custom Backdrop Filters, Dual Gradients, Box Shadows
 * **Animations:** Lottie, Custom Matrix4 Transformations

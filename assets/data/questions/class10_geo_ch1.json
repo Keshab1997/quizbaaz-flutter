@@ -1,7 +1,10 @@
 {
   "chapter_id": "geo_ch_01",
-  "chapter_title": "Resources and Development",
-  "chapter_title_bn": "সম্পদ ও উন্নয়ন",
+  "chapter_title": {
+    "en": "Resources and Development",
+    "bn": "সম্পদ ও উন্নয়ন",
+    "hi": "संसाधन एवं विकास"
+  },
   "class_standard": "Class 10",
   "questions": []
 }

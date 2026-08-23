@@ -2,10 +2,11 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
+import 'package:quizbaaz/data/models/localized_text.dart';
+import 'package:quizbaaz/data/models/question_model.dart';
 import 'package:quizbaaz/data/models/user_stats.dart';
 import 'package:quizbaaz/data/providers/locale_provider.dart';
 import 'package:quizbaaz/data/services/hive_service.dart';
-import 'package:quizbaaz/data/services/translation_service.dart';
 import 'package:quizbaaz/l10n/app_strings.dart';
 import 'package:quizbaaz/l10n/strings_bn.dart';
 import 'package:quizbaaz/l10n/strings_en.dart';
@@ -110,54 +111,6 @@ void main() {
       expect(restarted.followSystem, isTrue);
     });
 
-    test('translation short-circuits without touching the network', () async {
-      // Empty text, whitespace and same-language requests must never queue a
-      // request — these are the cases that used to burn the rate limit.
-      expect(await TranslationService.translate('', targetLanguage: 'bn'), '');
-      expect(
-        await TranslationService.translate('   ', targetLanguage: 'bn'),
-        '   ',
-      );
-      expect(
-        await TranslationService.translate('Water',
-            targetLanguage: 'en', sourceLanguage: 'en'),
-        'Water',
-      );
-      expect(TranslationService.pendingCount, 0);
-      expect(TranslationService.isBusy, isFalse);
-    });
-
-    test('cancelPending resolves queued work to the original text', () async {
-      final pending = TranslationService.translate(
-        'A string nobody has translated yet',
-        targetLanguage: 'ta',
-      );
-      expect(TranslationService.pendingCount, greaterThan(0));
-
-      TranslationService.cancelPending();
-      expect(await pending, 'A string nobody has translated yet');
-      expect(TranslationService.pendingCount, 0);
-    });
-
-    test('an untranslated string is not reported as cached', () {
-      expect(
-        TranslationService.isCached('Never seen before', 'ta'),
-        isFalse,
-      );
-    });
-
-    test('quiz translation language is independent of the UI language',
-        () async {
-      final provider = LocaleProvider()..initialize();
-      await provider.setAppLanguage('en');
-      await provider.setQuizLanguage('ta');
-
-      expect(provider.appLanguage, 'en');
-      expect(provider.quizLanguage, 'ta');
-
-      await provider.setQuizLanguage(null);
-      expect(provider.quizLanguage, isNull);
-    });
   });
 
   test('a fresh install starts with zeroed stats (no fake data)', () {
@@ -196,5 +149,89 @@ void main() {
 
     await HiveService.removePending(ops.first.key);
     expect(HiveService.pendingCount, 0);
+  });
+
+  group('localized quiz content', () {
+    tearDown(() => S.load('en'));
+
+    Map<String, dynamic> sampleQuestion() => {
+          'id': 'q1',
+          'question': {
+            'en': 'Which gas do plants absorb?',
+            'bn': 'গাছ কোন গ্যাস গ্রহণ করে?',
+            'hi': 'पौधे कौन सी गैस लेते हैं?',
+          },
+          'options': [
+            {'en': 'Oxygen', 'bn': 'অক্সিজেন', 'hi': 'ऑक्सीजन'},
+            {'en': 'Carbon dioxide', 'bn': 'কার্বন ডাইঅক্সাইড', 'hi': 'कार्बन डाइऑक्साइड'},
+          ],
+          'correct_index': 1,
+          'explanation': {'en': 'Photosynthesis uses CO2.'},
+          'points': 10,
+          'time_limit_sec': 15,
+        };
+
+    test('question text follows the app language', () {
+      final q = QuestionModel.fromJson(sampleQuestion());
+
+      S.load('en');
+      expect(q.question, 'Which gas do plants absorb?');
+      expect(q.options[1], 'Carbon dioxide');
+
+      S.load('bn');
+      expect(q.question, 'গাছ কোন গ্যাস গ্রহণ করে?');
+      expect(q.options[1], 'কার্বন ডাইঅক্সাইড');
+
+      S.load('hi');
+      expect(q.question, 'पौधे कौन सी गैस लेते हैं?');
+      expect(q.correctAnswer, 'कार्बन डाइऑक्साइड');
+    });
+
+    test('a missing language falls back to English, never to blank', () {
+      final q = QuestionModel.fromJson(sampleQuestion());
+
+      // The explanation was only authored in English.
+      S.load('bn');
+      expect(q.explanation, 'Photosynthesis uses CO2.');
+      S.load('hi');
+      expect(q.explanation, 'Photosynthesis uses CO2.');
+    });
+
+    test('a bare string is accepted as English-only shorthand', () {
+      final text = LocalizedText.fromJson('Plain English');
+      expect(text.resolve('bn'), 'Plain English');
+      expect(text.has('bn'), isFalse);
+      expect(text.has('en'), isTrue);
+    });
+
+    test('empty and null content resolve to an empty string', () {
+      expect(LocalizedText.fromJson(null).resolve('en'), '');
+      expect(LocalizedText.fromJson('').isEmpty, isTrue);
+      expect(LocalizedText.fromJson({'en': '   '}).isEmpty, isTrue);
+    });
+
+    test('translation completeness is reported per question', () {
+      final complete = QuestionModel.fromJson(sampleQuestion());
+      expect(complete.isFullyTranslated, isTrue);
+      expect(complete.missingLanguages, isEmpty);
+
+      final partial = QuestionModel.fromJson({
+        ...sampleQuestion(),
+        'question': {'en': 'Only English here'},
+      });
+      expect(partial.isFullyTranslated, isFalse);
+      expect(partial.missingLanguages, containsAll(<String>['bn', 'hi']));
+    });
+
+    test('toJson round-trips every language, not just the visible one', () {
+      final original = QuestionModel.fromJson(sampleQuestion());
+      final restored = QuestionModel.fromJson(original.toJson());
+
+      S.load('hi');
+      expect(restored.question, original.question);
+      expect(restored.options, original.options);
+      expect(restored.correctIndex, 1);
+      expect(restored.isFullyTranslated, isTrue);
+    });
   });
 }
