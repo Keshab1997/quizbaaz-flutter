@@ -8,6 +8,7 @@ import '../models/question_model.dart';
 import '../models/shop_item.dart';
 import '../repositories/quiz_repository.dart';
 import 'user_provider.dart';
+import '../../l10n/app_strings.dart';
 
 /// Drives a quiz run. All timings and reward amounts come from
 /// [UserProvider.config] (Hive/Firestore), never from magic numbers here.
@@ -18,6 +19,18 @@ class QuizProvider extends ChangeNotifier {
   QuizProvider(this._userProvider);
 
   List<QuestionModel> _questions = [];
+
+  /// One generator for the whole session, so option order is unpredictable
+  /// but reproducible within a run when seeded in tests.
+  final Random _rng = Random();
+
+  /// Language the *questions* are shown in, independent of the app language.
+  ///
+  /// A Bengali student often wants the stem in Bangla but the technical terms
+  /// in English, and switching the whole app mid-quiz would rebuild the tree
+  /// and lose the run. So this is a view toggle over content that already
+  /// ships in all three languages — nothing is translated at runtime.
+  String? _displayLanguage;
   int _currentIndex = 0;
   int _score = 0;
   int _correctCount = 0;
@@ -141,7 +154,7 @@ class QuizProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    _questions = await _repository.getDailyQuizQuestions();
+    _questions = _shuffleOptions(await _repository.getDailyQuizQuestions());
     _isLoading = false;
 
     // Check for active boosters
@@ -172,16 +185,38 @@ class QuizProvider extends ChangeNotifier {
 
     // Pass the chapter id so admin-authored questions are merged in — without
     // it the repository can only see the bundled asset bank.
-    _questions = await _repository.getChapterQuestions(
+    _questions = _shuffleOptions(await _repository.getChapterQuestions(
       jsonFilePath,
       chapterId: chapterId,
-    );
+    ));
     _isLoading = false;
 
     // Check for active boosters
     _checkActiveBoosters();
 
     if (_questions.isNotEmpty) _startTimer();
+    notifyListeners();
+  }
+
+  /// Language the question text is currently rendered in.
+  String get displayLanguage => _displayLanguage ?? S.code;
+
+  /// True when the player has overridden the app language for this quiz.
+  bool get isLanguageOverridden => _displayLanguage != null;
+
+  /// Languages the current question actually carries, so the picker never
+  /// offers a tab that would silently fall back to English.
+  List<String> get availableLanguages {
+    final question = currentQuestion;
+    if (question == null) return const [];
+    return kSupportedLanguageCodes
+        .where((code) => question.questionText.has(code))
+        .toList();
+  }
+
+  void setDisplayLanguage(String code) {
+    if (_displayLanguage == code) return;
+    _displayLanguage = code;
     notifyListeners();
   }
 
@@ -194,8 +229,19 @@ class QuizProvider extends ChangeNotifier {
     _extraLifeAvailable = _userProvider.hasItem(ShopItemIds.extraLife);
   }
 
+  /// Randomises option order once per load.
+  ///
+  /// Done here rather than in the widget: a shuffle inside build() would
+  /// re-roll on every rebuild — every tick of the countdown — and the options
+  /// would move while the player is reading them.
+  List<QuestionModel> _shuffleOptions(List<QuestionModel> questions) =>
+      [for (final question in questions) question.withShuffledOptions(_rng)];
+
   void _resetQuizState() {
     _timer?.cancel();
+    // Each quiz starts in the app language; a peek at another language is a
+    // per-run decision, not a hidden setting that quietly persists.
+    _displayLanguage = null;
     _currentIndex = 0;
     _score = 0;
     _correctCount = 0;
@@ -511,7 +557,10 @@ class QuizProvider extends ChangeNotifier {
 
     // Generate hint from the correct answer
     final correctIndex = currentQuestion!.correctIndex;
-    final correctAnswer = currentQuestion!.options[correctIndex];
+    // Follows the displayed language: a Bangla quiz must not reveal a hint
+    // built from the English wording.
+    final correctAnswer =
+        currentQuestion!.optionsIn(displayLanguage)[correctIndex];
     _currentHint = _generateHint(correctAnswer);
 
     notifyListeners();

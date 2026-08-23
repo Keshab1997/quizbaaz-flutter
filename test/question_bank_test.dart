@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quizbaaz/data/models/localized_text.dart';
 import 'package:quizbaaz/data/models/question_model.dart';
@@ -304,6 +306,95 @@ void main() {
       expect(results[0].isAcceptable, isTrue);
       expect(results[1].isAcceptable, isFalse,
           reason: 'the second copy must be caught within the same batch');
+    });
+  });
+
+  group('option shuffling', () {
+    test('the correct answer moves with its option', () {
+      final original = buildQuestion();
+      final answerBefore = original.optionTexts[original.correctIndex];
+
+      // Every seed must keep the marked answer pointing at the same text.
+      for (var seed = 0; seed < 50; seed++) {
+        final shuffled = original.withShuffledOptions(Random(seed));
+        expect(
+          shuffled.optionTexts[shuffled.correctIndex].resolve('en'),
+          answerBefore.resolve('en'),
+          reason: 'seed $seed moved the answer but not the index',
+        );
+      }
+    });
+
+    test('all options survive, none duplicated or lost', () {
+      final original = buildQuestion();
+      final shuffled = original.withShuffledOptions(Random(7));
+
+      final before =
+          original.optionTexts.map((o) => o.resolve('en')).toSet();
+      final after = shuffled.optionTexts.map((o) => o.resolve('en')).toSet();
+
+      expect(after, before);
+      expect(shuffled.optionTexts, hasLength(original.optionTexts.length));
+    });
+
+    test('every language is permuted the same way', () {
+      // If en and bn were shuffled independently, option B in Bangla would be
+      // a different answer than option B in English.
+      final original = buildQuestion();
+      final shuffled = original.withShuffledOptions(Random(3));
+
+      for (var i = 0; i < shuffled.optionTexts.length; i++) {
+        final english = shuffled.optionsIn('en')[i];
+        final originalPosition = original.optionsIn('en').indexOf(english);
+        expect(shuffled.optionsIn('bn')[i],
+            original.optionsIn('bn')[originalPosition]);
+        expect(shuffled.optionsIn('hi')[i],
+            original.optionsIn('hi')[originalPosition]);
+      }
+    });
+
+    test('the answer does not sit in one place across many questions', () {
+      // The point of shuffling: a student must not be able to learn "it is
+      // usually B". With 200 four-option questions, no position should hold
+      // more than ~40% of the answers.
+      final rng = Random(42);
+      final positions = <int, int>{};
+      for (var i = 0; i < 200; i++) {
+        final shuffled = buildQuestion().withShuffledOptions(rng);
+        positions[shuffled.correctIndex] =
+            (positions[shuffled.correctIndex] ?? 0) + 1;
+      }
+
+      expect(positions.keys.length, 4, reason: 'every slot should be used');
+      for (final count in positions.values) {
+        expect(count, lessThan(80));
+        expect(count, greaterThan(20));
+      }
+    });
+
+    test('a single-option question is returned untouched', () {
+      final single = buildQuestion(
+        options: const [
+          {'en': 'Only', 'bn': 'একমাত্র', 'hi': 'केवल'},
+        ],
+        correctIndex: 0,
+      );
+      final shuffled = single.withShuffledOptions(Random(1));
+      expect(shuffled.correctIndex, 0);
+      expect(shuffled.optionTexts, hasLength(1));
+    });
+
+    test('shuffling does not disturb the rest of the question', () {
+      final original = buildQuestion();
+      final shuffled = original.withShuffledOptions(Random(11));
+
+      expect(shuffled.id, original.id);
+      expect(shuffled.questionText.resolve('bn'),
+          original.questionText.resolve('bn'));
+      expect(shuffled.explanationText.resolve('hi'),
+          original.explanationText.resolve('hi'));
+      expect(shuffled.points, original.points);
+      expect(shuffled.timeLimitSec, original.timeLimitSec);
     });
   });
 

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../../l10n/app_strings.dart';
 import 'localized_text.dart';
 
@@ -109,6 +111,34 @@ class QuestionModel {
           !questionText.has(code) ||
           optionTexts.any((option) => !option.has(code)))
       .toList();
+
+  /// A copy with the options in a random order and [correctIndex] moved to
+  /// follow the answer.
+  ///
+  /// Authors write the correct option wherever it falls naturally — and with
+  /// AI-generated batches it lands on the same position far more often than
+  /// chance. A student who notices that stops reading the options and just
+  /// taps B, which is the opposite of practising.
+  ///
+  /// Shuffled **once when the quiz loads**, never during build: re-rolling on
+  /// every rebuild would make the options jump under the player's finger.
+  QuestionModel withShuffledOptions([Random? random]) {
+    if (optionTexts.length < 2) return this;
+
+    final rng = random ?? Random();
+    final order = List<int>.generate(optionTexts.length, (i) => i)..shuffle(rng);
+
+    return QuestionModel(
+      id: id,
+      questionText: questionText,
+      optionTexts: [for (final index in order) optionTexts[index]],
+      // Where the correct option ended up after the permutation.
+      correctIndex: order.indexOf(correctIndex),
+      explanationText: explanationText,
+      points: points,
+      timeLimitSec: timeLimitSec,
+    );
+  }
 
   // ------------------------------------------------------------------ json --
 

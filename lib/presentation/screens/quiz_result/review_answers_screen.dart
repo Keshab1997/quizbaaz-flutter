@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/answer_record.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/quiz_language_pills.dart';
 import '../../../l10n/app_strings.dart';
 
 /// Shows every question of the finished quiz with the player's answer,
@@ -25,6 +26,13 @@ class ReviewAnswersScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(S.reviewTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        actions: [
+          QuizLanguagePills(
+            available: quiz.availableLanguages,
+            selected: quiz.displayLanguage,
+            onSelected: quiz.setDisplayLanguage,
+          ),
+        ],
       ),
       body: records.isEmpty
           ? Center(
@@ -98,6 +106,9 @@ class _QuestionReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final q = record.question;
+    // Follows the pills in the app bar, so review reads in the same language
+    // the player answered in.
+    final language = context.watch<QuizProvider>().displayLanguage;
 
     return GlassCard(
       borderRadius: 18,
@@ -120,7 +131,7 @@ class _QuestionReviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            q.question,
+            q.questionIn(language),
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
@@ -128,7 +139,8 @@ class _QuestionReviewCard extends StatelessWidget {
               height: 1.35,
             ),
           ),
-          if (S.code != 'en' && q.questionIn('en') != q.question) ...[
+          if (language != 'en' &&
+              q.questionIn('en') != q.questionIn(language)) ...[
             const SizedBox(height: 6),
             Text(
               q.questionIn('en'),
@@ -136,14 +148,13 @@ class _QuestionReviewCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 12),
-          ...q.options.asMap().entries.map((entry) {
-            final i = entry.key;
+          ...q.optionsIn(language).asMap().entries.map((entry) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: _buildOption(i, q.options[i]),
+              child: _buildOption(entry.key, entry.value),
             );
           }),
-          if (q.explanation.isNotEmpty) ...[
+          if (q.explanationIn(language).isNotEmpty) ...[
             const SizedBox(height: 4),
             Container(
               width: double.infinity,
@@ -166,7 +177,7 @@ class _QuestionReviewCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    q.explanation,
+                    q.explanationIn(language),
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textPrimary,

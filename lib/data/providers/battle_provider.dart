@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../models/question_model.dart';
 import '../repositories/quiz_repository.dart';
 import 'user_provider.dart';
+import '../../l10n/app_strings.dart';
 
 enum BattleDifficulty { easy, normal, hard }
 
@@ -71,9 +72,28 @@ class BattleProvider extends ChangeNotifier {
   int get currentIndex => _currentIndex;
   int get totalQuestions => _questions.length;
 
-  /// Read-only view of the match questions, used by the translate button to
-  /// warm the translation cache for the whole battle in one pass.
+  /// Read-only view of the match questions.
   List<QuestionModel> get questions => List.unmodifiable(_questions);
+
+  /// Language the questions are rendered in, independent of the app language.
+  String? _displayLanguage;
+
+  String get displayLanguage => _displayLanguage ?? S.code;
+
+  /// Languages the current question actually carries.
+  List<String> get availableLanguages {
+    final question = currentQuestion;
+    if (question == null) return const [];
+    return kSupportedLanguageCodes
+        .where((code) => question.questionText.has(code))
+        .toList();
+  }
+
+  void setDisplayLanguage(String code) {
+    if (_displayLanguage == code) return;
+    _displayLanguage = code;
+    notifyListeners();
+  }
   int get playerScore => _playerScore;
   int get botScore => _botScore;
   int get playerCorrect => _playerCorrect;
@@ -157,7 +177,12 @@ class BattleProvider extends ChangeNotifier {
     _difficulty = difficulty;
     _botName = _randomBotName();
 
-    _questions = await _repository.getDailyQuizQuestions();
+    _questions = [
+      for (final question in await _repository.getDailyQuizQuestions())
+        // Same reason as the daily quiz: a fixed answer position teaches
+        // pattern-matching instead of the subject.
+        question.withShuffledOptions(_rng),
+    ];
     _questions.shuffle(_rng);
     if (_questions.length > _battleQuestionCount) {
       _questions = _questions.sublist(0, _battleQuestionCount);

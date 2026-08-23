@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/question_model.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/quiz_language_pills.dart';
 import '../quiz_result/quiz_result_screen.dart';
 import '../../../l10n/app_strings.dart';
 
@@ -74,6 +75,13 @@ class DailyQuizScreen extends StatelessWidget {
                 ],
               ),
             ),
+          // Read the question in another language without leaving the quiz.
+          QuizLanguagePills(
+            available: quiz.availableLanguages,
+            selected: quiz.displayLanguage,
+            onSelected: quiz.setDisplayLanguage,
+          ),
+
           // Score
           Container(
             margin: const EdgeInsets.only(right: 16),
@@ -540,10 +548,13 @@ class DailyQuizScreen extends StatelessWidget {
   }
 
   Widget _buildQuestionCard(BuildContext context, QuestionModel question) {
+    final language = context.watch<QuizProvider>().displayLanguage;
+
     // Board students revise in English terminology even when reading Bangla or
-    // Hindi, so the English stem stays visible as a secondary line. On an
-    // English UI it would just repeat itself, hence the null.
-    final secondary = S.code == 'en' ? null : question.questionIn('en');
+    // Hindi, so the English stem stays visible as a secondary line. Reading in
+    // English already, it would just repeat itself.
+    final primary = question.questionIn(language);
+    final secondary = language == 'en' ? null : question.questionIn('en');
 
     return GlassCard(
       borderRadius: 22,
@@ -554,7 +565,7 @@ class DailyQuizScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            question.question,
+            primary,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -562,7 +573,7 @@ class DailyQuizScreen extends StatelessWidget {
               height: 1.35,
             ),
           ),
-          if (secondary != null && secondary != question.question) ...[
+          if (secondary != null && secondary != primary) ...[
             const SizedBox(height: 8),
             Text(
               secondary,
@@ -653,7 +664,7 @@ class DailyQuizScreen extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
-                  question.options[index],
+                  question.optionsIn(quiz.displayLanguage)[index],
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

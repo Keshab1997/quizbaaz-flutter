@@ -8,6 +8,7 @@ import '../../../data/models/user_model.dart';
 import '../../../data/providers/battle_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/quiz_language_pills.dart';
 import '../../widgets/neon_button.dart';
 import '../../widgets/cached_avatar.dart';
 import '../../../l10n/app_strings.dart';
@@ -24,6 +25,13 @@ class BattleScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('1 vs 1 Battle', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        actions: [
+          QuizLanguagePills(
+            available: battle.availableLanguages,
+            selected: battle.displayLanguage,
+            onSelected: battle.setDisplayLanguage,
+          ),
+        ],
       ),
       body: switch (battle.phase) {
         BattlePhase.setup => const _SetupView(),
@@ -275,7 +283,11 @@ class _ArenaView extends StatelessWidget {
         _questionCard(context, question),
         const SizedBox(height: 16),
 
-        ...question.options.asMap().entries.map((e) => _optionTile(battle, e.key, e.value)),
+        ...question
+            .optionsIn(battle.displayLanguage)
+            .asMap()
+            .entries
+            .map((e) => _optionTile(battle, e.key, e.value)),
 
         const SizedBox(height: 12),
         _statusRow(battle),
@@ -366,8 +378,10 @@ class _ArenaView extends StatelessWidget {
   }
 
   Widget _questionCard(BuildContext context, QuestionModel question) {
+    final language = context.watch<BattleProvider>().displayLanguage;
+    final primary = question.questionIn(language);
     // English stays as a secondary line for terminology, as in the daily quiz.
-    final secondary = S.code == 'en' ? null : question.questionIn('en');
+    final secondary = language == 'en' ? null : question.questionIn('en');
 
     return GlassCard(
       borderRadius: 20,
@@ -378,10 +392,10 @@ class _ArenaView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            question.question,
+            primary,
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary, height: 1.35),
           ),
-          if (secondary != null && secondary != question.question) ...[
+          if (secondary != null && secondary != primary) ...[
             const SizedBox(height: 8),
             Text(
               secondary,
