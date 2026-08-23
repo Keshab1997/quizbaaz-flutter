@@ -263,19 +263,19 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
   }
 
   Widget _emptyState() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 60),
+    return const Padding(
+      padding: EdgeInsets.only(top: 60),
       child: Column(
         children: [
-          const Icon(Icons.quiz_outlined, size: 46, color: AppColors.textMuted),
-          const SizedBox(height: 14),
-          const Text('No questions in this chapter yet',
+          Icon(Icons.quiz_outlined, size: 46, color: AppColors.textMuted),
+          SizedBox(height: 14),
+          Text('No questions in this chapter yet',
               style: TextStyle(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w700,
                   color: Colors.white)),
-          const SizedBox(height: 6),
-          const Padding(
+          SizedBox(height: 6),
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 40),
             child: Text(
               'Add one by hand, or generate a batch and review it before saving.',

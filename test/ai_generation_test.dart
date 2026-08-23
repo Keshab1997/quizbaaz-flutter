@@ -112,11 +112,11 @@ void main() {
   });
 
   group('the validator catches what the parser lets through', () {
-    ChapterModel chapter() => ChapterModel(
+    ChapterModel chapter() => const ChapterModel(
           chapterId: 'math_ch_01',
           chapterNumber: 1,
-          titleText: const LocalizedText({'en': 'Real Numbers'}),
-          descriptionText: const LocalizedText.empty(),
+          titleText: LocalizedText({'en': 'Real Numbers'}),
+          descriptionText: LocalizedText.empty(),
           totalQuestions: 0,
           jsonFile: 'assets/data/questions/class10_math_ch1.json',
           isUnlocked: true,

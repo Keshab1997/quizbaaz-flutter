@@ -24,7 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-POS = re.compile(r'(lib/[\w/]+\.dart):(\d+):(\d+)')
+POS = re.compile(r'((?:lib|test|tool)/[\w/]+\.dart):(\d+):(\d+)')
 
 
 def match_bracket(src, i):
@@ -64,8 +64,10 @@ def skip_string(src, i):
 
 
 def expr_end(src, i):
-    """End index of the constructor invocation starting at `i`."""
+    """End index of the constructor invocation or literal starting at `i`."""
     n = len(src)
+    if i < n and src[i] in '([{':
+        return match_bracket(src, i)
     m = re.match(r'[A-Za-z_$][\w$]*(\s*\.\s*[A-Za-z_$][\w$]*)*', src[i:])
     if not m:
         return None
@@ -140,8 +142,11 @@ def main(argv):
                 continue
             if line[at:at + 6] == 'const ':
                 continue
-            if not re.match(r'[A-Za-z_$]', line[at:at + 1] or ' '):
-                print(f'  ?? {rel}:{line_no}:{col} does not start an identifier')
+            # A constructor name, or a collection literal for
+            # prefer_const_literals_to_create_immutables.
+            if not re.match(r'[A-Za-z_$\[{]', line[at:at + 1] or ' '):
+                print(f'  ?? {rel}:{line_no}:{col} is neither an identifier '
+                      f'nor a literal')
                 skipped += 1
                 continue
             # Guard: never const-ify an expression containing a runtime getter.

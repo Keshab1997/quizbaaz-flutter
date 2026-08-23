@@ -462,7 +462,9 @@ class AiQuestionGenerator {
   /// Tolerant on purpose: models wrap JSON in ```json fences, prepend "Here
   /// are your questions:", or return a single object instead of an array.
   /// None of that is worth burning a retry on.
-  @visibleForTesting
+  ///
+  /// Private, with the top-level [parseGeneratedQuestions] as the tested
+  /// entry point — `@visibleForTesting` is meaningless on a private member.
   static List<QuestionModel> _parseQuestions(String raw) {
     final cleaned = _stripFence(raw);
 
