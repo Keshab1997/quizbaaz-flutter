@@ -97,6 +97,24 @@ def strip_nested_const(src):
             return src
 
 
+def utf16_col_to_index(line, col):
+    """Converts a 1-based analyzer column to a Python string index.
+
+    The Dart analyzer counts UTF-16 code units; Python counts code points. Any
+    character outside the BMP — every emoji in this codebase — is two units to
+    Dart and one to Python, so a naive `col - 1` lands mid-identifier on every
+    line containing one. That is how `DropdownMenuItem` once became
+    `Dconst ropdownMenuItem`.
+    """
+    target = col - 1
+    units = 0
+    for index, char in enumerate(line):
+        if units == target:
+            return index
+        units += 2 if ord(char) > 0xFFFF else 1
+    return len(line) if units == target else None
+
+
 def main(argv):
     if len(argv) < 2:
         print(__doc__)
@@ -115,7 +133,11 @@ def main(argv):
         # Descending order so earlier insertions never shift later offsets.
         for line_no, col in sorted(set(positions), reverse=True):
             line = lines[line_no - 1]
-            at = col - 1
+            at = utf16_col_to_index(line, col)
+            if at is None:
+                print(f'  ?? {rel}:{line_no}:{col} column is past end of line')
+                skipped += 1
+                continue
             if line[at:at + 6] == 'const ':
                 continue
             if not re.match(r'[A-Za-z_$]', line[at:at + 1] or ' '):
