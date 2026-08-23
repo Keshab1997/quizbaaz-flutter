@@ -30,7 +30,7 @@ removes what is already there.
 - [x] T0.2 API audit against Firestore 6.x — only long-stable surface is used
 - [x] T0.3 Add the git dependency to QuizBaaz, confirm `flutter pub get`
 
-### Phase B — storage + the append guarantee
+### Phase B — storage + the append guarantee ✅
 - [x] T1.1 `QuestionBankService` — Firestore CRUD, batched writes, counters
 - [x] T1.2 `QuizRepository` merges asset + Firestore banks, dedupes by id
 - [x] T1.3 Hive cache of the merged bank, invalidated on admin write
@@ -42,15 +42,15 @@ removes what is already there.
 - [x] T2.5 Test: 40 questions + generate 10 = 50, never 10
 
 ### Phase C — manual admin CRUD (useful on its own)
-- [ ] T5.8 `TrilingualField` widget — EN/BN/HI tabs, filled-dot indicators
+- [x] T5.8 `TrilingualField` widget — EN/BN/HI tabs, filled-dot indicators
 - [ ] T5.9 Per-field "Translate" action (authoring-time only)
-- [ ] T5.1 Chapter Manager — subject → chapter tree with counts and coverage
-- [ ] T5.2 Add/edit chapter sheet (trilingual)
-- [ ] T5.3 Add/edit subject sheet (trilingual)
+- [x] T5.1 Chapter Manager — subject → chapter tree with counts and coverage
+- [x] T5.2 Add/edit chapter sheet (trilingual)
+- [x] T5.3 Add/edit subject sheet (trilingual)
 - [ ] T5.4 Reorder chapters
-- [ ] T5.5 Question Manager — list, search, filters
-- [ ] T5.6 Manual add/edit question form with live validation
-- [ ] T5.7 Delete single question, with confirm + audit log
+- [x] T5.5 Question Manager — list, search, filters
+- [x] T5.6 Manual add/edit question form with live validation
+- [x] T5.7 Delete single question, with confirm + audit log
 
 ### Phase D — generation
 - [ ] T3.1 `QuestionPromptBuilder` — chapter context + existing stems + strict schema
@@ -68,8 +68,8 @@ removes what is already there.
 - [ ] T5.10 Generation review screen — per-question status, edit, drop
 - [ ] T5.11 Approve-selected → batched append + audit log
 - [ ] T5.12 "47 → 55 questions" banner + Undo
-- [ ] T5.13 Dashboard tiles: Chapter Manager, Question Bank, API Keys
-- [ ] T5.14 Mount `AdminApiKeysScreen` behind the admin gate
+- [x] T5.13 Dashboard tiles: Chapter Manager, Question Bank, API Keys
+- [x] T5.14 Mount `AdminApiKeysScreen` behind the admin gate
 
 ### Phase F — polish
 - [ ] T6.1 Admin generator strings into `strings_en/bn/hi.dart`

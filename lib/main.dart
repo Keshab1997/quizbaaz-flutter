@@ -1,3 +1,4 @@
+import 'package:admin_api_key_manager/admin_api_key_manager.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -38,7 +39,17 @@ Future<void> main() async {
     debugPrint('Firebase not configured yet: $e');
   }
 
-  // 3) Replay anything queued while the app was offline, then refresh config.
+  // 3) LLM key pool for the admin question generator. It needs Firestore, so
+  //     it comes after Firebase; it is admin-only, so a failure here must not
+  //     stop the app for a student.
+  try {
+    await KeyCache.init();
+    ApiKeyManager.instance.initialize();
+  } catch (e) {
+    debugPrint('API key manager unavailable: $e');
+  }
+
+  // 4) Replay anything queued while the app was offline, then refresh config.
   unawaitedSync();
 
   runApp(QuizBaazApp(localeProvider: localeProvider));

@@ -7,6 +7,7 @@ import '../../core/constants/app_assets.dart';
 import '../models/chapter_model.dart';
 import '../models/question_model.dart';
 import '../services/hive_service.dart';
+import '../services/chapter_catalog_service.dart';
 import '../services/question_bank_service.dart';
 
 /// Question-bank access.
@@ -31,10 +32,14 @@ import '../services/question_bank_service.dart';
 /// Nothing here invents placeholder questions: an unavailable bank returns an
 /// empty list and the UI shows an empty state.
 class QuizRepository {
-  QuizRepository({QuestionBankService? bankService})
-      : _bankService = bankService ?? QuestionBankService();
+  QuizRepository({
+    QuestionBankService? bankService,
+    ChapterCatalogService? catalogService,
+  })  : _bankService = bankService ?? QuestionBankService(),
+        _catalogService = catalogService ?? ChapterCatalogService();
 
   final QuestionBankService _bankService;
+  final ChapterCatalogService _catalogService;
 
   static const _dailyCacheTtl = Duration(hours: 12);
 
@@ -59,18 +64,40 @@ class QuizRepository {
     return rows.map(QuestionModel.fromJson).toList();
   }
 
-  /// Chapter/category tree — Hive cache first.
-  Future<List<CategoryModel>> getCategoriesAndChapters() async {
-    final cached = HiveService.cacheGetList(HiveService.cacheChapters);
-    if (cached.isNotEmpty) {
-      return cached.map(CategoryModel.fromJson).toList();
+  /// Chapter/category tree: bundled catalogue merged with admin edits.
+  ///
+  /// Cached as the *merged* result, so the chapter list renders from Hive on a
+  /// cold start without waiting on Firestore.
+  Future<List<CategoryModel>> getCategoriesAndChapters({
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh) {
+      final cached = HiveService.cacheGetList(
+        HiveService.cacheChapters,
+        maxAge: _remoteCacheTtl,
+      );
+      if (cached.isNotEmpty) {
+        return cached.map(CategoryModel.fromJson).toList();
+      }
     }
 
-    final rows = await _readJsonList(AppAssets.jsonChapters, 'categories');
-    if (rows.isNotEmpty) {
-      await HiveService.cachePut(HiveService.cacheChapters, rows);
+    final assetRows = await _readJsonList(AppAssets.jsonChapters, 'categories');
+    final assetCategories = assetRows.map(CategoryModel.fromJson).toList();
+
+    final remoteCategories = await _catalogService.fetchCategories();
+
+    final merged = ChapterCatalogService.mergeWithAssets(
+      assetCategories,
+      remoteCategories,
+    );
+
+    if (merged.isNotEmpty) {
+      await HiveService.cachePut(
+        HiveService.cacheChapters,
+        merged.map((c) => c.toJson()).toList(),
+      );
     }
-    return rows.map(CategoryModel.fromJson).toList();
+    return merged;
   }
 
   /// Questions for one chapter: bundled asset + admin-authored, merged.

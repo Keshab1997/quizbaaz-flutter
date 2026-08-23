@@ -1,3 +1,4 @@
+import 'package:admin_api_key_manager/admin_api_key_manager.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/services/shop_service.dart';
@@ -5,6 +6,7 @@ import '../../widgets/glass_card.dart';
 import 'user_list_screen.dart';
 import 'shop_manager_screen.dart';
 import 'avatar_manager_screen.dart';
+import 'chapter_manager_screen.dart';
 import '../../../l10n/app_strings.dart';
 
 /// Admin Dashboard - Main admin panel with overview and navigation
@@ -273,6 +275,26 @@ class AdminDashboardScreen extends StatelessWidget {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const UserListScreen(isGuestView: true)),
+          ),
+        ),
+        _buildManagementCard(
+          icon: Icons.menu_book_rounded,
+          label: 'Chapter Manager',
+          description: 'Subjects, chapters & question banks',
+          color: AppColors.neonGreen,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ChapterManagerScreen()),
+          ),
+        ),
+        _buildManagementCard(
+          icon: Icons.vpn_key_rounded,
+          label: 'API Keys',
+          description: 'LLM keys for question generation',
+          color: AppColors.neonRed,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminApiKeysScreen()),
           ),
         ),
         _buildManagementCard(
