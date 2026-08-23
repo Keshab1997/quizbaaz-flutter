@@ -75,6 +75,9 @@ class DailyQuizScreen extends StatelessWidget {
                 ],
               ),
             ),
+          // One-tap translation for the whole quiz.
+          QuizTranslateButton(texts: () => _allQuizTexts(quiz)),
+
           // Score
           Container(
             margin: const EdgeInsets.only(right: 16),
@@ -540,6 +543,19 @@ class DailyQuizScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  /// Every string the quiz will ever render, so one tap on the translate
+  /// button can warm the cache for the whole session instead of stalling on
+  /// each new question while the timer runs.
+  List<String> _allQuizTexts(QuizProvider quiz) {
+    final texts = <String>[];
+    for (final q in quiz.questions) {
+      texts.add(q.question);
+      texts.addAll(q.options);
+      if (q.explanation.isNotEmpty) texts.add(q.explanation);
+    }
+    return texts;
+  }
+
   Widget _buildQuestionCard(dynamic question) {
     // When the player has picked a translation language, the authored Bangla
     // line is redundant noise — the stem is already in their language — so it
@@ -554,11 +570,6 @@ class DailyQuizScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: const TranslateChip(),
-          ),
-          const SizedBox(height: 10),
           TranslatableText(
             question.question,
             style: const TextStyle(

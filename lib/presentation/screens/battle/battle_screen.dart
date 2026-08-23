@@ -6,6 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/question_model.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/providers/battle_provider.dart';
+import '../../../data/providers/locale_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/translatable_text.dart';
@@ -16,6 +17,17 @@ import '../../../l10n/app_strings.dart';
 class BattleScreen extends StatelessWidget {
   const BattleScreen({super.key});
 
+  /// Every string the battle can show, so one tap translates the whole match.
+  List<String> _allBattleTexts(BattleProvider battle) {
+    final texts = <String>[];
+    for (final q in battle.questions) {
+      texts.add(q.question);
+      texts.addAll(q.options);
+      if (q.explanation.isNotEmpty) texts.add(q.explanation);
+    }
+    return texts;
+  }
+
   @override
   Widget build(BuildContext context) {
     final battle = context.watch<BattleProvider>();
@@ -24,6 +36,9 @@ class BattleScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text('1 vs 1 Battle', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        actions: [
+          QuizTranslateButton(texts: () => _allBattleTexts(battle)),
+        ],
       ),
       body: switch (battle.phase) {
         BattlePhase.setup => const _SetupView(),
@@ -272,7 +287,7 @@ class _ArenaView extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        _questionCard(question),
+        _questionCard(context, question),
         const SizedBox(height: 16),
 
         ...question.options.asMap().entries.map((e) => _optionTile(battle, e.key, e.value)),
@@ -365,7 +380,7 @@ class _ArenaView extends StatelessWidget {
     );
   }
 
-  Widget _questionCard(QuestionModel question) {
+  Widget _questionCard(BuildContext context, QuestionModel question) {
     return GlassCard(
       borderRadius: 20,
       borderColor: AppColors.neonPurple.withValues(alpha: 0.3),
@@ -374,16 +389,12 @@ class _ArenaView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: const TranslateChip(),
-          ),
-          const SizedBox(height: 10),
           TranslatableText(
             question.question,
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary, height: 1.35),
           ),
-          if (question.questionBn != null) ...[
+          if (question.questionBn != null &&
+              context.watch<LocaleProvider>().quizLanguage == null) ...[
             const SizedBox(height: 8),
             Text(
               question.questionBn!,

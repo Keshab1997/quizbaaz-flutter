@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/answer_record.dart';
+import '../../../data/providers/locale_provider.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/translatable_text.dart';
@@ -12,6 +13,18 @@ import '../../../l10n/app_strings.dart';
 /// the correct answer and the explanation.
 class ReviewAnswersScreen extends StatelessWidget {
   const ReviewAnswersScreen({super.key});
+
+  /// Every string on this screen, so one tap translates the full review.
+  List<String> _allReviewTexts(List<AnswerRecord> records) {
+    final texts = <String>[];
+    for (final record in records) {
+      final q = record.question;
+      texts.add(q.question);
+      texts.addAll(q.options);
+      if (q.explanation.isNotEmpty) texts.add(q.explanation);
+    }
+    return texts;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +38,9 @@ class ReviewAnswersScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(S.reviewTitle, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        actions: [
+          QuizTranslateButton(texts: () => _allReviewTexts(records)),
+        ],
       ),
       body: records.isEmpty
           ? Center(
@@ -128,7 +144,9 @@ class _QuestionReviewCard extends StatelessWidget {
               height: 1.35,
             ),
           ),
-          if (q.questionBn != null && q.questionBn!.isNotEmpty) ...[
+          if (q.questionBn != null &&
+              q.questionBn!.isNotEmpty &&
+              context.watch<LocaleProvider>().quizLanguage == null) ...[
             const SizedBox(height: 6),
             Text(
               q.questionBn!,

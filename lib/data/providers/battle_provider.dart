@@ -70,6 +70,10 @@ class BattleProvider extends ChangeNotifier {
 
   int get currentIndex => _currentIndex;
   int get totalQuestions => _questions.length;
+
+  /// Read-only view of the match questions, used by the translate button to
+  /// warm the translation cache for the whole battle in one pass.
+  List<QuestionModel> get questions => List.unmodifiable(_questions);
   int get playerScore => _playerScore;
   int get botScore => _botScore;
   int get playerCorrect => _playerCorrect;

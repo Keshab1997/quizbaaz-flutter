@@ -118,7 +118,11 @@ lib/l10n/
 Google's keyless `translate_a/single` endpoint, caches every result in the Hive
 cache box for 90 days, de-duplicates in-flight requests, and falls back to the
 original text on any failure. Render question text with `TranslatableText`
-instead of `Text`, and put a `TranslateChip` on the question card.
+instead of `Text`, and put **one** `QuizTranslateButton` in the screen's AppBar
+— never a control per question card. The button takes a `texts` callback
+returning every string the screen can show, and pre-translates the whole set in
+the background when a language is picked, so questions after the first appear
+instantly instead of fetching while the timer runs.
 
 **Fonts**: `AppTheme.darkThemeFor(languageCode)` picks Hind Siliguri for Bangla
 and Poppins otherwise — Poppins has no Bengali glyphs.
