@@ -255,6 +255,15 @@ Model in `models/shop_item.dart` → catalogue entry → purchase path through
 `shop_service.dart` → the item's label and category name are strings, so they
 need catalogue keys too.
 
+**Chapter sets**
+A chapter is played ten questions at a time (`kQuestionsPerSet`). Set
+boundaries are positional, and stay stable only because questions are
+**appended, never inserted** — breaking that reshuffles sets people have
+already cleared. Progress lives in Hive under `chapter_set_progress`;
+`QuizProvider.startChapterQuiz(setIndex:, practice:)` plays one. A `practice`
+run credits nothing: no coins, no gems, no stats, no leaderboard, no history
+row. If you add a reward, gate it on `isPractice`.
+
 **Touching the quiz flow**
 `QuizProvider` owns the timer, lifelines, scoring and anti-cheat. Read it fully
 before editing — lifeline state (`fiftyFiftyUsed`, `freezeUsed`, `skipUsed`,

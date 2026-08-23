@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quizbaaz/data/models/chapter_set_progress.dart';
 import 'package:quizbaaz/data/models/localized_text.dart';
 import 'package:quizbaaz/data/models/question_model.dart';
 import 'package:quizbaaz/data/services/question_fingerprint.dart';
@@ -309,6 +310,8 @@ void main() {
     });
   });
 
+  _setsTests();
+
   group('option shuffling', () {
     test('the correct answer moves with its option', () {
       final original = buildQuestion();
@@ -478,6 +481,122 @@ void main() {
         bank[q.id] = q;
       }
       expect(bank.length, 3);
+    });
+  });
+}
+
+// ---------------------------------------------------------------- sets -----
+
+void _setsTests() {
+  group('chapter sets', () {
+    test('a chapter splits into sets of ten, last one short not dropped', () {
+      expect(setCountFor(0), 0);
+      expect(setCountFor(1), 1);
+      expect(setCountFor(10), 1);
+      expect(setCountFor(11), 2);
+      expect(setCountFor(44), 5, reason: 'four leftovers are still a set');
+      expect(setCountFor(200), 20);
+    });
+
+    test('set lengths add up to the chapter', () {
+      const total = 47;
+      final lengths = [
+        for (var i = 0; i < setCountFor(total); i++)
+          setLengthFor(total, i),
+      ];
+      expect(lengths, [10, 10, 10, 10, 7]);
+      expect(lengths.fold<int>(0, (a, b) => a + b), total);
+    });
+
+    test('appending questions never moves an existing set', () {
+      // The property the whole design rests on: set 1 must be the same ten
+      // questions after the admin adds forty more.
+      final before = List.generate(20, (i) => 'q$i');
+      final after = [...before, ...List.generate(40, (i) => 'new$i')];
+
+      List<String> slice(List<String> all, int setIndex) {
+        final start = setStartIndex(setIndex);
+        if (start >= all.length) return const [];
+        return all.sublist(
+            start, (start + kQuestionsPerSet).clamp(0, all.length));
+      }
+
+      expect(slice(after, 0), slice(before, 0));
+      expect(slice(after, 1), slice(before, 1));
+      expect(setCountFor(after.length), 6,
+          reason: 'the new questions become new sets at the end');
+    });
+
+    test('progress keeps the better attempt and the original clear date', () {
+      final first = ChapterSetProgress(
+        chapterId: 'math_ch_01',
+        setIndex: 0,
+        bestScore: 60,
+        bestCorrect: 6,
+        totalQuestions: 10,
+        completedAt: DateTime(2026, 1, 1),
+        lastPlayedAt: DateTime(2026, 1, 1),
+      );
+
+      final better = first.merge(
+        score: 90,
+        correct: 9,
+        total: 10,
+        playedAt: DateTime(2026, 3, 1),
+      );
+      expect(better.bestScore, 90);
+      expect(better.bestCorrect, 9);
+      expect(better.attempts, 2);
+      expect(better.completedAt, DateTime(2026, 1, 1),
+          reason: 'a replay must not make an old set look newly cleared');
+      expect(better.lastPlayedAt, DateTime(2026, 3, 1));
+
+      final worse = better.merge(
+        score: 20,
+        correct: 2,
+        total: 10,
+        playedAt: DateTime(2026, 4, 1),
+      );
+      expect(worse.bestScore, 90, reason: 'a bad replay must not erase a good run');
+      expect(worse.bestCorrect, 9);
+      expect(worse.attempts, 3);
+    });
+
+    test('accuracy and perfect flag', () {
+      ChapterSetProgress at(int correct, int total) => ChapterSetProgress(
+            chapterId: 'c',
+            setIndex: 0,
+            bestScore: 0,
+            bestCorrect: correct,
+            totalQuestions: total,
+            completedAt: DateTime(2026),
+            lastPlayedAt: DateTime(2026),
+          );
+
+      expect(at(10, 10).isPerfect, isTrue);
+      expect(at(9, 10).isPerfect, isFalse);
+      expect(at(7, 10).accuracyPercent, 70);
+      expect(at(0, 0).accuracy, 0, reason: 'must not divide by zero');
+    });
+
+    test('round-trips through JSON', () {
+      final original = ChapterSetProgress(
+        chapterId: 'math_ch_01',
+        setIndex: 3,
+        bestScore: 80,
+        bestCorrect: 8,
+        totalQuestions: 10,
+        completedAt: DateTime(2026, 2, 14),
+        lastPlayedAt: DateTime(2026, 2, 20),
+        attempts: 4,
+      );
+      final restored = ChapterSetProgress.fromJson(original.toJson());
+
+      expect(restored.key, original.key);
+      expect(restored.setNumber, 4);
+      expect(restored.bestCorrect, 8);
+      expect(restored.attempts, 4);
+      expect(restored.completedAt, original.completedAt);
     });
   });
 }

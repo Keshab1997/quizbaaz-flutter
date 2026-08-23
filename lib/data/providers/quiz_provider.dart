@@ -4,9 +4,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../models/answer_record.dart';
+import '../models/chapter_set_progress.dart';
 import '../models/question_model.dart';
 import '../models/shop_item.dart';
 import '../repositories/quiz_repository.dart';
+import '../services/hive_service.dart';
 import 'user_provider.dart';
 import '../../l10n/app_strings.dart';
 
@@ -23,6 +25,15 @@ class QuizProvider extends ChangeNotifier {
   /// One generator for the whole session, so option order is unpredictable
   /// but reproducible within a run when seeded in tests.
   final Random _rng = Random();
+
+  /// Which set of the chapter is being played (0-based).
+  int _setIndex = 0;
+
+  /// True when this run is a replay and must not credit anything.
+  bool _isPractice = false;
+
+  /// Questions the whole chapter holds, for "set 2 of 7".
+  int _chapterQuestionCount = 0;
 
   /// Language the *questions* are shown in, independent of the app language.
   ///
@@ -164,7 +175,21 @@ class QuizProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Initialize a Chapter Quiz. [chapterId] is used for per-chapter stats.
+  /// Starts one **set** of a chapter.
+  ///
+  /// A chapter is served ten questions at a time (see [kQuestionsPerSet]).
+  /// Banks grow indefinitely through the admin panel, and a 200-question
+  /// sitting is one nobody finishes; ten is a session a student completes and
+  /// comes back to.
+  ///
+  /// Set boundaries are stable because questions are only ever appended —
+  /// adding to a chapter creates new sets at the end, it never reshuffles what
+  /// somebody has already cleared.
+  ///
+  /// [practice] replays a set the student has already finished. Nothing is
+  /// credited in that mode: no coins, no gems, no stats, no leaderboard, no
+  /// history row. Retrying must never be a way to farm rewards, and a student
+  /// must never feel that revising costs them something either.
   Future<void> startChapterQuiz(
     String jsonFilePath, {
     String? chapterId,
@@ -172,6 +197,8 @@ class QuizProvider extends ChangeNotifier {
     String? categoryTitleBn,
     String? chapterTitle,
     String? chapterTitleBn,
+    int setIndex = 0,
+    bool practice = false,
   }) async {
     _resetQuizState();
     _isDailyQuiz = false;
@@ -180,15 +207,28 @@ class QuizProvider extends ChangeNotifier {
     _categoryTitleBn = categoryTitleBn;
     _chapterTitle = chapterTitle;
     _chapterTitleBn = chapterTitleBn;
+    _setIndex = setIndex;
+    _isPractice = practice;
     _isLoading = true;
     notifyListeners();
 
     // Pass the chapter id so admin-authored questions are merged in — without
     // it the repository can only see the bundled asset bank.
-    _questions = _shuffleOptions(await _repository.getChapterQuestions(
+    final all = await _repository.getChapterQuestions(
       jsonFilePath,
       chapterId: chapterId,
-    ));
+    );
+    _chapterQuestionCount = all.length;
+
+    final start = setStartIndex(setIndex);
+    final slice = start >= all.length
+        ? const <QuestionModel>[]
+        : all.sublist(
+            start,
+            (start + kQuestionsPerSet).clamp(0, all.length),
+          );
+
+    _questions = _shuffleOptions(slice);
     _isLoading = false;
 
     // Check for active boosters
@@ -197,6 +237,18 @@ class QuizProvider extends ChangeNotifier {
     if (_questions.isNotEmpty) _startTimer();
     notifyListeners();
   }
+
+  /// 0-based index of the set being played.
+  int get setIndex => _setIndex;
+
+  /// Human-facing set number.
+  int get setNumber => _setIndex + 1;
+
+  /// How many sets the chapter has in total.
+  int get setCount => setCountFor(_chapterQuestionCount);
+
+  /// True when nothing in this run counts towards rewards or stats.
+  bool get isPractice => _isPractice;
 
   /// Language the question text is currently rendered in.
   String get displayLanguage => _displayLanguage ?? S.code;
@@ -242,6 +294,9 @@ class QuizProvider extends ChangeNotifier {
     // Each quiz starts in the app language; a peek at another language is a
     // per-run decision, not a hidden setting that quietly persists.
     _displayLanguage = null;
+    _isPractice = false;
+    _setIndex = 0;
+    _chapterQuestionCount = 0;
     _currentIndex = 0;
     _score = 0;
     _correctCount = 0;
@@ -410,9 +465,33 @@ class QuizProvider extends ChangeNotifier {
         _userProvider.consumeItem(ShopItemIds.doublePoints);
       }
 
-      _grantRewards();
+      if (_isPractice) {
+        // A replay still updates the best score on the set card — a student
+        // who improves should see it — but credits nothing.
+        _recordSetProgress();
+      } else {
+        _grantRewards();
+        _recordSetProgress();
+      }
     }
     notifyListeners();
+  }
+
+  /// Stores the result against this chapter set so the sets screen can show
+  /// it as cleared, unlock the next one, and offer a replay.
+  ///
+  /// Runs for practice attempts too: [ChapterSetProgress.merge] keeps the
+  /// better score and leaves `completedAt` alone, so a replay never makes a
+  /// long-finished set look new.
+  void _recordSetProgress() {
+    if (_isDailyQuiz || _chapterId == null) return;
+    unawaited(HiveService.saveChapterSet(
+      chapterId: _chapterId!,
+      setIndex: _setIndex,
+      score: _score,
+      correct: _correctCount,
+      total: _questions.length,
+    ));
   }
 
   /// Calculates coins & gems from the remote config, saves the run into the
@@ -493,9 +572,16 @@ class QuizProvider extends ChangeNotifier {
     }
     _fiftyFiftyUsed = true;
     final correct = currentQuestion!.correctIndex;
-    final wrongOptions = <int>[0, 1, 2, 3]..remove(correct);
-    wrongOptions.shuffle();
-    _disabledOptionIndices = wrongOptions.take(2).toList();
+    // Built from the real option count: hardcoding 0..3 disabled indices that
+    // do not exist on a 2- or 3-option question, and left a four-option one
+    // correct only by luck.
+    final wrongOptions = [
+      for (var i = 0; i < currentQuestion!.optionTexts.length; i++)
+        if (i != correct) i
+    ]..shuffle();
+    // Halve the choices, leaving the answer and at least one distractor.
+    final toRemove = (wrongOptions.length / 2).floor();
+    _disabledOptionIndices = wrongOptions.take(toRemove).toList();
     notifyListeners();
     return true;
   }

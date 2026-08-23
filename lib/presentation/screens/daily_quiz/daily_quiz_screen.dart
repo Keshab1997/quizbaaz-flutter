@@ -29,9 +29,24 @@ class DailyQuizScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text(
-          'Daily Live Quiz',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Daily Live Quiz',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            // Which set this is, so a chapter run never feels like it came
+            // from nowhere.
+            if (quiz.setCount > 1)
+              Text(
+                S.setsSetOf(n: quiz.setNumber, total: quiz.setCount),
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary),
+              ),
+          ],
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
@@ -145,6 +160,13 @@ class DailyQuizScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Practice runs credit nothing, and the player must know
+                    // that before they spend ten minutes on one.
+                    if (quiz.isPractice) ...[
+                      _practiceBanner(),
+                      const SizedBox(height: 10),
+                    ],
+
                     // Top Progress & Timer
                     _buildProgressAndTimer(quiz),
                     const SizedBox(height: 14),
@@ -183,6 +205,34 @@ class DailyQuizScreen extends StatelessWidget {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _practiceBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: AppColors.neonGold.withValues(alpha: 0.12),
+        border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.refresh_rounded,
+              size: 15, color: AppColors.neonGold),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              S.setsPracticeBanner,
+              style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neonGold),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

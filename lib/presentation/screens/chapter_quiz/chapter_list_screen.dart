@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/chapter_model.dart';
 import '../../../data/repositories/quiz_repository.dart';
-import '../../../data/providers/quiz_provider.dart';
 import '../../widgets/glass_card.dart';
-import '../daily_quiz/daily_quiz_screen.dart';
+import 'chapter_sets_screen.dart';
 import '../../../l10n/app_strings.dart';
 
 class ChapterListScreen extends StatefulWidget {
@@ -187,19 +185,19 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                   SnackBar(content: Text(S.chapterLockedMsg)),
                 );
               }
-            : () {
-                context.read<QuizProvider>().startChapterQuiz(
-                  chapter.jsonFile,
-                  chapterId: chapter.chapterId,
-                  categoryTitle: categoryName,
-                  chapterTitle: chapter.title,
-                  chapterTitleBn: chapter.titleText.resolve('bn'),
-                );
-                Navigator.push(
+            // Opens the set list rather than launching the whole bank at
+            // once: a chapter keeps growing, and where the student left off is
+            // the first thing they need to see.
+            : () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const DailyQuizScreen()),
-                );
-              },
+                  MaterialPageRoute(
+                    builder: (_) => ChapterSetsScreen(
+                      chapter: chapter,
+                      categoryTitle: categoryName,
+                      accent: catColor,
+                    ),
+                  ),
+                ),
         child: Row(
           children: [
             // Chapter Number Badge or Lock

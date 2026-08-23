@@ -384,4 +384,37 @@ class S {
   static String get month10 => raw('month10');
   static String get month11 => raw('month11');
   static String get month12 => raw('month12');
+
+  // ---- chapter  sets
+  static String get setsTitle => raw('setsTitle');
+  static String get setsHistoryTab => raw('setsHistoryTab');
+  static String setsSet({required Object n}) =>
+      fill(raw('setsSet'), {'n': n});
+  static String setsSetOf({required Object n, required Object total}) =>
+      fill(raw('setsSetOf'), {'n': n, 'total': total});
+  static String setsQuestions({required Object n}) =>
+      fill(raw('setsQuestions'), {'n': n});
+  static String setsContinue({required Object n}) =>
+      fill(raw('setsContinue'), {'n': n});
+  static String setsStart({required Object n}) =>
+      fill(raw('setsStart'), {'n': n});
+  static String get setsAllDone => raw('setsAllDone');
+  static String get setsAllDoneBody => raw('setsAllDoneBody');
+  static String setsLocked({required Object n}) =>
+      fill(raw('setsLocked'), {'n': n});
+  static String get setsCleared => raw('setsCleared');
+  static String setsBest({required Object correct, required Object total}) =>
+      fill(raw('setsBest'), {'correct': correct, 'total': total});
+  static String get setsRetry => raw('setsRetry');
+  static String get setsPractice => raw('setsPractice');
+  static String get setsPracticeNote => raw('setsPracticeNote');
+  static String get setsPracticeBanner => raw('setsPracticeBanner');
+  static String get setsNoHistory => raw('setsNoHistory');
+  static String get setsNoHistoryBody => raw('setsNoHistoryBody');
+  static String setsAttempts({required Object n}) =>
+      fill(raw('setsAttempts'), {'n': n});
+  static String get setsEmpty => raw('setsEmpty');
+  static String get setsEmptyBody => raw('setsEmptyBody');
+  static String setsPlayedOn({required Object date}) =>
+      fill(raw('setsPlayedOn'), {'date': date});
 }

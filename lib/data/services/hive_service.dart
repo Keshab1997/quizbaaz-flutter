@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
+import '../models/chapter_set_progress.dart';
 import '../models/user_model.dart';
 import '../models/user_stats.dart';
 
@@ -39,6 +40,7 @@ class HiveService {
   static const _statsKey = 'user_stats';
   static const _quizHistoryKey = 'quiz_history';
   static const _purchaseHistoryKey = 'purchase_history';
+  static const _chapterSetsKey = 'chapter_set_progress';
 
   // Legacy keys (v1 schema, single box).
   static const _bestScoreKey = 'best_daily_score';
@@ -219,6 +221,87 @@ class HiveService {
       debugPrint('Hive: failed to decode quiz history – $e');
       return const [];
     }
+  }
+
+  // ------------------------------------------------------- chapter sets --
+
+  /// Per-set progress for every chapter, keyed `chapterId#setIndex`.
+  ///
+  /// Stored as one blob rather than a box per chapter: the whole map is small
+  /// (a few hundred bytes per completed set), it is read on every chapter
+  /// screen, and one decode beats fifty lookups.
+  static Map<String, ChapterSetProgress> loadChapterSets() {
+    final raw = _statsBox.get(_chapterSetsKey);
+    if (raw is! String) return {};
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return decoded.map((key, value) => MapEntry(
+            key,
+            ChapterSetProgress.fromJson(Map<String, dynamic>.from(value as Map)),
+          ));
+    } catch (e) {
+      debugPrint('Hive: failed to decode chapter set progress – $e');
+      return {};
+    }
+  }
+
+  /// Progress for a single set, or null when it has never been completed.
+  static ChapterSetProgress? loadChapterSet(String chapterId, int setIndex) =>
+      loadChapterSets()[ChapterSetProgress.keyFor(chapterId, setIndex)];
+
+  /// Records a completed set, keeping the better of the old and new results.
+  static Future<ChapterSetProgress> saveChapterSet({
+    required String chapterId,
+    required int setIndex,
+    required int score,
+    required int correct,
+    required int total,
+  }) async {
+    final all = loadChapterSets();
+    final key = ChapterSetProgress.keyFor(chapterId, setIndex);
+    final now = DateTime.now();
+
+    final existing = all[key];
+    final updated = existing == null
+        ? ChapterSetProgress(
+            chapterId: chapterId,
+            setIndex: setIndex,
+            bestScore: score,
+            bestCorrect: correct,
+            totalQuestions: total,
+            completedAt: now,
+            lastPlayedAt: now,
+          )
+        : existing.merge(
+            score: score, correct: correct, total: total, playedAt: now);
+
+    all[key] = updated;
+    await _statsBox.put(
+      _chapterSetsKey,
+      jsonEncode(all.map((k, v) => MapEntry(k, v.toJson()))),
+    );
+    return updated;
+  }
+
+  /// Completed sets for one chapter, lowest set first.
+  static List<ChapterSetProgress> chapterSetsFor(String chapterId) {
+    final all = loadChapterSets().values
+        .where((p) => p.chapterId == chapterId)
+        .toList()
+      ..sort((a, b) => a.setIndex.compareTo(b.setIndex));
+    return all;
+  }
+
+  /// The first set the student has not finished — what "Continue" plays.
+  ///
+  /// Returns null when every set is done, which the UI turns into "replay any
+  /// set" rather than silently restarting from the top.
+  static int? nextUnplayedSet(String chapterId, int setCount) {
+    final completed = chapterSetsFor(chapterId).map((p) => p.setIndex).toSet();
+    for (var i = 0; i < setCount; i++) {
+      if (!completed.contains(i)) return i;
+    }
+    return null;
   }
 
   /// Clears all quiz history.
