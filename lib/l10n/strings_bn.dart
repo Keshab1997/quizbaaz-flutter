@@ -91,8 +91,7 @@ const Map<String, String> kStringsBn = {
 
   // --------------------------------------------------------------- chapter --
   'chapterAllSubjects': 'সব বিষয়',
-  'chapterBankTitle': 'দশম শ্রেণির বোর্ড অধ্যায় ব্যাংক',
-  'chapterClass10': 'দশম শ্রেণি 🎓',
+  'chapterBankTitle': 'অধ্যায় ব্যাংক',
   'chapterCount': '{n}টি অধ্যায়',
   'chapterQuestionCount': '{n}টি প্রশ্ন',
   'chapterShort': 'অধ্যায় {n}',

@@ -6,6 +6,7 @@ import '../../../data/models/chapter_model.dart';
 import '../../../data/models/localized_text.dart';
 import '../../../data/models/question_model.dart';
 import '../../../data/providers/auth_provider.dart';
+import '../../../data/repositories/quiz_repository.dart';
 import '../../../data/services/question_bank_service.dart';
 import '../../../data/services/question_fingerprint.dart';
 import '../../../data/services/question_validator.dart';
@@ -46,6 +47,7 @@ enum _Filter { all, needsTranslation, ai, manual }
 
 class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
   final _bank = QuestionBankService();
+  final _repository = QuizRepository();
 
   List<QuestionModel> _questions = [];
   Map<String, ValidationResult> _validation = {};
@@ -62,6 +64,23 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    // Without this the "47 -> 55 questions" bar reappears over the chapter
+    // list, and its Undo would act on a screen the admin has already left.
+    _messenger?.hideCurrentSnackBar();
+    super.dispose();
+  }
+
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Captured here because dispose() must not look up an inherited widget.
+    _messenger = ScaffoldMessenger.of(context);
   }
 
   Future<void> _load() async {
@@ -572,6 +591,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
         actorUid: _actorUid,
         source: 'ai',
       );
+      await _invalidateCaches();
       await _load();
       if (mounted) _showAppendResult(result);
     } catch (e) {
@@ -587,7 +607,10 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-        duration: const Duration(seconds: 8),
+        // ScaffoldMessenger sits above the Navigator, so a long-lived snackbar
+        // rides along to whatever screen the admin opens next. Short, and
+        // cleared in dispose.
+        duration: const Duration(seconds: 5),
         backgroundColor: AppColors.surfaceElevated,
         content: Row(
           children: [
@@ -617,6 +640,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
         batchId: batchId,
         actorUid: _actorUid,
       );
+      await _invalidateCaches();
       await _load();
       _toast(removed == 0
           ? 'Nothing to undo — that batch is outside the 24h window.'
@@ -654,6 +678,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
           actorUid: _actorUid,
           source: 'manual',
         );
+        await _invalidateCaches();
         _toast('Added · ${result.countLabel}');
       } else {
         await _bank.updateQuestion(
@@ -661,6 +686,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
           question: draft,
           actorUid: _actorUid,
         );
+        await _invalidateCaches();
         _toast('Updated ${draft.id}');
       }
       await _load();
@@ -671,6 +697,15 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
 
   /// `math_ch_01` → `math_ch_01`; used as the id prefix for new questions.
   String get _slug => _chapterId;
+
+  /// Drops the cached chapter tree and this chapter's question list.
+  ///
+  /// Both are Hive-cached with a 15-minute TTL, so without this a student — and
+  /// the chapter list one screen back — would keep seeing the old count for up
+  /// to a quarter of an hour after an admin adds questions.
+  Future<void> _invalidateCaches() => _repository.invalidateQuestionCache(
+        jsonFilePath: widget.chapter.jsonFile,
+      );
 
   Future<void> _confirmDelete(QuestionModel question) async {
     final confirmed = await showDialog<bool>(
@@ -709,6 +744,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
         questionId: question.id,
         actorUid: _actorUid,
       );
+      await _invalidateCaches();
       _toast('Deleted ${question.id}');
       await _load();
     } catch (e) {

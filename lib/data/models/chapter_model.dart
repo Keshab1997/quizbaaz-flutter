@@ -22,6 +22,18 @@ class CategoryModel {
   /// Subject name in the current UI language.
   String get categoryName => nameText.current;
 
+  CategoryModel copyWith({List<ChapterModel>? chapters}) {
+    final resolved = chapters ?? this.chapters;
+    return CategoryModel(
+      categoryId: categoryId,
+      nameText: nameText,
+      categoryIcon: categoryIcon,
+      colorHex: colorHex,
+      totalChapters: resolved.length,
+      chapters: resolved,
+    );
+  }
+
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
       categoryId: json['category_id'] ?? '',
@@ -86,6 +98,20 @@ class ChapterModel {
     if (S.code == 'en') return null;
     final english = titleEnglish;
     return english.isEmpty || english == title ? null : english;
+  }
+
+  ChapterModel copyWith({int? totalQuestions}) {
+    return ChapterModel(
+      chapterId: chapterId,
+      chapterNumber: chapterNumber,
+      titleText: titleText,
+      descriptionText: descriptionText,
+      totalQuestions: totalQuestions ?? this.totalQuestions,
+      jsonFile: jsonFile,
+      isUnlocked: isUnlocked,
+      stars: stars,
+      bestScore: bestScore,
+    );
   }
 
   factory ChapterModel.fromJson(Map<String, dynamic> json) {

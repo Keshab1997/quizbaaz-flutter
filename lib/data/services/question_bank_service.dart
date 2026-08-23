@@ -111,10 +111,33 @@ class QuestionBankService {
     );
   }
 
-  /// Question count without downloading the questions.
+  /// Question count for one chapter, without downloading the questions.
   Future<int> countQuestions(String chapterId) async {
     final aggregate = await _questions(chapterId).count().get();
     return aggregate.count ?? 0;
+  }
+
+  /// Question counts for **every** chapter, in a single read.
+  ///
+  /// Reads the `question_banks` documents rather than counting each
+  /// subcollection: the chapter list needs 56 numbers at once, and 56
+  /// aggregate queries is both slow and needlessly expensive. The counter on
+  /// each document is maintained by [appendQuestions], [deleteQuestion] and
+  /// [undoBatch].
+  ///
+  /// Returns an empty map when Firestore is unreachable, so the caller falls
+  /// back to the counts bundled in the assets.
+  Future<Map<String, int>> fetchQuestionCounts() async {
+    try {
+      final snapshot = await _db.collection(banksCollection).get();
+      return {
+        for (final doc in snapshot.docs)
+          doc.id: (doc.data()['question_count'] as num?)?.toInt() ?? 0,
+      };
+    } catch (e) {
+      debugPrint('QuestionBankService: counts unavailable — $e');
+      return const {};
+    }
   }
 
   // ----------------------------------------------------------------- write --

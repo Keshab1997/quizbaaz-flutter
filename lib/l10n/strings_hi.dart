@@ -91,8 +91,7 @@ const Map<String, String> kStringsHi = {
 
   // --------------------------------------------------------------- chapter --
   'chapterAllSubjects': 'सभी विषय',
-  'chapterBankTitle': 'कक्षा 10 बोर्ड अध्याय बैंक',
-  'chapterClass10': 'कक्षा 10 🎓',
+  'chapterBankTitle': 'अध्याय बैंक',
   'chapterCount': '{n} अध्याय',
   'chapterQuestionCount': '{n} प्रश्न',
   'chapterShort': 'अध्याय {n}',

@@ -98,8 +98,7 @@ const Map<String, String> kStringsEn = {
 
   // --------------------------------------------------------------- chapter --
   'chapterAllSubjects': 'All Subjects',
-  'chapterBankTitle': 'Class 10 Board Chapter Bank',
-  'chapterClass10': 'Class 10 🎓',
+  'chapterBankTitle': 'Chapter Bank',
   'chapterCount': '{n} Chapters',
   'chapterQuestionCount': '{n} Questions',
   'chapterShort': 'Ch {n}',

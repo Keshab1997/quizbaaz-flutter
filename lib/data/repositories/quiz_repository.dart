@@ -86,9 +86,12 @@ class QuizRepository {
 
     final remoteCategories = await _catalogService.fetchCategories();
 
-    final merged = ChapterCatalogService.mergeWithAssets(
-      assetCategories,
-      remoteCategories,
+    final merged = _withLiveCounts(
+      ChapterCatalogService.mergeWithAssets(
+        assetCategories,
+        remoteCategories,
+      ),
+      await _bankService.fetchQuestionCounts(),
     );
 
     if (merged.isNotEmpty) {
@@ -126,6 +129,34 @@ class QuizRepository {
       await HiveService.cachePut(cacheKey, merged);
     }
     return merged.map(QuestionModel.fromJson).toList();
+  }
+
+  /// Folds admin-authored question counts into each chapter's total.
+  ///
+  /// `total_questions` in the asset catalogue counts only the bundled
+  /// questions, so a chapter filled entirely from the admin panel would
+  /// otherwise keep advertising 0 — which is what a student sees on the
+  /// chapter card. The displayed number is bundled + admin-authored.
+  ///
+  /// Ids never overlap between the two sources: admin ids continue from the
+  /// highest existing one, so adding rather than de-duplicating is correct.
+  static List<CategoryModel> _withLiveCounts(
+    List<CategoryModel> categories,
+    Map<String, int> remoteCounts,
+  ) {
+    if (remoteCounts.isEmpty) return categories;
+
+    return categories
+        .map((category) => category.copyWith(
+              chapters: category.chapters.map((chapter) {
+                final remote = remoteCounts[chapter.chapterId] ?? 0;
+                if (remote == 0) return chapter;
+                return chapter.copyWith(
+                  totalQuestions: chapter.totalQuestions + remote,
+                );
+              }).toList(),
+            ))
+        .toList();
   }
 
   /// Admin-authored questions, or an empty list when Firestore is unreachable.

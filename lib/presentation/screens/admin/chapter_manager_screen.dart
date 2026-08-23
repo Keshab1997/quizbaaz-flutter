@@ -7,7 +7,6 @@ import '../../../data/models/localized_text.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/repositories/quiz_repository.dart';
 import '../../../data/services/chapter_catalog_service.dart';
-import '../../../data/services/question_bank_service.dart';
 import '../../widgets/glass_card.dart';
 import 'question_manager_screen.dart';
 import 'widgets/trilingual_field.dart';
@@ -31,7 +30,6 @@ class ChapterManagerScreen extends StatefulWidget {
 class _ChapterManagerScreenState extends State<ChapterManagerScreen> {
   final _repository = QuizRepository();
   final _catalog = ChapterCatalogService();
-  final _bank = QuestionBankService();
 
   List<CategoryModel> _categories = [];
   Map<String, int> _counts = {};
@@ -46,28 +44,21 @@ class _ChapterManagerScreenState extends State<ChapterManagerScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
+    // The repository already folds admin-authored counts into
+    // chapter.totalQuestions, in one read rather than 56 aggregate queries —
+    // and it means this screen and the student's chapter list can never
+    // disagree about how many questions a chapter has.
     final categories =
         await _repository.getCategoriesAndChapters(forceRefresh: true);
-
-    // Counts come from Firestore per chapter. Fired together rather than in a
-    // loop so a 56-chapter catalogue does not take 56 round trips.
-    final ids = [
-      for (final category in categories)
-        for (final chapter in category.chapters) chapter.chapterId,
-    ];
-    final counts = <String, int>{};
-    await Future.wait(ids.map((id) async {
-      try {
-        counts[id] = await _bank.countQuestions(id);
-      } catch (_) {
-        counts[id] = 0;
-      }
-    }));
 
     if (!mounted) return;
     setState(() {
       _categories = categories;
-      _counts = counts;
+      _counts = {
+        for (final category in categories)
+          for (final chapter in category.chapters)
+            chapter.chapterId: chapter.totalQuestions,
+      };
       _loading = false;
     });
   }

@@ -152,7 +152,6 @@ class S {
   // ---- chapter
   static String get chapterAllSubjects => raw('chapterAllSubjects');
   static String get chapterBankTitle => raw('chapterBankTitle');
-  static String get chapterClass10 => raw('chapterClass10');
   static String chapterCount({required Object n}) =>
       fill(raw('chapterCount'), {'n': n});
   static String chapterQuestionCount({required Object n}) =>
