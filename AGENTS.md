@@ -193,6 +193,13 @@ flutter analyze | grep prefer_const_constructors > /tmp/analyze.txt
 python3 tool/apply_const_hints.py /tmp/analyze.txt
 ```
 
+> **Editing by line:column?** Dart columns are UTF-16 code units, Python string
+> indices are code points. This codebase is full of emoji (`'👦 Male'`), so a
+> naive `col - 1` lands mid-identifier on those lines. Use
+> `utf16_col_to_index()` from `tool/apply_const_hints.py`;
+> `tool/verify_l10n.py` fails the build if a `const` ends up spliced into an
+> identifier.
+
 Run `flutter analyze` **and** `python3 tool/verify_l10n.py` before claiming any
 UI change is done.
 

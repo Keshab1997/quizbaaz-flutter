@@ -167,14 +167,24 @@ def main():
                 line = raw[:m.start()].count('\n') + 1
                 problems.append(f'{rel}:{line}: `const` wraps an S.* getter')
 
-        # 3. bracket balance
+        # 3. `const` spliced into the middle of an identifier. This is what a
+        #    column-offset bug looks like — `DropdownMenuItem` becoming
+        #    `Dconst ropdownMenuItem` — and it is otherwise easy to miss in a
+        #    200-character line.
+        for m in re.finditer(r'[A-Za-z0-9_$]const\b', code):
+            line = raw[:m.start()].count('\n') + 1
+            problems.append(
+                f'{rel}:{line}: `const` spliced into an identifier '
+                f'({m.group(0)!r}) — check column offsets')
+
+        # 4. bracket balance
         for opener, closer in (('(', ')'), ('[', ']'), ('{', '}')):
             if code.count(opener) != code.count(closer):
                 problems.append(
                     f'{rel}: unbalanced {opener}{closer} '
                     f'({code.count(opener)} vs {code.count(closer)})')
 
-    # 4. every file using S. imports the catalogue
+    # 5. every file using S. imports the catalogue
     for path in sorted(LIB.rglob('*.dart')):
         if path.parent.name == 'l10n':
             continue
