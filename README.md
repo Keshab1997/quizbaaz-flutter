@@ -86,7 +86,7 @@ quizbaaz-flutter/
 * **Frontend Framework:** Flutter 3.x (Dart 3.x)
 * **State Management:** Provider / Riverpod
 * **Localisation:** `flutter_localizations` + hand-written catalogues in `lib/l10n/` (en, bn, hi)
-* **Machine Translation:** Google Translate endpoint with a 90-day on-device Hive cache
+* **Machine Translation:** rate-limited request queue with provider fallback (keyless Google → MyMemory → Cloud Translation) and a 90-day on-device Hive cache. Supply `--dart-define=TRANSLATE_API_KEY=...` at build time for an official, un-throttled key.
 * **Typography:** Google Fonts (`Poppins` for en/hi, `Hind Siliguri` for bn)
 * **Visual Effects:** Custom Backdrop Filters, Dual Gradients, Box Shadows
 * **Animations:** Lottie, Custom Matrix4 Transformations

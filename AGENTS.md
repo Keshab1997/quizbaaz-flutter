@@ -148,9 +148,23 @@ language code, so the whole tree rebuilds and every `S.*` is re-read.
 
 ### 5.2 Quiz content (machine-translated, 36+ languages)
 
-`TranslationService` calls Google's keyless `translate_a/single` endpoint,
-caches every result in the Hive cache box for 90 days, de-duplicates in-flight
-requests, and returns the original text on any failure.
+`TranslationService` caches every result in the Hive cache box for 90 days,
+de-duplicates in-flight requests, and returns the original text on any failure.
+
+**Never call a provider directly, and never `Future.wait` a large batch.** The
+free endpoints answer **429** to a burst, and one quiz is ~60 strings. All
+requests go through a single-worker queue inside the service that spaces them
+out, backs off exponentially, cools a provider down after repeated 429s, and
+falls through `google → mymemory` (or straight to Cloud Translation when a key
+is present). Use `TranslationService.warm()` for background prefetch and
+`translateAll()` only for the handful of strings the user is about to see.
+
+For a Play Store release, supply an official key so rate limiting stops being a
+concern:
+
+```bash
+flutter build apk --dart-define=TRANSLATE_API_KEY=xxxxx
+```
 
 - Render question text with **`TranslatableText`**, not `Text`.
 - Put **one** `QuizTranslateButton` in the screen's **AppBar** — never a control

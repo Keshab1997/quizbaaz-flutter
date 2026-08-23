@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:quizbaaz/data/models/user_stats.dart';
 import 'package:quizbaaz/data/providers/locale_provider.dart';
 import 'package:quizbaaz/data/services/hive_service.dart';
+import 'package:quizbaaz/data/services/translation_service.dart';
 import 'package:quizbaaz/l10n/app_strings.dart';
 import 'package:quizbaaz/l10n/strings_bn.dart';
 import 'package:quizbaaz/l10n/strings_en.dart';
@@ -107,6 +108,42 @@ void main() {
 
       await restarted.useSystemLanguage();
       expect(restarted.followSystem, isTrue);
+    });
+
+    test('translation short-circuits without touching the network', () async {
+      // Empty text, whitespace and same-language requests must never queue a
+      // request — these are the cases that used to burn the rate limit.
+      expect(await TranslationService.translate('', targetLanguage: 'bn'), '');
+      expect(
+        await TranslationService.translate('   ', targetLanguage: 'bn'),
+        '   ',
+      );
+      expect(
+        await TranslationService.translate('Water',
+            targetLanguage: 'en', sourceLanguage: 'en'),
+        'Water',
+      );
+      expect(TranslationService.pendingCount, 0);
+      expect(TranslationService.isBusy, isFalse);
+    });
+
+    test('cancelPending resolves queued work to the original text', () async {
+      final pending = TranslationService.translate(
+        'A string nobody has translated yet',
+        targetLanguage: 'ta',
+      );
+      expect(TranslationService.pendingCount, greaterThan(0));
+
+      TranslationService.cancelPending();
+      expect(await pending, 'A string nobody has translated yet');
+      expect(TranslationService.pendingCount, 0);
+    });
+
+    test('an untranslated string is not reported as cached', () {
+      expect(
+        TranslationService.isCached('Never seen before', 'ta'),
+        isFalse,
+      );
     });
 
     test('quiz translation language is independent of the UI language',

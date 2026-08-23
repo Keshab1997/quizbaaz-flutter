@@ -112,6 +112,144 @@ class _QuizTranslateButtonState extends State<QuizTranslateButton> {
     await _prefetch(after);
   }
 
+  /// Warms the cache, front-loading what the player sees next.
+  ///
+  /// Only the first [_eagerCount] strings are awaited — roughly the current
+  /// and next question. The rest are queued and trickle in while the player
+  /// reads, because the free translation endpoints answer 429 to a burst and
+  /// a 10-question quiz is around 60 strings.
+  static const int _eagerCount = 12;
+
+  Future<void> _prefetch(String language) async {
+    final unique = widget.texts().toSet().toList();
+    if (unique.isEmpty) return;
+
+    setState(() => _prefetching = true);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        duration: const Duration(seconds: 2),
+        content: Text(S.translating),
+      ));
+
+    final eager = unique.take(_eagerCount).toList();
+    final rest = unique.skip(_eagerCount).toList();
+
+    List<String> translated = const [];
+    try {
+      translated =
+          await TranslationService.translateAll(eager, targetLanguage: language);
+    } catch (_) {
+      // Ignored: each TranslatableText retries and falls back on its own.
+    }
+
+    // Everything else fills in quietly behind the player.
+    if (rest.isNotEmpty) {
+      TranslationService.warm(rest, targetLanguage: language);
+    }
+
+    if (!mounted) return;
+    setState(() => _prefetching = false);
+
+    // If not a single string came back changed, the providers are refusing —
+    // say so once instead of leaving the player wondering.
+    final everythingUnchanged = translated.isNotEmpty &&
+        List.generate(eager.length, (i) => translated[i] == eager[i])
+            .every((same) => same);
+
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        duration: const Duration(seconds: 3),
+        content: Text(
+          everythingUnchanged
+              ? S.translateFailed
+              : '${S.translateButton}: '
+                  '${TranslationService.languageName(language)}',
+        ),
+      ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final target = context.watch<LocaleProvider>().quizLanguage;
+
+    if (target == null || text.trim().isEmpty) {
+      return _plain(text, dimmed: false);
+    }
+
+    // Already on disk → render synchronously, no flicker between questions.
+    if (TranslationService.isCached(text, target)) {
+      return FutureBuilder<String>(
+        future: TranslationService.translate(text, targetLanguage: target),
+        initialData: text,
+        builder: (_, snapshot) => _plain(snapshot.data ?? text, dimmed: false),
+      );
+    }
+
+    return FutureBuilder<String>(
+      // Keyed by text+language so switching either one restarts cleanly.
+      key: ValueKey('$target::$text'),
+      future: TranslationService.translate(text, targetLanguage: target),
+      builder: (_, snapshot) {
+        final waiting = snapshot.connectionState == ConnectionState.waiting;
+        return _plain(snapshot.data ?? text, dimmed: waiting);
+      },
+    );
+  }
+
+  Widget _plain(String value, {required bool dimmed}) {
+    final resolved = style ?? const TextStyle();
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 180),
+      opacity: dimmed ? 0.45 : 1.0,
+      child: Text(
+        value,
+        style: resolved,
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      ),
+    );
+  }
+}
+
+/// Single translate control for a whole quiz, designed to sit in the AppBar.
+///
+/// Deliberately *not* per question: a chip on every card is visual noise and
+/// makes the player think they have to act again on each screen. One tap here
+/// sets the language for the entire session — every question, option and
+/// explanation that follows is already translated.
+///
+/// [texts] supplies everything the quiz will eventually show. As soon as a
+/// language is chosen the whole list is translated in the background and
+/// written to the cache, so question 2 onwards appears instantly instead of
+/// fetching mid-countdown.
+class QuizTranslateButton extends StatefulWidget {
+  /// Every string the quiz can display, gathered up front.
+  final List<String> Function() texts;
+
+  const QuizTranslateButton({super.key, required this.texts});
+
+  @override
+  State<QuizTranslateButton> createState() => _QuizTranslateButtonState();
+}
+
+class _QuizTranslateButtonState extends State<QuizTranslateButton> {
+  bool _prefetching = false;
+
+  Future<void> _open() async {
+    final before = context.read<LocaleProvider>().quizLanguage;
+    await showLanguagePickerSheet(context);
+    if (!mounted) return;
+
+    final after = context.read<LocaleProvider>().quizLanguage;
+    if (after == null || after == before) return;
+
+    await _prefetch(after);
+  }
+
   /// Warms the cache for the rest of the quiz. Failures are ignored on
   /// purpose — every individual [TranslatableText] retries and falls back to
   /// the original text, so a half-finished prefetch is never fatal.

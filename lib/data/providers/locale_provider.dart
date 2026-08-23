@@ -90,6 +90,9 @@ class LocaleProvider extends ChangeNotifier {
   /// automatic translation off.
   Future<void> setQuizLanguage(String? code) async {
     if (_quizLanguage == code) return;
+    // Drop any warm-up still queued for the previous language, otherwise the
+    // app keeps spending requests on text nobody will see.
+    TranslationService.cancelPending();
     _quizLanguage = code;
     await HiveService.setMeta(metaQuizLanguage, code);
     notifyListeners();
