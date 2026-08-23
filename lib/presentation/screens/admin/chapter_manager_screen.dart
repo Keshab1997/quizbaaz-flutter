@@ -385,6 +385,7 @@ class _ChapterManagerScreenState extends State<ChapterManagerScreen> {
       MaterialPageRoute(
         builder: (_) => QuestionManagerScreen(
           categoryId: category.categoryId,
+          subjectName: category.nameText.resolve('en'),
           chapter: chapter,
         ),
       ),

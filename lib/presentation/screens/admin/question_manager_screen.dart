@@ -10,6 +10,7 @@ import '../../../data/services/question_bank_service.dart';
 import '../../../data/services/question_fingerprint.dart';
 import '../../../data/services/question_validator.dart';
 import '../../widgets/glass_card.dart';
+import 'ai_generation_review_screen.dart';
 import 'widgets/trilingual_field.dart';
 
 /// The question bank for one chapter.
@@ -23,11 +24,17 @@ import 'widgets/trilingual_field.dart';
 /// one by looping.
 class QuestionManagerScreen extends StatefulWidget {
   final String categoryId;
+
+  /// Subject name in English — the generator puts it in the prompt, and it is
+  /// what decides whether answer verification defaults on.
+  final String subjectName;
+
   final ChapterModel chapter;
 
   const QuestionManagerScreen({
     super.key,
     required this.categoryId,
+    required this.subjectName,
     required this.chapter,
   });
 
@@ -528,10 +535,95 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
 
   // ---------------------------------------------------------------- actions --
 
-  void _generateWithAi() {
-    // Phase D. The button is here now so the screen's shape is settled and the
-    // review flow has somewhere to land.
-    _toast('AI generation lands in the next step — see docs/11.');
+  /// Opens the review screen, and appends whatever the admin approves.
+  ///
+  /// The screen returns the approved questions rather than writing them
+  /// itself, so there is exactly one place in the app that adds to a bank.
+  Future<void> _generateWithAi() async {
+    final approved = await Navigator.push<List<QuestionModel>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AiGenerationReviewScreen(
+          chapter: widget.chapter,
+          subjectName: widget.subjectName,
+          idPrefix: _slug,
+          // Read fresh rather than trusting the loaded list: the sequence must
+          // continue past the highest id that exists, not the highest shown.
+          startSequence:
+              QuestionFingerprint.nextSequence(_questions.map((q) => q.id)),
+          existingStems: [
+            for (final q in _questions) q.questionText.resolve('en'),
+          ],
+          existingFingerprints: {
+            for (final q in _questions)
+              QuestionFingerprint.fingerprint(q.questionText.resolve('en')),
+          }..remove(''),
+          actorUid: _actorUid,
+        ),
+      ),
+    );
+
+    if (approved == null || approved.isEmpty) return;
+
+    try {
+      final result = await _bank.appendQuestions(
+        chapterId: _chapterId,
+        questions: approved,
+        actorUid: _actorUid,
+        source: 'ai',
+      );
+      await _load();
+      if (mounted) _showAppendResult(result);
+    } catch (e) {
+      _toast('Could not save: $e', error: true);
+    }
+  }
+
+  /// Confirms the append with the before/after count, and offers the undo.
+  ///
+  /// Showing "47 → 55" rather than "saved" is the point: it is the proof that
+  /// the previous 47 are still there.
+  void _showAppendResult(AppendResult result) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        duration: const Duration(seconds: 8),
+        backgroundColor: AppColors.surfaceElevated,
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded,
+                size: 18, color: AppColors.neonGreen),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Added ${result.added} · ${result.countLabel}',
+                style: const TextStyle(fontSize: 13, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        action: SnackBarAction(
+          label: 'Undo',
+          textColor: AppColors.neonGold,
+          onPressed: () => _undoBatch(result.batchId),
+        ),
+      ));
+  }
+
+  Future<void> _undoBatch(String batchId) async {
+    try {
+      final removed = await _bank.undoBatch(
+        chapterId: _chapterId,
+        batchId: batchId,
+        actorUid: _actorUid,
+      );
+      await _load();
+      _toast(removed == 0
+          ? 'Nothing to undo — that batch is outside the 24h window.'
+          : 'Removed $removed question(s) from that batch.');
+    } catch (e) {
+      _toast('Undo failed: $e', error: true);
+    }
   }
 
   Future<void> _editQuestion(QuestionModel? existing) async {

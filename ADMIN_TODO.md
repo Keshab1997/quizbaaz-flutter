@@ -41,33 +41,33 @@ removes what is already there.
 - [x] T2.4 Batch id + "Undo last batch" (24h)
 - [x] T2.5 Test: 40 questions + generate 10 = 50, never 10
 
-### Phase C — manual admin CRUD (useful on its own)
+### Phase C — manual admin CRUD ✅
 - [x] T5.8 `TrilingualField` widget — EN/BN/HI tabs, filled-dot indicators
-- [ ] T5.9 Per-field "Translate" action (authoring-time only)
+- [ ] T5.9 Per-field "Translate" action — widget hook + generator method exist, not wired into the forms yet
 - [x] T5.1 Chapter Manager — subject → chapter tree with counts and coverage
 - [x] T5.2 Add/edit chapter sheet (trilingual)
 - [x] T5.3 Add/edit subject sheet (trilingual)
-- [ ] T5.4 Reorder chapters
+- [ ] T5.4 Reorder chapters (service method exists; no drag UI yet)
 - [x] T5.5 Question Manager — list, search, filters
 - [x] T5.6 Manual add/edit question form with live validation
 - [x] T5.7 Delete single question, with confirm + audit log
 
-### Phase D — generation
-- [ ] T3.1 `QuestionPromptBuilder` — chapter context + existing stems + strict schema
+### Phase D — generation ✅
+- [x] T3.1 `QuestionPromptBuilder` — chapter context + existing stems + strict schema
 - [x] T3.2 `QuestionValidator` in Dart, mirroring `tool/validate_questions.py`
-- [ ] T3.3 Retry-on-reject loop (max 3 rounds), top-up to the requested count
-- [ ] T3.4 Optional verification pass with a second key
-- [ ] T3.5 Golden tests — malformed JSON, 3 options, bad index, dup options, untranslated
-- [ ] T4.1 `AiQuestionGenerator` with a progress stream
-- [ ] T4.2 Provider adapters — Gemini native + OpenAI-compatible
-- [ ] T4.3 Chunking (2 × 5), retry, top-up
-- [ ] T4.4 `reportSuccess` / `reportFailure` into the key pool
-- [ ] T4.5 Friendly errors — no key, all cooling, quota, offline
+- [x] T3.3 Retry-on-reject loop (max 3 rounds), top-up to the requested count
+- [x] T3.4 Optional verification pass with a second key
+- [x] T3.5 Golden tests — malformed JSON, 3 options, bad index, dup options, untranslated
+- [x] T4.1 `AiQuestionGenerator` with a progress stream
+- [x] T4.2 Provider adapters — Gemini native + OpenAI-compatible
+- [x] T4.3 Chunking (2 × 5), retry, top-up
+- [x] T4.4 `reportSuccess` / `reportFailure` into the key pool
+- [x] T4.5 Friendly errors — no key, all cooling, quota, offline
 
-### Phase E — review + entry points
-- [ ] T5.10 Generation review screen — per-question status, edit, drop
-- [ ] T5.11 Approve-selected → batched append + audit log
-- [ ] T5.12 "47 → 55 questions" banner + Undo
+### Phase E — review + entry points ✅
+- [x] T5.10 Generation review screen — per-question status, edit, drop
+- [x] T5.11 Approve-selected → batched append + audit log
+- [x] T5.12 "47 → 55 questions" banner + Undo
 - [x] T5.13 Dashboard tiles: Chapter Manager, Question Bank, API Keys
 - [x] T5.14 Mount `AdminApiKeysScreen` behind the admin gate
 
