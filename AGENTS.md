@@ -195,12 +195,17 @@ python3 tool/validate_questions.py
   `{en, bn, hi}` map — see `docs/10_QUESTION_AUTHORING_GUIDE.md` for the schema,
   the rules and the AI prompt, and `docs/03_JSON_DATA_SCHEMAS.md` for the wider
   Category → Chapter → Question tree.
+- Admin-authored questions will live in Firestore and be **merged** with the
+  bundled assets at read time — assets are the offline floor, Firestore is the
+  live layer. See `docs/11_ADMIN_AI_QUESTION_GENERATOR_PLAN.md` before touching
+  the question pipeline.
 - `chapters_list.json` and each chapter bank both carry the chapter title; they
   must agree, and `total_questions` must match the real count. The validator
   treats a mismatch as an error — a card promising 20 questions and delivering
   3 is worse than a card that says 3.
 - Generate new chapter scaffolding with `tool/generate_chapters.py`.
-- `docs/01`…`docs/09` are the architecture blueprints. **Read the matching doc
+- `docs/01`…`docs/11` are the architecture blueprints; `docs/10` is the question
+  authoring guide and `docs/11` the admin generator plan. **Read the matching doc
   before touching that subsystem.** `ADMIN_TODO.md` tracks admin work.
 
 ---
