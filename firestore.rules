@@ -1,0 +1,153 @@
+rules_version = '2';
+
+// Firestore security rules for QuizBaaz 3D.
+//
+// Shape of the problem: question banks, the chapter catalogue and the LLM API
+// key pool are all authored by one admin and read by every student. So the
+// rule is the same everywhere — anyone may read, only an admin may write —
+// with one exception that matters: API keys must never be world-readable.
+//
+// Deploy:
+//   firebase deploy --only firestore:rules
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --------------------------------------------------------------- helpers --
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Admin flag lives on the user document so it can be granted without a
+    // redeploy. A custom claim would be stronger; this matches how the app
+    // already decides `userProvider.isAdmin`.
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid))
+             .data.get('is_admin', false) == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ------------------------------------------------------- question banks --
+    //
+    // Public read: a student must be able to pull new questions without an
+    // account, because guest trial play is a core flow.
+    // Admin-only write: this is the content that decides what students learn.
+
+    match /question_banks/{chapterId} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /questions/{questionId} {
+        allow read: if true;
+        allow create, update: if isAdmin();
+        // Delete is admin-only and single-document by construction; the client
+        // service has no bulk-delete path.
+        allow delete: if isAdmin();
+      }
+    }
+
+    match /question_categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /chapters/{chapterId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+
+    // --------------------------------------------------------------- keys --
+    //
+    // The one collection that is NOT world-readable. These documents contain
+    // live LLM credentials; a leaked key is someone else's bill.
+
+    match /admin_api_keys/{keyId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /admin_key_groups/{groupId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /api_error_logs/{logId} {
+      // Any signed-in client may append a failure log — that is how the key
+      // manager reports a dead key — but only an admin may read them back.
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /admin_alerts/{alertId} {
+      allow read: if isAdmin();
+      allow write: if isSignedIn();
+    }
+
+    // ---------------------------------------------------------------- users --
+
+    match /users/{userId} {
+      allow read: if true;                       // leaderboard needs names
+      allow create: if isOwner(userId);
+      // A user may edit their own profile but must not grant themselves admin.
+      allow update: if (isOwner(userId)
+                        && request.resource.data.get('is_admin', false)
+                           == resource.data.get('is_admin', false))
+                    || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ------------------------------------------------- gameplay collections --
+
+    match /scores/{scoreId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /leaderboard/{entryId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /winners/{winnerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /gifts/{giftId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    match /quiz_history/{docId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /purchase_history/{docId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /meta/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------- audit --
+    //
+    // Append-only from the client. Nothing may rewrite history, including an
+    // admin — that is the point of an audit log.
+
+    match /admin_audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    // Anything not matched above is denied.
+  }
+}

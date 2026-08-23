@@ -1,0 +1,39 @@
+rules_version = '2';
+
+// Cloud Storage rules for QuizBaaz 3D.
+//
+// The app uploads avatars through ImgBB rather than Storage today, so this is
+// deliberately restrictive: it exists so `firebase deploy` succeeds and so any
+// future bucket use starts locked down rather than open.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // Under 5 MB — enough for an avatar, small enough to bound abuse.
+    function isReasonableSize() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // A user may only write inside their own folder.
+    match /users/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn()
+                   && request.auth.uid == userId
+                   && isImage()
+                   && isReasonableSize();
+    }
+
+    // Anything else is closed.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

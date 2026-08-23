@@ -25,21 +25,21 @@ Goal: one click adds **10 exam-accurate questions** in **en / bn / hi** to a
 chapter — question, 4 options, correct answer, explanation — and **never**
 removes what is already there.
 
-### Phase A — unblock the key manager
-- [ ] T0.1 Widen `cloud_firestore` to `>=5.0.0 <7.0.0` and `firebase_core` to `>=3.0.0 <5.0.0` in [admin_api_key_manager](https://github.com/Keshab1997/admin_api_key_manager)
-- [ ] T0.2 Smoke-test the package against Firestore 6.x
-- [ ] T0.3 Add the git dependency to QuizBaaz, confirm `flutter pub get`
+### Phase A — unblock the key manager ✅
+- [x] T0.1 Widen `cloud_firestore` to `>=5.0.0 <7.0.0` and `firebase_core` to `>=3.0.0 <5.0.0` in [admin_api_key_manager](https://github.com/Keshab1997/admin_api_key_manager)
+- [x] T0.2 API audit against Firestore 6.x — only long-stable surface is used
+- [x] T0.3 Add the git dependency to QuizBaaz, confirm `flutter pub get`
 
 ### Phase B — storage + the append guarantee
-- [ ] T1.1 `QuestionBankService` — Firestore CRUD, batched writes, counters
-- [ ] T1.2 `QuizRepository` merges asset + Firestore banks, dedupes by id
-- [ ] T1.3 Hive cache of the merged bank, invalidated on admin write
-- [ ] T1.4 Firestore rules — public read, admin-only write
-- [ ] T2.1 `fingerprint()` + text normaliser (+ tests)
-- [ ] T2.2 Next-sequence resolver (reads existing ids first)
-- [ ] T2.3 Near-duplicate similarity check
-- [ ] T2.4 Batch id + "Undo last batch" (24h)
-- [ ] T2.5 Test: 40 questions + generate 10 = 50, never 10
+- [x] T1.1 `QuestionBankService` — Firestore CRUD, batched writes, counters
+- [x] T1.2 `QuizRepository` merges asset + Firestore banks, dedupes by id
+- [x] T1.3 Hive cache of the merged bank, invalidated on admin write
+- [x] T1.4 Firestore rules — public read, admin-only write
+- [x] T2.1 `fingerprint()` + text normaliser (+ tests)
+- [x] T2.2 Next-sequence resolver (reads existing ids first)
+- [x] T2.3 Near-duplicate similarity check
+- [x] T2.4 Batch id + "Undo last batch" (24h)
+- [x] T2.5 Test: 40 questions + generate 10 = 50, never 10
 
 ### Phase C — manual admin CRUD (useful on its own)
 - [ ] T5.8 `TrilingualField` widget — EN/BN/HI tabs, filled-dot indicators
@@ -54,7 +54,7 @@ removes what is already there.
 
 ### Phase D — generation
 - [ ] T3.1 `QuestionPromptBuilder` — chapter context + existing stems + strict schema
-- [ ] T3.2 `QuestionValidator` in Dart, mirroring `tool/validate_questions.py`
+- [x] T3.2 `QuestionValidator` in Dart, mirroring `tool/validate_questions.py`
 - [ ] T3.3 Retry-on-reject loop (max 3 rounds), top-up to the requested count
 - [ ] T3.4 Optional verification pass with a second key
 - [ ] T3.5 Golden tests — malformed JSON, 3 options, bad index, dup options, untranslated

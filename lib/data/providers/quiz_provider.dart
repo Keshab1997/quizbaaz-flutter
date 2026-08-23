@@ -170,7 +170,12 @@ class QuizProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    _questions = await _repository.getChapterQuestions(jsonFilePath);
+    // Pass the chapter id so admin-authored questions are merged in — without
+    // it the repository can only see the bundled asset bank.
+    _questions = await _repository.getChapterQuestions(
+      jsonFilePath,
+      chapterId: chapterId,
+    );
     _isLoading = false;
 
     // Check for active boosters

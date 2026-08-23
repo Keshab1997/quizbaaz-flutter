@@ -78,11 +78,23 @@ def check_localized(report, where, field, raw, *, required=True):
         report.warn(where, f'{field} missing {", ".join(missing)}')
 
     # Untranslated copy-paste: identical text in two languages usually means
-    # the translation step was skipped rather than that they genuinely match.
+    # the translation step was skipped. Mirrors `_looksUntranslated` in
+    # lib/data/services/question_validator.dart — keep the two in step.
+    #
+    # Single tokens are exempt: 'H2O', 'NaCl', '1947' and technical terms the
+    # classroom keeps in English ('Router') legitimately read the same in all
+    # three languages. Requiring a space isolates real prose.
+    #
+    # Deliberate difference from the Dart validator: this is a *warning* here
+    # and a *rejection* there. Assets are hand-authored and reviewed, so the
+    # author gets the final say; a generated draft can simply be regenerated.
     for lang in ('bn', 'hi'):
         if lang in values and 'en' in values and values[lang] == values['en']:
-            if any(ord(c) > 127 for c in values['en']):
-                continue  # already non-Latin, probably intentional
+            english = values['en'].strip()
+            if ' ' not in english:
+                continue
+            if any(ord(c) > 0x24F for c in english):
+                continue  # already non-Latin, so not a skipped translation
             report.warn(where, f'{field}.{lang} is identical to English')
 
     return values
