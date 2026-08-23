@@ -35,7 +35,7 @@ class AdminDashboardScreen extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               S.dashAdminPanel,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w900,

@@ -69,7 +69,7 @@ class QuizResultScreen extends StatelessWidget {
 
                   Text(
                     S.resultCompleted,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
                       color: AppColors.neonGold,
@@ -79,7 +79,7 @@ class QuizResultScreen extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     S.resultSummary,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
                     ),
@@ -96,7 +96,7 @@ class QuizResultScreen extends StatelessWidget {
                       children: [
                         Text(
                           S.resultTotalScore,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textSecondary,
@@ -133,7 +133,7 @@ class QuizResultScreen extends StatelessWidget {
                             ),
                             child: Text(
                               S.resultPerfect,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.neonGold,
@@ -163,11 +163,11 @@ class QuizResultScreen extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.workspace_premium, color: AppColors.neonCyan, size: 20),
-                              SizedBox(width: 8),
+                              const Icon(Icons.workspace_premium, color: AppColors.neonCyan, size: 20),
+                              const SizedBox(width: 8),
                               Text(
                                 S.resultSaveScore,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.neonCyan,
@@ -178,7 +178,7 @@ class QuizResultScreen extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             S.resultGuestBody,
-                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                           ),
                           const SizedBox(height: 12),
                           NeonButton(
@@ -230,7 +230,7 @@ class QuizResultScreen extends StatelessWidget {
                     },
                     child: Text(
                       S.resultBackHome,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,

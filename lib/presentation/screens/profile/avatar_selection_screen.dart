@@ -65,7 +65,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
         ),
         title: Text(
           S.avatarChoose,
-          style: TextStyle(
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w900,
@@ -209,7 +209,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                   children: [
                     Text(
                       S.avatarCurrent,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -249,12 +249,12 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle,
+                      const Icon(Icons.check_circle,
                           color: AppColors.neonGold, size: 16),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
                         S.newLabel,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppColors.neonGold,
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -411,11 +411,11 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.cloud_rounded, color: AppColors.neonCyan, size: 14),
-                        SizedBox(width: 4),
+                        const Icon(Icons.cloud_rounded, color: AppColors.neonCyan, size: 14),
+                        const SizedBox(width: 4),
                         Text(
                           S.avatarCloudSection,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.neonCyan,
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
@@ -626,12 +626,12 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.verified,
+                        const Icon(Icons.verified,
                             color: AppColors.neonGold, size: 12),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
                           S.owned,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.neonGold,
                             fontSize: 10,
                             fontWeight: FontWeight.w900,

@@ -37,7 +37,7 @@ class ReviewAnswersScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(S.reviewTitle, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(S.reviewTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           QuizTranslateButton(texts: () => _allReviewTexts(records)),
         ],
@@ -46,7 +46,7 @@ class ReviewAnswersScreen extends StatelessWidget {
           ? Center(
               child: Text(
                 S.reviewNone,
-                style: TextStyle(color: AppColors.textSecondary),
+                style: const TextStyle(color: AppColors.textSecondary),
               ),
             )
           : ListView(
@@ -176,7 +176,7 @@ class _QuestionReviewCard extends StatelessWidget {
                 children: [
                   Text(
                     S.reviewExplanation,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: AppColors.neonCyan,

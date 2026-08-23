@@ -84,7 +84,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
         ),
         title: Text(
           S.purchaseTitle,
-          style: TextStyle(
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w900,
@@ -670,7 +670,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                   ),
                   child: Text(
                     S.close,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w700,
                     ),

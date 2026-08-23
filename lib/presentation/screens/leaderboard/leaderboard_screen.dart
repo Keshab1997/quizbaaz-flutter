@@ -44,7 +44,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       appBar: AppBar(
         title: Text(
           S.lbTitle,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         bottom: TabBar(
           controller: _tabController,
@@ -193,11 +193,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.person_pin_circle, size: 15, color: AppColors.neonCyan),
-              SizedBox(width: 6),
+              const Icon(Icons.person_pin_circle, size: 15, color: AppColors.neonCyan),
+              const SizedBox(width: 6),
               Text(
                 S.lbYourPosition,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppColors.neonCyan,
@@ -258,7 +258,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                           ),
                           child: Text(
                             S.you,
-                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.neonCyan),
+                            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.neonCyan),
                           ),
                         ),
                       ],

@@ -62,7 +62,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
         ),
         title: Text(
           S.historyTitle,
-          style: TextStyle(
+          style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 20,
             fontWeight: FontWeight.w900,
@@ -236,7 +236,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
           const SizedBox(height: 16),
           Text(
             S.historyNone,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -245,7 +245,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
           const SizedBox(height: 8),
           Text(
             S.historyEmptyBody,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 14,
             ),
@@ -576,7 +576,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                 ),
                 child: Text(
                   S.close,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),

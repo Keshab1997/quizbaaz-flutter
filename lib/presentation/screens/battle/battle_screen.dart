@@ -347,7 +347,7 @@ class _ArenaView extends StatelessWidget {
         children: [
           _battleAvatar(user),
           const SizedBox(height: 6),
-          Text(S.you, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonCyan)),
+          Text(S.you, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonCyan)),
           const SizedBox(height: 2),
           Text(
             '${battle.playerScore}',

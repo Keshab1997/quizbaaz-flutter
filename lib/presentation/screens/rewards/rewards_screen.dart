@@ -21,7 +21,7 @@ class RewardsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(S.rewardsTitle, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(S.rewardsTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
@@ -51,12 +51,12 @@ class RewardsScreen extends StatelessWidget {
                     children: [
                       Text(
                         S.rewardsWinDaily,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.neonGold),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.neonGold),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         S.rewardsWinDailyBody,
-                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -68,22 +68,22 @@ class RewardsScreen extends StatelessWidget {
 
           Text(
             S.rewardsYourGifts,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
           ),
           const SizedBox(height: 4),
           Text(
             S.rewardsTapPrize,
-            style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
           ),
           const SizedBox(height: 12),
 
           if (gifts.isEmpty)
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
+              padding: const EdgeInsets.symmetric(vertical: 40),
               child: Center(
                 child: Text(
                   S.rewardsNone,
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: const TextStyle(color: AppColors.textSecondary),
                 ),
               ),
             )
@@ -389,7 +389,7 @@ class _DigitalClaimSheet extends StatelessWidget {
               children: [
                 Text(
                   S.rewardsRedeemCode,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.0),
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.0),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -405,7 +405,7 @@ class _DigitalClaimSheet extends StatelessWidget {
                 Text(
                   S.rewardsRedeemHint,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                 ),
               ],
             ),
@@ -429,7 +429,7 @@ class _DigitalClaimSheet extends StatelessWidget {
                     }
                   },
                   icon: const Icon(Icons.copy, size: 18, color: AppColors.neonCyan),
-                  label: Text(S.rewardsCopyCode, style: TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.bold)),
+                  label: Text(S.rewardsCopyCode, style: const TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -539,7 +539,7 @@ class _DeliverySheet extends StatelessWidget {
               children: [
                 Text(
                   S.rewardsDeliveringTo,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.0),
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.0),
                 ),
                 const SizedBox(height: 8),
                 Text(

@@ -46,7 +46,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
       appBar: AppBar(
         title: Text(
           S.chapterBankTitle,
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
@@ -63,7 +63,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
             child: Center(
               child: Text(
                 S.chapterClass10,
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.black),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.black),
               ),
             ),
           ),

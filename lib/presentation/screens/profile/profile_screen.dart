@@ -30,7 +30,7 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(S.profileTitle,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_rounded, color: AppColors.neonCyan),
@@ -98,11 +98,11 @@ class ProfileScreen extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.face_rounded, color: AppColors.neonPurple, size: 16),
-                          SizedBox(width: 6),
+                          const Icon(Icons.face_rounded, color: AppColors.neonPurple, size: 16),
+                          const SizedBox(width: 6),
                           Text(
                             S.profileChangeAvatar,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: AppColors.neonPurple,
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -221,7 +221,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(S.profilePerformance,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textSecondary)),
@@ -256,7 +256,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(S.profileDetails,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textSecondary)),
@@ -282,7 +282,7 @@ class ProfileScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(S.profileChange,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 11,
                                 color: AppColors.neonCyan,
                                 fontWeight: FontWeight.w700)),
@@ -304,7 +304,7 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(S.profileBadges,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textSecondary)),
@@ -314,7 +314,7 @@ class ProfileScreen extends StatelessWidget {
                     if (earned.isEmpty) {
                       return Text(
                         S.profileNoBadges,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12, color: AppColors.textSecondary),
                       );
                     }
@@ -399,7 +399,7 @@ class ProfileScreen extends StatelessWidget {
                     TextButton(
                       onPressed: () => auth.signOut(),
                       child: Text(S.profileSignOut,
-                          style: TextStyle(
+                          style: const TextStyle(
                               color: AppColors.neonRed,
                               fontWeight: FontWeight.bold)),
                     )
@@ -462,16 +462,16 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         Text(
                           S.purchaseTitle,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                           ),
                         ),
-                        SizedBox(height: 3),
+                        const SizedBox(height: 3),
                         Text(
                           S.profileMyPurchasesHint,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 11.5,
                             color: AppColors.textSecondary,
                           ),
@@ -497,7 +497,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   Text(
                     S.profileNameEffectHint,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
@@ -614,19 +614,19 @@ class ProfileScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(S.profileSignOut, style: TextStyle(color: Colors.white)),
+        title: Text(S.profileSignOut, style: const TextStyle(color: Colors.white)),
         content: Text(
           S.profileSignOutConfirm,
-          style: TextStyle(color: AppColors.textSecondary),
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(S.cancel, style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(S.cancel, style: const TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(S.profileSignOut, style: TextStyle(color: AppColors.neonRed)),
+            child: Text(S.profileSignOut, style: const TextStyle(color: AppColors.neonRed)),
           ),
         ],
       ),
@@ -794,7 +794,7 @@ class ProfileScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(S.profileEdit,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white)),
@@ -822,11 +822,11 @@ class ProfileScreen extends StatelessWidget {
                     controller: usernameController,
                     decoration: InputDecoration(
                       labelText: S.profileUsername,
-                      labelStyle: TextStyle(color: AppColors.textSecondary),
-                      enabledBorder: UnderlineInputBorder(
+                      labelStyle: const TextStyle(color: AppColors.textSecondary),
+                      enabledBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.white24),
                       ),
-                      focusedBorder: UnderlineInputBorder(
+                      focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(color: AppColors.neonCyan),
                       ),
                     ),
@@ -834,7 +834,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(S.profileGender,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: AppColors.textSecondary, fontSize: 12)),
                   const SizedBox(height: 8),
                   Row(
@@ -888,7 +888,7 @@ class ProfileScreen extends StatelessWidget {
                         );
                       },
                       child: Text(S.profileSave,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold)),
                     ),
@@ -976,7 +976,7 @@ class ProfileScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(S.profileSelectGender,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white)),
@@ -1066,7 +1066,7 @@ class ProfileScreen extends StatelessWidget {
           if (!owned) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                duration: Duration(milliseconds: 1400),
+                duration: const Duration(milliseconds: 1400),
                 content: Text(S.profileEffectNotOwned),
               ),
             );

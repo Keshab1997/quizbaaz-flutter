@@ -162,7 +162,7 @@ class DailyQuizScreen extends StatelessWidget {
                     ],
 
                     // Question Card
-                    _buildQuestionCard(currentQ),
+                    _buildQuestionCard(context, currentQ),
                     const SizedBox(height: 18),
 
                     // 4 Options
@@ -556,7 +556,7 @@ class DailyQuizScreen extends StatelessWidget {
     return texts;
   }
 
-  Widget _buildQuestionCard(dynamic question) {
+  Widget _buildQuestionCard(BuildContext context, dynamic question) {
     // When the player has picked a translation language, the authored Bangla
     // line is redundant noise — the stem is already in their language — so it
     // is only shown in the untranslated (original) mode.
@@ -696,7 +696,7 @@ class DailyQuizScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(S.cancel, style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(S.cancel, style: const TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.neonRed),
@@ -704,7 +704,7 @@ class DailyQuizScreen extends StatelessWidget {
               Navigator.pop(ctx);
               Navigator.pop(context);
             },
-            child: Text(S.quizQuit, style: TextStyle(color: Colors.white)),
+            child: Text(S.quizQuit, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),

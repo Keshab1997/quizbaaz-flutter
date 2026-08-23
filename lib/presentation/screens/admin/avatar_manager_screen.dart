@@ -399,7 +399,7 @@ class _AddEditAvatarSheetState extends State<_AddEditAvatarSheet> {
               prefixIcon: const Icon(Icons.category_rounded, color: AppColors.neonCyan), filled: true, fillColor: Colors.white.withValues(alpha: 0.05),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)))),
             dropdownColor: AppColors.surfaceElevated,
-            items: [DropdownMenuItem(value: 'male', child: Text('👦 Male')), DropdownMenuItem(value: 'female', child: Text('👧 Female')), DropdownMenuItem(value: 'premium', child: Text(S.avatarPremium))],
+            items: [const DropdownMenuItem(value: 'male', child: Text('👦 Male')), Dconst ropdownMenuItem(value: 'female', child: Tconst ext('👧 Female')), DropdownMenuItem(value: 'premium', child: Text(S.avatarPremium))],
             onChanged: (value) => setState(() { _selectedCategory = value!; if (value == 'premium') _isPremium = true; })),
           const SizedBox(height: 16),
           SwitchListTile(title: const Text('Premium Avatar', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),

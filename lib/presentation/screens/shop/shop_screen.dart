@@ -207,7 +207,7 @@ class _ShopScreenState extends State<ShopScreen> {
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(S.shopTitle,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           IconButton(
             icon:
@@ -330,11 +330,11 @@ class _ShopScreenState extends State<ShopScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.cloud_rounded, color: AppColors.neonCyan, size: 14),
-                              SizedBox(width: 4),
+                              const Icon(Icons.cloud_rounded, color: AppColors.neonCyan, size: 14),
+                              const SizedBox(width: 4),
                               Text(
                                 S.shopCloudItems,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppColors.neonCyan,
                                   fontSize: 10,
                                   fontWeight: FontWeight.w900,
@@ -462,7 +462,7 @@ class _ShopScreenState extends State<ShopScreen> {
       case PurchaseStatus.alreadyOwned:
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            duration: Duration(milliseconds: 1200),
+            duration: const Duration(milliseconds: 1200),
             content: Text(S.shopAlreadyOwn),
           ),
         );
@@ -568,7 +568,7 @@ class _ShopItemCard extends StatelessWidget {
                         ),
                         child: Text(
                           S.shopBestValue,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 8,
                             fontWeight: FontWeight.w900,
                             color: AppColors.neonGold,
@@ -622,7 +622,7 @@ class _ShopItemCard extends StatelessWidget {
         ),
         child: Text(
           S.shopOwnedCheck,
-          style: TextStyle(
+          style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
               color: AppColors.neonCyan),

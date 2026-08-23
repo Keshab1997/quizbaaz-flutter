@@ -72,7 +72,7 @@ One public class per file.
 | Never write to Firestore from a widget | Writes go through `SyncService` or a repository, so offline queuing still works |
 | Never invent placeholder/demo data in the UI | Empty state is the designed behaviour for a fresh install |
 | Never hardcode a user-facing string | It must be translatable — see §5 |
-| Never put `S.*` inside a `const` expression | `S.foo` is a runtime getter; `const Text(S.cancel)` does not compile |
+| Never put `S.*` inside a `const` expression | `S.foo` is a runtime getter; `const Text(S.cancel)` does not compile. Drop the *outer* `const` only, then re-add it to the children the analyzer flags |
 | Never hardcode a colour | Use `AppColors`; the neon palette is a brand asset |
 | Never hardcode an asset path in a widget | Declare in `pubspec.yaml` **and** reference via `AppAssets` |
 | Never hand-edit `firebase_options.dart` | Regenerate with `flutterfire configure` |
@@ -185,6 +185,12 @@ flutter build web               # used for admin + GUI testing
 python3 tool/gen_strings.py     # regenerate S, report translation gaps
 python3 tool/verify_l10n.py     # unknown keys · const misuse · bracket damage
 python3 tool/apply_l10n.py      # migrate raw English literals to S.* (re-runnable)
+
+# After removing `const` from an expression that gained an S.* getter, the
+# analyzer will flag the children that are still const-able. Feed the report
+# straight back in instead of hand-editing 90 call sites:
+flutter analyze | grep prefer_const_constructors > /tmp/analyze.txt
+python3 tool/apply_const_hints.py /tmp/analyze.txt
 ```
 
 Run `flutter analyze` **and** `python3 tool/verify_l10n.py` before claiming any
@@ -215,6 +221,12 @@ Write to Hive first, then enqueue/push to Firestore. Never the reverse.
 
 **Debugging "the value is wrong"**
 Check Hive before Firestore — the UI never reads Firestore directly.
+
+**A helper method needs `context`**
+Most screens here are `StatelessWidget`, so `context` is *not* an implicit
+field — pass it as the first parameter (`_buildX(BuildContext context, ...)`)
+the way `_buildOptionButton` already does. Reaching for `context` inside a
+StatelessWidget helper is the single most common compile error in this repo.
 
 ---
 
