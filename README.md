@@ -32,6 +32,10 @@
    - Visitors can explore the dashboard and play trial quizzes immediately without forced registration, boosting user acquisition.
 7. **🛡️ Dynamic Admin Web Control Panel:**
    - Bulk JSON/Excel question uploader, Daily Quiz scheduler, Yesterday's Winner dispatcher, and Gift courier tracker.
+8. **🌍 Multi-Language Interface (English · বাংলা · हिन्दी):**
+   - The full UI is hand-translated into three languages, picked automatically from the device locale and switchable any time from **Profile → Settings → Language**. The choice is stored locally and survives a restart, and the app font swaps to Hind Siliguri for Bangla so no glyph is ever missing.
+9. **🌐 One-Tap Question Translation (36+ languages):**
+   - A **Translate** chip on every question card converts the question, all options and the explanation into any of 36+ languages on demand — Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Urdu, Arabic, Spanish and more. Translations are cached on-device forever, so each question costs one request once and then works offline. Interface language and question language are independent: read the app in English and the questions in Tamil if that is what helps.
 
 ---
 
@@ -81,7 +85,9 @@ quizbaaz-flutter/
 
 * **Frontend Framework:** Flutter 3.x (Dart 3.x)
 * **State Management:** Provider / Riverpod
-* **Typography:** Google Fonts (`Poppins`, `Hind Siliguri`)
+* **Localisation:** `flutter_localizations` + hand-written catalogues in `lib/l10n/` (en, bn, hi)
+* **Machine Translation:** Google Translate endpoint with a 90-day on-device Hive cache
+* **Typography:** Google Fonts (`Poppins` for en/hi, `Hind Siliguri` for bn)
 * **Visual Effects:** Custom Backdrop Filters, Dual Gradients, Box Shadows
 * **Animations:** Lottie, Custom Matrix4 Transformations
 * **Audio & Feedback:** `audioplayers`, `haptic_feedback`

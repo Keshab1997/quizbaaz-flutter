@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Ships the Material/Cupertino translations (date pickers, "Cancel" in system
+  # dialogs, text-selection menus) for bn/hi. Our own copy lives in lib/l10n/.
+  flutter_localizations:
+    sdk: flutter
   cupertino_icons: ^1.0.6
   provider: ^6.1.2
   google_fonts: ^6.2.1

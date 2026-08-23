@@ -6,6 +6,7 @@ import '../../../data/repositories/quiz_repository.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../daily_quiz/daily_quiz_screen.dart';
+import '../../../l10n/app_strings.dart';
 
 class ChapterListScreen extends StatefulWidget {
   const ChapterListScreen({super.key});
@@ -43,8 +44,8 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text(
-          'Class 10 Board Chapter Bank',
+        title: Text(
+          S.chapterBankTitle,
           style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
         ),
         leading: IconButton(
@@ -59,9 +60,9 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
               gradient: AppColors.goldGradient,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'Class 10 🎓',
+                S.chapterClass10,
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.black),
               ),
             ),
@@ -112,7 +113,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '${category.chapters.length} Chapters',
+                                  S.chapterCount(n: category.chapters.length),
                                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                                 ),
                               ],
@@ -199,7 +200,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
         onTap: isLocked
             ? () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('🔒 Complete previous chapter exam to unlock this chapter!')),
+                  SnackBar(content: Text(S.chapterLockedMsg)),
                 );
               }
             : () {
@@ -230,7 +231,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                 child: isLocked
                     ? const Icon(Icons.lock, color: AppColors.textMuted, size: 22)
                     : Text(
-                        'Ch ${chapter.chapterNumber}',
+                        S.chapterShort(n: chapter.chapterNumber),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w900,
@@ -281,7 +282,7 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          '${chapter.totalQuestions} Questions',
+                          S.chapterQuestionCount(n: chapter.totalQuestions),
                           style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.bold),
                         ),
                       ),

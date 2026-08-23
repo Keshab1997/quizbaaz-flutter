@@ -8,6 +8,7 @@ import '../../../data/services/imgbb_service.dart';
 import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/cached_avatar.dart';
+import '../../../l10n/app_strings.dart';
 
 /// Admin screen to manage Firestore avatars.
 class AvatarManagerScreen extends StatefulWidget {
@@ -304,7 +305,7 @@ class _AvatarManagerScreenState extends State<AvatarManagerScreen> {
         title: const Text('Delete Avatar?'),
         content: Text('Delete "${avatar.name}" from Firestore?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.cancel)),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -398,7 +399,7 @@ class _AddEditAvatarSheetState extends State<_AddEditAvatarSheet> {
               prefixIcon: const Icon(Icons.category_rounded, color: AppColors.neonCyan), filled: true, fillColor: Colors.white.withValues(alpha: 0.05),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)))),
             dropdownColor: AppColors.surfaceElevated,
-            items: const [DropdownMenuItem(value: 'male', child: Text('👦 Male')), DropdownMenuItem(value: 'female', child: Text('👧 Female')), DropdownMenuItem(value: 'premium', child: Text('👑 Premium'))],
+            items: [DropdownMenuItem(value: 'male', child: Text('👦 Male')), DropdownMenuItem(value: 'female', child: Text('👧 Female')), DropdownMenuItem(value: 'premium', child: Text(S.avatarPremium))],
             onChanged: (value) => setState(() { _selectedCategory = value!; if (value == 'premium') _isPremium = true; })),
           const SizedBox(height: 16),
           SwitchListTile(title: const Text('Premium Avatar', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),

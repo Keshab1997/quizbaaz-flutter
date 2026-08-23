@@ -5,6 +5,7 @@ import '../../widgets/glass_card.dart';
 import 'user_list_screen.dart';
 import 'shop_manager_screen.dart';
 import 'avatar_manager_screen.dart';
+import '../../../l10n/app_strings.dart';
 
 /// Admin Dashboard - Main admin panel with overview and navigation
 class AdminDashboardScreen extends StatelessWidget {
@@ -32,8 +33,8 @@ class AdminDashboardScreen extends StatelessWidget {
               child: const Icon(Icons.shield_rounded, color: AppColors.neonGold, size: 20),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'Admin Panel',
+            Text(
+              S.dashAdminPanel,
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 20,

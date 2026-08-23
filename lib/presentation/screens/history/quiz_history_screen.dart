@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/quiz_result_history.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../../l10n/app_strings.dart';
 
 /// Shows the player's complete quiz result history with filtering options.
 class QuizHistoryScreen extends StatefulWidget {
@@ -59,8 +60,8 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Quiz History',
+        title: Text(
+          S.historyTitle,
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 20,
@@ -115,25 +116,25 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
               _buildStatItem(
                 icon: Icons.quiz_rounded,
                 value: '$totalQuizzes',
-                label: 'Quizzes',
+                label: S.historyQuizzes,
                 color: AppColors.neonCyan,
               ),
               _buildStatItem(
                 icon: Icons.stars_rounded,
                 value: _formatNumber(totalScore),
-                label: 'Total Score',
+                label: S.historyTotalScore,
                 color: AppColors.neonGold,
               ),
               _buildStatItem(
                 icon: Icons.track_changes_rounded,
                 value: '${avgAccuracy.toStringAsFixed(0)}%',
-                label: 'Avg Accuracy',
+                label: S.historyAvgAccuracy,
                 color: AppColors.neonGreen,
               ),
               _buildStatItem(
                 icon: Icons.monetization_on_rounded,
                 value: _formatNumber(totalCoins),
-                label: 'Coins',
+                label: S.coins,
                 color: AppColors.neonGold,
               ),
             ],
@@ -178,11 +179,11 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          _buildFilterChip('All', 'all'),
+          _buildFilterChip(S.all, 'all'),
           const SizedBox(width: 8),
-          _buildFilterChip('Daily', 'daily'),
+          _buildFilterChip(S.historyDaily, 'daily'),
           const SizedBox(width: 8),
-          _buildFilterChip('Chapter', 'chapter'),
+          _buildFilterChip(S.historyChapter, 'chapter'),
         ],
       ),
     );
@@ -233,8 +234,8 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
             color: AppColors.textMuted.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'No Quiz History',
+          Text(
+            S.historyNone,
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 20,
@@ -242,8 +243,8 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Play your first quiz to see results here!',
+          Text(
+            S.historyEmptyBody,
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 14,
@@ -326,7 +327,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            isDaily ? 'DAILY' : 'CHAPTER',
+                            isDaily ? S.historyDailyCaps : S.historyChapterCaps,
                             style: TextStyle(
                               color: isDaily
                                   ? AppColors.neonGold
@@ -521,10 +522,10 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
             Row(
               children: [
                 Expanded(
-                    child: _buildDetailStat('Score', '${history.score}',
+                    child: _buildDetailStat(S.score, '${history.score}',
                         AppColors.neonGold, Icons.stars_rounded)),
                 Expanded(
-                    child: _buildDetailStat('Accuracy', history.accuracyLabel,
+                    child: _buildDetailStat(S.accuracy, history.accuracyLabel,
                         AppColors.neonCyan, Icons.track_changes_rounded)),
               ],
             ),
@@ -532,10 +533,10 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
             Row(
               children: [
                 Expanded(
-                    child: _buildDetailStat('Correct', '${history.correctAnswers}',
+                    child: _buildDetailStat(S.correct, '${history.correctAnswers}',
                         AppColors.neonGreen, Icons.check_circle_rounded)),
                 Expanded(
-                    child: _buildDetailStat('Wrong', '${history.wrongAnswers}',
+                    child: _buildDetailStat(S.wrong, '${history.wrongAnswers}',
                         AppColors.neonRed, Icons.cancel_rounded)),
               ],
             ),
@@ -543,11 +544,11 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
             Row(
               children: [
                 Expanded(
-                    child: _buildDetailStat('Time', history.timeFormatted,
+                    child: _buildDetailStat(S.time, history.timeFormatted,
                         AppColors.neonPurple, Icons.timer_rounded)),
                 Expanded(
                     child: _buildDetailStat(
-                        'Coins',
+                        S.coins,
                         '+${history.coinsEarned}',
                         AppColors.neonGold,
                         Icons.monetization_on_rounded)),
@@ -555,7 +556,7 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Played on ${_formatFullDate(history.playedAt)}',
+              S.historyPlayedOn(date: _formatFullDate(history.playedAt)),
               style: const TextStyle(
                 color: AppColors.textMuted,
                 fontSize: 12,
@@ -573,8 +574,8 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                     side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                 ),
-                child: const Text(
-                  'Close',
+                child: Text(
+                  S.close,
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.w700,
@@ -649,17 +650,14 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
     final now = DateTime.now();
     final diff = now.difference(date);
 
-    if (diff.inDays == 0) return 'Today';
-    if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inDays == 0) return S.today;
+    if (diff.inDays == 1) return S.yesterday;
+    if (diff.inDays < 7) return S.daysAgo(n: diff.inDays);
     return '${date.day}/${date.month}';
   }
 
   String _formatFullDate(DateTime date) {
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
+    final months = S.monthsShort;
     return '${date.day} ${months[date.month - 1]} ${date.year}, ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

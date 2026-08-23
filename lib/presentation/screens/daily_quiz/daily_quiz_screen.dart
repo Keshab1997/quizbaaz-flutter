@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../data/providers/locale_provider.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/translatable_text.dart';
 import '../quiz_result/quiz_result_screen.dart';
+import '../../../l10n/app_strings.dart';
 
 class DailyQuizScreen extends StatelessWidget {
   const DailyQuizScreen({super.key});
@@ -486,10 +489,10 @@ class DailyQuizScreen extends StatelessWidget {
     if (quiz.useFiftyFifty()) return;
 
     final message = quiz.fiftyFiftyStock <= 0
-        ? 'No 50-50 lifelines left! Buy more in the Shop. 🛒'
+        ? S.quizNoFiftyFifty
         : quiz.fiftyFiftyUsed
-            ? 'Already used 50-50 on this question.'
-            : 'Cannot use 50-50 now.';
+            ? S.quizFiftyFiftyUsed
+            : S.quizFiftyFiftyBlocked;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
@@ -497,10 +500,10 @@ class DailyQuizScreen extends StatelessWidget {
     if (quiz.useFreezeTime()) return;
 
     final message = quiz.freezeTimeStock <= 0
-        ? 'No +10s Freeze left! Buy more in the Shop. 🛒'
+        ? S.quizNoFreeze
         : quiz.freezeUsed
-            ? 'Freeze already used on this question.'
-            : 'Cannot use Freeze now.';
+            ? S.quizFreezeUsed
+            : S.quizFreezeBlocked;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
@@ -508,10 +511,10 @@ class DailyQuizScreen extends StatelessWidget {
     if (quiz.useSkipQuestion()) return;
 
     final message = quiz.skipQuestionStock <= 0
-        ? 'No Skip left! Buy more in the Shop. 🛒'
+        ? S.quizNoSkip
         : quiz.skipUsed
-            ? 'Already used Skip on this question.'
-            : 'Cannot use Skip now.';
+            ? S.quizSkipUsed
+            : S.quizSkipBlocked;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
@@ -519,10 +522,10 @@ class DailyQuizScreen extends StatelessWidget {
     if (quiz.useHintReveal()) return;
 
     final message = quiz.hintRevealStock <= 0
-        ? 'No Hints left! Buy more in the Shop. 🛒'
+        ? S.quizNoHint
         : quiz.hintUsed
-            ? 'Already used Hint on this question.'
-            : 'Cannot use Hint now.';
+            ? S.quizHintUsed
+            : S.quizHintBlocked;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
@@ -530,14 +533,19 @@ class DailyQuizScreen extends StatelessWidget {
     if (quiz.useAudiencePoll()) return;
 
     final message = quiz.audiencePollStock <= 0
-        ? 'No Audience Poll left! Buy more in the Shop. 🛒'
+        ? S.quizNoPoll
         : quiz.audienceUsed
-            ? 'Already used Poll on this question.'
-            : 'Cannot use Poll now.';
+            ? S.quizPollUsed
+            : S.quizPollBlocked;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _buildQuestionCard(dynamic question) {
+    // When the player has picked a translation language, the authored Bangla
+    // line is redundant noise — the stem is already in their language — so it
+    // is only shown in the untranslated (original) mode.
+    final translating = context.watch<LocaleProvider>().quizLanguage != null;
+
     return GlassCard(
       borderRadius: 22,
       borderColor: AppColors.neonPurple.withValues(alpha: 0.3),
@@ -546,7 +554,12 @@ class DailyQuizScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          Align(
+            alignment: Alignment.centerRight,
+            child: const TranslateChip(),
+          ),
+          const SizedBox(height: 10),
+          TranslatableText(
             question.question,
             style: const TextStyle(
               fontSize: 18,
@@ -555,7 +568,7 @@ class DailyQuizScreen extends StatelessWidget {
               height: 1.35,
             ),
           ),
-          if (question.questionBn != null) ...[
+          if (question.questionBn != null && !translating) ...[
             const SizedBox(height: 8),
             Text(
               question.questionBn!,
@@ -645,7 +658,7 @@ class DailyQuizScreen extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: Text(
+                child: TranslatableText(
                   question.options[index],
                   style: TextStyle(
                     fontSize: 15,
@@ -667,12 +680,12 @@ class DailyQuizScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgCard,
-        title: const Text('Quit Live Quiz?'),
-        content: const Text('If you leave now, your score for today will not be recorded on the leaderboard.'),
+        title: Text(S.quizQuitTitle),
+        content: Text(S.quizQuitBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(S.cancel, style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.neonRed),
@@ -680,7 +693,7 @@ class DailyQuizScreen extends StatelessWidget {
               Navigator.pop(ctx);
               Navigator.pop(context);
             },
-            child: const Text('Quit', style: TextStyle(color: Colors.white)),
+            child: Text(S.quizQuit, style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

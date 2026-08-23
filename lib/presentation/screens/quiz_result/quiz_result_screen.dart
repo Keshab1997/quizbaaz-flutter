@@ -10,6 +10,7 @@ import '../../widgets/neon_button.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import 'review_answers_screen.dart';
 import '../../widgets/cached_avatar.dart';
+import '../../../l10n/app_strings.dart';
 
 class QuizResultScreen extends StatelessWidget {
   const QuizResultScreen({super.key});
@@ -66,8 +67,8 @@ class QuizResultScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  const Text(
-                    'QUIZ COMPLETED! 🎉',
+                  Text(
+                    S.resultCompleted,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
@@ -76,8 +77,8 @@ class QuizResultScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Awesome job! Here is your performance summary:',
+                  Text(
+                    S.resultSummary,
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
@@ -93,8 +94,8 @@ class QuizResultScreen extends StatelessWidget {
                     backgroundColor: const Color(0x33281E48),
                     child: Column(
                       children: [
-                        const Text(
-                          'TOTAL SCORE',
+                        Text(
+                          S.resultTotalScore,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -115,10 +116,10 @@ class QuizResultScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildStatColumn('Correct', '$correct', AppColors.neonGreen, Icons.check_circle),
-                            _buildStatColumn('Wrong', '$wrong', AppColors.neonRed, Icons.cancel),
-                            _buildStatColumn('Coins', '+$coinsEarned', AppColors.neonGold, Icons.monetization_on),
-                            _buildStatColumn('Gems', '+$gemsEarned', AppColors.neonPurple, Icons.diamond),
+                            _buildStatColumn(S.correct, '$correct', AppColors.neonGreen, Icons.check_circle),
+                            _buildStatColumn(S.wrong, '$wrong', AppColors.neonRed, Icons.cancel),
+                            _buildStatColumn(S.coins, '+$coinsEarned', AppColors.neonGold, Icons.monetization_on),
+                            _buildStatColumn(S.gems, '+$gemsEarned', AppColors.neonPurple, Icons.diamond),
                           ],
                         ),
                         if (isPerfect) ...[
@@ -130,8 +131,8 @@ class QuizResultScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.5)),
                             ),
-                            child: const Text(
-                              '🔥 PERFECT SCORE! +100 coin bonus',
+                            child: Text(
+                              S.resultPerfect,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -160,12 +161,12 @@ class QuizResultScreen extends StatelessWidget {
                       backgroundColor: const Color(0x33003B46),
                       child: Column(
                         children: [
-                          const Row(
+                          Row(
                             children: [
                               Icon(Icons.workspace_premium, color: AppColors.neonCyan, size: 20),
                               SizedBox(width: 8),
                               Text(
-                                'Save Your Score & Join the Leaderboard!',
+                                S.resultSaveScore,
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -175,13 +176,13 @@ class QuizResultScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 6),
-                          const Text(
-                            'You played as Guest. Sign in with 1-tap Google account to register your score on the daily leaderboard.',
+                          Text(
+                            S.resultGuestBody,
                             style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                           ),
                           const SizedBox(height: 12),
                           NeonButton(
-                            text: auth.isBusy ? 'Signing in...' : '1-Tap Google Sign-In',
+                            text: auth.isBusy ? S.resultSigningIn : S.resultGoogleSignIn,
                             height: 40,
                             gradient: AppColors.primaryGradient,
                             onPressed: auth.isBusy
@@ -196,7 +197,7 @@ class QuizResultScreen extends StatelessWidget {
 
                   // Action Buttons
                   NeonButton(
-                    text: 'CHECK LEADERBOARD 🏆',
+                    text: S.resultLeaderboard,
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
@@ -206,7 +207,7 @@ class QuizResultScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   NeonButton(
-                    text: 'REVIEW ANSWERS 📖',
+                    text: S.resultReview,
                     gradient: const LinearGradient(
                       colors: [AppColors.neonCyan, AppColors.neonPurple],
                     ),
@@ -227,8 +228,8 @@ class QuizResultScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.popUntil(context, (route) => route.isFirst);
                     },
-                    child: const Text(
-                      'Back to Home Dashboard',
+                    child: Text(
+                      S.resultBackHome,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -260,14 +261,14 @@ class QuizResultScreen extends StatelessWidget {
       if (user == null) return;
 
       await userProvider.linkGoogleAccount(
-        user.displayName ?? user.email ?? 'Player',
+        user.displayName ?? user.email ?? S.battlePlayer,
         user.email ?? user.uid,
         photoURL: user.photoURL,
         uid: user.uid,
       );
 
       messenger.showSnackBar(
-        const SnackBar(content: Text('🎉 Signed in with Google! Score saved to Leaderboard!')),
+        SnackBar(content: Text(S.resultSignedIn)),
       );
     } on AuthException catch (e) {
       messenger.showSnackBar(

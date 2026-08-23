@@ -5,13 +5,16 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/models/user_stats.dart';
+import '../../../data/providers/locale_provider.dart';
 import '../../../data/providers/user_provider.dart';
+import '../../screens/settings/language_screen.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/name_effect_text.dart';
 import 'avatar_selection_screen.dart';
 import '../shop/purchase_history_screen.dart';
 import '../../../data/models/shop_item.dart';
 import '../../widgets/cached_avatar.dart';
+import '../../../l10n/app_strings.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -26,7 +29,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('My Profile',
+        title: Text(S.profileTitle,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           IconButton(
@@ -92,13 +95,13 @@ class ProfileScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.4)),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.face_rounded, color: AppColors.neonPurple, size: 16),
                           SizedBox(width: 6),
                           Text(
-                            'Change Avatar',
+                            S.profileChangeAvatar,
                             style: TextStyle(
                               color: AppColors.neonPurple,
                               fontSize: 12,
@@ -150,7 +153,7 @@ class ProfileScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
-                          user.gender == UserGender.male ? 'Male' : 'Female',
+                          user.gender == UserGender.male ? S.profileMale : S.profileFemale,
                           style: TextStyle(
                             fontSize: 11,
                             color: user.gender == UserGender.male
@@ -175,7 +178,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.local_fire_department,
                     color: Colors.orangeAccent,
                     value: '${user.dailyStreak}',
-                    label: 'Day Streak',
+                    label: S.profileDayStreak,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -184,7 +187,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.monetization_on_rounded,
                     color: AppColors.neonGold,
                     value: '${user.coins}',
-                    label: 'Coins',
+                    label: S.coins,
                   ),
                 ),
               ],
@@ -197,7 +200,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.track_changes_rounded,
                     color: AppColors.neonCyan,
                     value: stats.accuracyLabel,
-                    label: 'Accuracy',
+                    label: S.accuracy,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -206,7 +209,7 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.quiz_rounded,
                     color: AppColors.neonPurple,
                     value: '${stats.totalQuizzes}',
-                    label: 'Quizzes Played',
+                    label: S.profileQuizzesPlayed,
                   ),
                 ),
               ],
@@ -217,29 +220,29 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('PERFORMANCE',
+                  Text(S.profilePerformance,
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textSecondary)),
                   const SizedBox(height: 12),
-                  _buildDetailRow(Icons.check_circle_rounded, 'Correct answers',
+                  _buildDetailRow(Icons.check_circle_rounded, S.profileCorrectAnswers,
                       '${stats.totalCorrect} / ${stats.totalAnswered}'),
                   const Divider(color: Colors.white12),
-                  _buildDetailRow(Icons.emoji_events_rounded, 'Best daily score',
+                  _buildDetailRow(Icons.emoji_events_rounded, S.profileBestDailyScore,
                       stats.bestDailyScore > 0
                           ? '${stats.bestDailyScore} pts'
                           : '--'),
                   const Divider(color: Colors.white12),
-                  _buildDetailRow(Icons.bolt_rounded, 'Battles won',
+                  _buildDetailRow(Icons.bolt_rounded, S.profileBattlesWon,
                       '${stats.battlesWon} / ${stats.battlesPlayed}'),
                   const Divider(color: Colors.white12),
-                  _buildDetailRow(Icons.timer_rounded, 'Avg. time / question',
+                  _buildDetailRow(Icons.timer_rounded, S.profileAvgTime,
                       stats.hasData
                           ? '${stats.averageSecondsPerQuestion.toStringAsFixed(1)}s'
                           : '--'),
                   const Divider(color: Colors.white12),
-                  _buildDetailRow(Icons.whatshot_rounded, 'Longest streak',
+                  _buildDetailRow(Icons.whatshot_rounded, S.profileLongestStreak,
                       '${stats.longestStreak} days'),
                 ],
               ),
@@ -252,22 +255,22 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('PROFILE DETAILS',
+                  Text(S.profileDetails,
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textSecondary)),
                   const SizedBox(height: 16),
-                  _buildDetailRow(Icons.person_rounded, 'Username',
+                  _buildDetailRow(Icons.person_rounded, S.profileUsername,
                       '@${user.username}'),
                   const Divider(color: Colors.white12),
                   _buildDetailRow(
-                      Icons.badge_rounded, 'Full Name', user.fullName),
+                      Icons.badge_rounded, S.profileFullName, user.fullName),
                   const Divider(color: Colors.white12),
                   _buildDetailRow(
                     Icons.wc_rounded,
-                    'Gender',
-                    user.gender == UserGender.male ? 'Male' : 'Female',
+                    S.profileGender,
+                    user.gender == UserGender.male ? S.profileMale : S.profileFemale,
                     trailing: GestureDetector(
                       onTap: () => _showGenderPicker(context, userProvider),
                       child: Container(
@@ -278,7 +281,7 @@ class ProfileScreen extends StatelessWidget {
                               color: AppColors.neonCyan.withValues(alpha: 0.4)),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text('Change',
+                        child: Text(S.profileChange,
                             style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.neonCyan,
@@ -287,8 +290,8 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const Divider(color: Colors.white12),
-                  _buildDetailRow(Icons.email_rounded, 'Email',
-                      auth.firebaseUser?.email ?? 'Not connected'),
+                  _buildDetailRow(Icons.email_rounded, S.profileEmail,
+                      auth.firebaseUser?.email ?? S.profileNotConnected),
                 ],
               ),
             ),
@@ -300,7 +303,7 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('BADGES & ACHIEVEMENTS',
+                  Text(S.profileBadges,
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -309,8 +312,8 @@ class ProfileScreen extends StatelessWidget {
                   Builder(builder: (context) {
                     final earned = _earnedBadges(stats, user.dailyStreak);
                     if (earned.isEmpty) {
-                      return const Text(
-                        'No badges yet — play quizzes to unlock them.',
+                      return Text(
+                        S.profileNoBadges,
                         style: TextStyle(
                             fontSize: 12, color: AppColors.textSecondary),
                       );
@@ -336,8 +339,8 @@ class ProfileScreen extends StatelessWidget {
               leading:
                   const Icon(Icons.swap_horiz, color: AppColors.neonCyan),
               title: Text(user.isGuest
-                  ? 'Currently: Guest Mode'
-                  : 'Currently: Registered User'),
+                  ? S.profileGuestMode
+                  : S.profileRegistered),
               subtitle: Text(user.isGuest
                   ? 'Tap to switch to Full User'
                   : 'Tap to test Guest Mode'),
@@ -366,8 +369,8 @@ class ProfileScreen extends StatelessWidget {
                         Text(
                           auth.isSignedIn
                               ? (auth.firebaseUser?.displayName ??
-                                  'Google Account')
-                              : 'Google Account',
+                                  S.profileGoogleAccount)
+                              : S.profileGoogleAccount,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -378,8 +381,8 @@ class ProfileScreen extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           auth.isSignedIn
-                              ? auth.firebaseUser?.email ?? 'Connected'
-                              : 'Sign in to save your progress',
+                              ? auth.firebaseUser?.email ?? S.profileConnected
+                              : S.profileSignInPrompt,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -395,7 +398,7 @@ class ProfileScreen extends StatelessWidget {
                   if (auth.isSignedIn)
                     TextButton(
                       onPressed: () => auth.signOut(),
-                      child: const Text('Sign Out',
+                      child: Text(S.profileSignOut,
                           style: TextStyle(
                               color: AppColors.neonRed,
                               fontWeight: FontWeight.bold)),
@@ -411,7 +414,7 @@ class ProfileScreen extends StatelessWidget {
                       onPressed:
                            auth.isBusy ? null : () => _handleGoogleSignIn(context),
                       child: Text(
-                        auth.isBusy ? 'Wait...' : 'Sign In',
+                        auth.isBusy ? S.pleaseWait : S.profileSignIn,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -421,7 +424,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
             // My Purchases
-            _buildSectionTitle(Icons.shopping_bag_rounded, 'My Purchases'),
+            _buildSectionTitle(Icons.shopping_bag_rounded, S.profileMyPurchases),
             const SizedBox(height: 12),
             GlassCard(
               borderRadius: 20,
@@ -453,12 +456,12 @@ class ProfileScreen extends StatelessWidget {
                         color: AppColors.neonGold, size: 24),
                   ),
                   const SizedBox(width: 14),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Purchase History',
+                          S.purchaseTitle,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
@@ -467,7 +470,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 3),
                         Text(
-                          'View everything you bought from the shop',
+                          S.profileMyPurchasesHint,
                           style: TextStyle(
                             fontSize: 11.5,
                             color: AppColors.textSecondary,
@@ -484,7 +487,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Name Effect
-            _buildSectionTitle(Icons.auto_awesome_rounded, 'Name Effect'),
+            _buildSectionTitle(Icons.auto_awesome_rounded, S.profileNameEffect),
             const SizedBox(height: 12),
             GlassCard(
               borderRadius: 20,
@@ -492,8 +495,8 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Give your name a special look on the leaderboard',
+                  Text(
+                    S.profileNameEffectHint,
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
@@ -536,50 +539,62 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Settings Section
-            _buildSectionTitle(Icons.settings_rounded, 'Settings'),
+            _buildSectionTitle(Icons.settings_rounded, S.profileSettings),
             const SizedBox(height: 12),
             GlassCard(
               borderRadius: 20,
               padding: const EdgeInsets.all(18),
               child: Column(
                 children: [
+                  _buildAppInfoRow(
+                    Icons.language_rounded,
+                    S.languageTitle,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LanguageScreen()),
+                    ),
+                    trailingText: context.watch<LocaleProvider>().followSystem
+                        ? S.languageSystemDefault
+                        : _languageLabel(context.watch<LocaleProvider>().appLanguage),
+                  ),
+                  const Divider(color: Colors.white12),
                   _buildSettingRow(userProvider, Icons.notifications_rounded,
-                      'Notifications', UserProvider.settingNotifications),
+                      S.profileNotifications, UserProvider.settingNotifications),
                   const Divider(color: Colors.white12),
                   _buildSettingRow(userProvider, Icons.music_note_rounded,
-                      'Sound Effects', UserProvider.settingSound),
+                      S.profileSound, UserProvider.settingSound),
                   const Divider(color: Colors.white12),
                   _buildSettingRow(userProvider, Icons.volume_up_rounded,
-                      'Vibration', UserProvider.settingVibration,
+                      S.profileVibration, UserProvider.settingVibration,
                       defaultValue: false),
                   const Divider(color: Colors.white12),
                   _buildSettingRow(userProvider, Icons.dark_mode_rounded,
-                      'Dark Mode', UserProvider.settingDarkMode),
+                      S.profileDarkMode, UserProvider.settingDarkMode),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
             // About Section
-            _buildSectionTitle(Icons.info_outline_rounded, 'About'),
+            _buildSectionTitle(Icons.info_outline_rounded, S.profileAbout),
             const SizedBox(height: 12),
             GlassCard(
               borderRadius: 20,
               padding: const EdgeInsets.all(18),
               child: Column(
                 children: [
-                  _buildAppInfoRow(Icons.star_rounded, 'Rate the App', () {}),
+                  _buildAppInfoRow(Icons.star_rounded, S.profileRateApp, () {}),
                   const Divider(color: Colors.white12),
-                  _buildAppInfoRow(Icons.share_rounded, 'Share with Friends', () {}),
+                  _buildAppInfoRow(Icons.share_rounded, S.profileShare, () {}),
                   const Divider(color: Colors.white12),
-                  _buildAppInfoRow(Icons.policy_rounded, 'Privacy Policy', () {}),
+                  _buildAppInfoRow(Icons.policy_rounded, S.profilePrivacy, () {}),
                   const Divider(color: Colors.white12),
-                  _buildAppInfoRow(Icons.description_rounded, 'Terms & Conditions', () {}),
+                  _buildAppInfoRow(Icons.description_rounded, S.profileTerms, () {}),
                   const Divider(color: Colors.white12),
-                  _buildAppInfoRow(Icons.info_rounded, 'Version 1.0.0', null),
+                  _buildAppInfoRow(Icons.info_rounded, S.profileVersion(v: '1.0.0'), null),
                   if (auth.isSignedIn) ...[
                     const Divider(color: Colors.white12),
-                    _buildAppInfoRow(Icons.logout_rounded, 'Sign Out',
+                    _buildAppInfoRow(Icons.logout_rounded, S.profileSignOut,
                         () => _confirmSignOut(context, auth),
                         color: AppColors.neonRed),
                   ],
@@ -599,19 +614,19 @@ class ProfileScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'Are you sure you want to sign out? Your local data will be kept.',
+        title: Text(S.profileSignOut, style: TextStyle(color: Colors.white)),
+        content: Text(
+          S.profileSignOutConfirm,
           style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text(S.cancel, style: TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Sign Out', style: TextStyle(color: AppColors.neonRed)),
+            child: Text(S.profileSignOut, style: TextStyle(color: AppColors.neonRed)),
           ),
         ],
       ),
@@ -778,7 +793,7 @@ class ProfileScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Edit Profile',
+                      Text(S.profileEdit,
                           style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -791,13 +806,13 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   TextField(
                     controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      labelStyle: TextStyle(color: AppColors.textSecondary),
-                      enabledBorder: UnderlineInputBorder(
+                    decoration: InputDecoration(
+                      labelText: S.profileFullName,
+                      labelStyle: const TextStyle(color: AppColors.textSecondary),
+                      enabledBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.white24),
                       ),
-                      focusedBorder: UnderlineInputBorder(
+                      focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(color: AppColors.neonCyan),
                       ),),
                     style: const TextStyle(color: Colors.white),
@@ -805,8 +820,8 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   TextField(
                     controller: usernameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Username',
+                    decoration: InputDecoration(
+                      labelText: S.profileUsername,
                       labelStyle: TextStyle(color: AppColors.textSecondary),
                       enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.white24),
@@ -818,7 +833,7 @@ class ProfileScreen extends StatelessWidget {
                     style: const TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Gender',
+                  Text(S.profileGender,
                       style: TextStyle(
                           color: AppColors.textSecondary, fontSize: 12)),
                   const SizedBox(height: 8),
@@ -826,7 +841,7 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _buildGenderOption(
-                          'Male',
+                          S.profileMale,
                           UserGender.male,
                           selectedGender == UserGender.male,
                           () => setState(() => selectedGender = UserGender.male),
@@ -835,7 +850,7 @@ class ProfileScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildGenderOption(
-                          'Female',
+                          S.profileFemale,
                           UserGender.female,
                           selectedGender == UserGender.female,
                           () => setState(() => selectedGender = UserGender.female),
@@ -867,12 +882,12 @@ class ProfileScreen extends StatelessWidget {
                         );
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                               content:
-                                  Text('✅ Profile updated successfully!')),
+                                  Text(S.profileUpdated)),
                         );
                       },
-                      child: const Text('SAVE PROFILE',
+                      child: Text(S.profileSave,
                           style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold)),
@@ -960,7 +975,7 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Select Gender',
+              Text(S.profileSelectGender,
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -970,7 +985,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _buildGenderOption(
-                      'Male',
+                      S.profileMale,
                       UserGender.male,
                       false,
                       () {
@@ -982,7 +997,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildGenderOption(
-                      'Female',
+                      S.profileFemale,
                       UserGender.female,
                       false,
                       () {
@@ -1050,9 +1065,9 @@ class ProfileScreen extends StatelessWidget {
         onTap: () {
           if (!owned) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 duration: Duration(milliseconds: 1400),
-                content: Text('Buy this effect from the Shop first!'),
+                content: Text(S.profileEffectNotOwned),
               ),
             );
             return;
@@ -1094,7 +1109,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 selected
-                    ? 'ACTIVE'
+                    ? S.active
                     : (owned ? 'TAP TO USE' : 'LOCKED'),
                 style: TextStyle(
                   fontSize: 8,
@@ -1161,7 +1176,20 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAppInfoRow(IconData icon, String label, VoidCallback? onTap, {Color? color}) {
+  /// Native name of an app language, for the summary on the settings row.
+  String _languageLabel(String code) {
+    switch (code) {
+      case 'bn':
+        return 'বাংলা';
+      case 'hi':
+        return 'हिन्दी';
+      default:
+        return 'English';
+    }
+  }
+
+  Widget _buildAppInfoRow(IconData icon, String label, VoidCallback? onTap,
+      {Color? color, String? trailingText}) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -1177,6 +1205,18 @@ class ProfileScreen extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: color ?? Colors.white)),
             ),
+            if (trailingText != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Text(
+                  trailingText,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
             if (onTap != null)
               const Icon(Icons.chevron_right_rounded,
                   size: 18, color: AppColors.textMuted),
@@ -1199,13 +1239,13 @@ Future<void> _handleGoogleSignIn(BuildContext context) async {
       if (user == null) return;
 
       userProvider.linkGoogleAccount(
-        user.displayName ?? 'QuizBaaz Player',
+        user.displayName ?? S.profilePlayerFallback,
         user.email ?? 'player@quizbaaz.app',
         photoURL: user.photoURL?.toString(),
       );
 
       messenger.showSnackBar(
-        const SnackBar(content: Text('🎉 Signed in with Google!')),
+        SnackBar(content: Text(S.profileSignedInGoogle)),
       );
     } on AuthException catch (e) {
       messenger.showSnackBar(

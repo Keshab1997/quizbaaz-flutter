@@ -6,6 +6,7 @@ import '../../../data/models/purchase_history.dart';
 import '../../../data/models/shop_item.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../../l10n/app_strings.dart';
 
 /// Shows the player's complete purchase history with category filtering.
 class PurchaseHistoryScreen extends StatefulWidget {
@@ -81,8 +82,8 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
               const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Purchase History',
+        title: Text(
+          S.purchaseTitle,
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 20,
@@ -147,25 +148,25 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                   _buildStatItem(
                     icon: Icons.shopping_bag_rounded,
                     value: '$totalPurchases',
-                    label: 'Orders',
+                    label: S.purchaseOrders,
                     color: AppColors.neonCyan,
                   ),
                   _buildStatItem(
                     icon: Icons.monetization_on_rounded,
                     value: _formatNumber(totalCoinsSpent),
-                    label: 'Coins Spent',
+                    label: S.purchaseCoinsSpent,
                     color: AppColors.neonGold,
                   ),
                   _buildStatItem(
                     icon: Icons.diamond_rounded,
                     value: _formatNumber(totalGemsSpent),
-                    label: 'Gems Spent',
+                    label: S.purchaseGemsSpent,
                     color: AppColors.neonPurple,
                   ),
                   _buildStatItem(
                     icon: Icons.inventory_2_rounded,
                     value: '$totalItems',
-                    label: 'Items',
+                    label: S.items,
                     color: AppColors.neonGreen,
                   ),
                 ],
@@ -305,8 +306,8 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
           const SizedBox(height: 16),
           Text(
             _filter == 'all'
-                ? 'No Purchases Yet'
-                : 'No ${_getFilterName()} Purchases',
+                ? S.purchaseNone
+                : S.purchaseNoneFiltered(filter: _getFilterName()),
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 20,
@@ -316,8 +317,8 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
           const SizedBox(height: 8),
           Text(
             _filter == 'all'
-                ? 'Visit the shop to buy power-ups and items!'
-                : 'No items in this category yet.',
+                ? S.purchaseEmptyBody
+                : S.shopEmptyCategory,
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 14,
@@ -607,7 +608,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                 children: [
                   Expanded(
                     child: _buildDetailStat(
-                      'Quantity',
+                      S.quantity,
                       'x${history.quantity}',
                       AppColors.neonCyan,
                       Icons.inventory_2_rounded,
@@ -615,7 +616,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                   ),
                   Expanded(
                     child: _buildDetailStat(
-                      'Cost',
+                      S.cost,
                       '${history.cost}',
                       accent,
                       isCoins
@@ -630,7 +631,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                 children: [
                   Expanded(
                     child: _buildDetailStat(
-                      'Currency',
+                      S.currency,
                       history.currency.toUpperCase(),
                       accent,
                       Icons.attach_money_rounded,
@@ -638,7 +639,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                   ),
                   Expanded(
                     child: _buildDetailStat(
-                      'Total Spent',
+                      S.purchaseTotalSpent,
                       '${history.cost * history.quantity}',
                       AppColors.neonPink,
                       Icons.account_balance_wallet_rounded,
@@ -648,7 +649,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Purchased on ${_formatFullDate(history.purchasedAt)}',
+                S.purchasedOn(date: _formatFullDate(history.purchasedAt)),
                 style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 12,
@@ -667,8 +668,8 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                           color: Colors.white.withValues(alpha: 0.2)),
                     ),
                   ),
-                  child: const Text(
-                    'Close',
+                  child: Text(
+                    S.close,
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.w700,
@@ -838,17 +839,14 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     final now = DateTime.now();
     final diff = now.difference(date);
 
-    if (diff.inDays == 0) return 'Today';
-    if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inDays == 0) return S.today;
+    if (diff.inDays == 1) return S.yesterday;
+    if (diff.inDays < 7) return S.daysAgo(n: diff.inDays);
     return '${date.day}/${date.month}';
   }
 
   String _formatFullDate(DateTime date) {
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
+    final months = S.monthsShort;
     return '${date.day} ${months[date.month - 1]} ${date.year}, ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

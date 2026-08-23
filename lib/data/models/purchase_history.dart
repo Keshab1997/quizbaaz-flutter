@@ -1,3 +1,5 @@
+import '../../l10n/app_strings.dart';
+
 /// Represents a single shop purchase stored in the history.
 ///
 /// Every purchase creates one of these records so the player can review
@@ -31,19 +33,19 @@ class PurchaseHistory {
   String get categoryDisplayName {
     switch (category) {
       case 'power_ups':
-        return '🎮 Power-Ups';
+        return S.shopCatPowerUps;
       case 'shields':
-        return '🛡️ Shields';
+        return S.shopCatShields;
       case 'boosters':
-        return '⚡ Boosters';
+        return S.shopCatBoosters;
       case 'avatars':
-        return '🎨 Avatars';
+        return S.shopCatAvatars;
       case 'badges':
-        return '🏆 Badges';
+        return S.shopCatBadges;
       case 'effects':
-        return '✨ Effects';
+        return S.shopCatEffects;
       case 'packs':
-        return '🎁 Packs';
+        return S.shopCatPacks;
       default:
         return category;
     }

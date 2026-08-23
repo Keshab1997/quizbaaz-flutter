@@ -1,3 +1,5 @@
+import '../../l10n/app_strings.dart';
+
 /// Currency used to buy a shop item.
 enum ShopCurrency { coins, gems }
 
@@ -33,7 +35,7 @@ class ShopItem {
     this.category = 'power_ups',
   });
 
-  String get currencyLabel => currency == ShopCurrency.coins ? 'Coins' : 'Gems';
+  String get currencyLabel => currency == ShopCurrency.coins ? S.coins : S.gems;
 
   bool get costsCoins => currency == ShopCurrency.coins;
 }
@@ -357,11 +359,11 @@ class ShopCatalog {
       case 'shields':
         return '🛡️ Shields & Protection';
       case 'boosters':
-        return '⚡ Boosters';
+        return S.shopCatBoosters;
       case 'avatars':
-        return '🎨 Avatars';
+        return S.shopCatAvatars;
       case 'badges':
-        return '🏆 Badges';
+        return S.shopCatBadges;
       case 'effects':
         return '✨ Name Effects';
       case 'packs':

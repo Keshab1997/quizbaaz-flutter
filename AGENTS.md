@@ -27,7 +27,8 @@ Author: Keshab Sarkar (@Keshab1997). Repo: `Keshab1997/quizbaaz-flutter`.
 | Backend | Firebase: `firebase_core`, `firebase_auth`, `cloud_firestore`, `google_sign_in` |
 | Local persistence | **Hive** (`hive` + `hive_flutter`) + `shared_preferences` |
 | Networking | `http` (admin uploads via `imgbb_service`, `sync_service`) |
-| UI / fonts | `google_fonts` (**Poppins** + **Hind Siliguri** for Bangla), `lottie`, `confetti`, `audioplayers`, `cached_network_image` |
+| UI / fonts | `google_fonts` (**Poppins** for en/hi, **Hind Siliguri** for bn), `lottie`, `confetti`, `audioplayers`, `cached_network_image` |
+| Localisation | hand-rolled catalogues in `lib/l10n/` + `flutter_localizations` (see §4a) |
 | Static analysis | `flutter_lints` via `analysis_options.yaml` |
 
 Do **not** introduce Riverpod, GetX, or Bloc unless the whole app migrates. New state
@@ -64,11 +65,63 @@ lib/
 - Run `flutter analyze` before finishing any change. Zero errors, zero warnings.
 - Follow `flutter_lints`. Prefer `const` constructors for widgets, use
   `Equatable`-free plain models with explicit `==`/`copyWith` only when needed.
-- UI strings for user-facing copy are **Bangla** (e.g. "আজকের কুইজ", "পুরস্কার").
-  Code identifiers, comments, and doc comments stay in English.
+- **Never hardcode a user-facing string.** Every label goes through `S.*`
+  (see §4a). Code identifiers, comments, and doc comments stay in English.
 - Asset paths must be declared in `pubspec.yaml` `flutter.assets` AND referenced via
   `core/constants/app_assets.dart` — never hardcode raw asset strings in widgets.
 - Colors come from `core/constants/app_colors.dart`; do not inline hex values in UI.
+
+## 4a. Localisation (en / bn / hi)
+
+The app ships three hand-written UI languages and machine-translates quiz
+*content* into ~36 languages on demand. These are two separate settings and a
+user can mix them (English interface, Tamil questions).
+
+```text
+lib/l10n/
+├── strings_en.dart    # base catalogue — SOURCE OF TRUTH for keys
+├── strings_bn.dart    # Bangla
+├── strings_hi.dart    # Hindi
+└── app_strings.dart   # GENERATED accessor class `S` — do not edit by hand
+```
+
+**Adding or changing a string**
+
+1. Add the key + English text to `strings_en.dart` (use `{name}` placeholders,
+   never Dart interpolation, so translators can reorder them).
+2. Add the same key to `strings_bn.dart` and `strings_hi.dart`.
+3. Regenerate and check parity:
+
+   ```bash
+   python3 tool/gen_strings.py    # writes app_strings.dart, reports gaps
+   python3 tool/verify_l10n.py    # unknown keys, const misuse, bracket damage
+   ```
+
+4. Use it: `Text(S.profileTitle)` or `Text(S.chapterCount(n: 12))`.
+
+**Rules**
+
+- `S.*` is a runtime getter, so it can **never** sit inside a `const`
+  expression. `const Text(S.cancel)` does not compile — drop the `const`.
+- A key missing from bn/hi silently falls back to English; a key missing
+  everywhere renders as the key name. Neither ever throws.
+- `S` is deliberately context-free (a static class). `LocaleProvider` swaps the
+  catalogue and `MaterialApp` is keyed on the language code, so the whole tree
+  rebuilds and every `S.*` is re-read.
+- `tool/apply_l10n.py` is the migration pass that converted the original
+  hardcoded literals; re-run it after adding screens that were written with raw
+  English strings.
+
+**Quiz content translation**
+
+`TranslationService` (`lib/data/services/translation_service.dart`) calls
+Google's keyless `translate_a/single` endpoint, caches every result in the Hive
+cache box for 90 days, de-duplicates in-flight requests, and falls back to the
+original text on any failure. Render question text with `TranslatableText`
+instead of `Text`, and put a `TranslateChip` on the question card.
+
+**Fonts**: `AppTheme.darkThemeFor(languageCode)` picks Hind Siliguri for Bangla
+and Poppins otherwise — Poppins has no Bengali glyphs.
 
 ## 5. Data & assets
 

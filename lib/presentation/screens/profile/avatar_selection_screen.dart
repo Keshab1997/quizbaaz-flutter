@@ -9,6 +9,7 @@ import '../../../data/providers/user_provider.dart';
 import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/cached_avatar.dart';
+import '../../../l10n/app_strings.dart';
 
 /// Screen where users can browse and select their profile avatar.
 /// Shows all available avatars: default, free, and premium (from shop).
@@ -62,8 +63,8 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Choose Avatar',
+        title: Text(
+          S.avatarChoose,
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 20,
@@ -76,7 +77,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                 ? () => _saveAvatar(context, userProvider)
                 : null,
             child: Text(
-              'Save',
+              S.save,
               style: TextStyle(
                 color: _selectedAvatar != null
                     ? AppColors.neonCyan
@@ -124,7 +125,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     return ShopItem(
       id: _cloudAvatarInventoryId(avatar),
       name: name,
-      description: 'Unlock cloud avatar: $name',
+      description: S.avatarUnlockTitle(name: name),
       cost: (avatar['price'] as num?)?.toInt() ?? 50,
       currency: ShopCurrency.gems,
       quantity: 1,
@@ -206,8 +207,8 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Current Avatar',
+                    Text(
+                      S.avatarCurrent,
                       style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 12,
@@ -225,7 +226,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Tap an avatar below to change',
+                      S.avatarTapToChange,
                       style: TextStyle(
                         color: AppColors.textMuted.withValues(alpha: 0.7),
                         fontSize: 11,
@@ -245,14 +246,14 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                     border: Border.all(
                         color: AppColors.neonGold.withValues(alpha: 0.4)),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.check_circle,
                           color: AppColors.neonGold, size: 16),
                       SizedBox(width: 4),
                       Text(
-                        'New',
+                        S.newLabel,
                         style: TextStyle(
                           color: AppColors.neonGold,
                           fontSize: 12,
@@ -407,13 +408,13 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                       color: AppColors.neonCyan.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.cloud_rounded, color: AppColors.neonCyan, size: 14),
                         SizedBox(width: 4),
                         Text(
-                          'CLOUD AVATARS',
+                          S.avatarCloudSection,
                           style: TextStyle(
                             color: AppColors.neonCyan,
                             fontSize: 10,
@@ -622,14 +623,14 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                       border: Border.all(
                           color: AppColors.neonGold.withValues(alpha: 0.5)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.verified,
                             color: AppColors.neonGold, size: 12),
                         SizedBox(width: 4),
                         Text(
-                          'OWNED',
+                          S.owned,
                           style: TextStyle(
                             color: AppColors.neonGold,
                             fontSize: 10,
@@ -755,7 +756,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                       border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.5)),
                     ),
                     child: Text(
-                      isOwned ? 'OWNED' : '${(cloudAvatar['price'] as num?)?.toInt() ?? 50} 💎',
+                      isOwned ? S.owned : '${(cloudAvatar['price'] as num?)?.toInt() ?? 50} 💎',
                       style: const TextStyle(color: AppColors.neonGold, fontSize: 10, fontWeight: FontWeight.w900),
                     ),
                   ),
@@ -842,8 +843,8 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     userProvider.updateAvatar(selected);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ Avatar updated successfully!'),
+      SnackBar(
+        content: Text(S.profileAvatarUpdated),
         backgroundColor: AppColors.neonGreen,
       ),
     );
@@ -890,13 +891,13 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
         ),
         content: Text(
           purchaseItem == null
-              ? 'This is a premium avatar. Visit the Shop to purchase it first!'
-              : 'Unlock this cloud avatar for ${purchaseItem.cost} gems?',
+              ? S.avatarPremiumHint
+              : S.avatarUnlockBody(cost: purchaseItem.cost),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(S.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -913,20 +914,20 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
               if (result == PurchaseStatus.success) {
                 setState(() => _selectedAvatar = avatar);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('✅ $itemName unlocked!'), backgroundColor: AppColors.neonGreen),
+                  SnackBar(content: Text(S.avatarUnlocked(name: itemName)), backgroundColor: AppColors.neonGreen),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(result == PurchaseStatus.alreadyOwned
-                        ? 'You already own this avatar.'
-                        : 'Not enough gems to unlock this avatar.'),
+                        ? S.avatarAlreadyOwned
+                        : S.avatarNotEnoughGems),
                     backgroundColor: AppColors.neonRed,
                   ),
                 );
               }
             },
-            child: Text(purchaseItem == null ? 'Go to Shop' : 'Unlock', style: const TextStyle(color: Colors.black)),
+            child: Text(purchaseItem == null ? S.goToShop : S.unlock, style: const TextStyle(color: Colors.black)),
           ),
         ],
       ),

@@ -8,6 +8,7 @@ import '../../../data/models/leaderboard_model.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/name_effect_text.dart';
 import '../../widgets/cached_avatar.dart';
+import '../../../l10n/app_strings.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -41,8 +42,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text(
-          'Hall of Fame & Rankings',
+        title: Text(
+          S.lbTitle,
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         bottom: TabBar(
@@ -116,8 +117,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   ? 'Loading today\'s ranking…'
                   : 'No scores yet today',
               message: userProvider.isLoading
-                  ? 'Fetching the latest results.'
-                  : 'Play the Daily Quiz and your score appears here instantly.',
+                  ? S.lbFetching
+                  : S.lbNoScoresBody,
             ),
           ],
         ),
@@ -190,12 +191,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.person_pin_circle, size: 15, color: AppColors.neonCyan),
               SizedBox(width: 6),
               Text(
-                'YOUR POSITION',
+                S.lbYourPosition,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -255,8 +256,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: AppColors.neonCyan.withValues(alpha: 0.5)),
                           ),
-                          child: const Text(
-                            'YOU',
+                          child: Text(
+                            S.you,
                             style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.neonCyan),
                           ),
                         ),
@@ -446,7 +447,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           const SizedBox(height: 80),
           _buildEmptyState(
             icon: Icons.card_giftcard_rounded,
-            title: 'No champions published yet',
+            title: S.lbNoChampions,
             message:
                 "Yesterday's winners and their prizes show up here once the results are declared.",
           ),
@@ -522,7 +523,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              'Reward: ${champ.giftName}',
+                              S.lbReward(gift: champ.giftName),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -535,7 +536,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Score: ${champ.score} pts in ${champ.timeSeconds}s',
+                        S.lbChampScore(score: champ.score, time: champ.timeSeconds),
                         style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                       ),
                     ],

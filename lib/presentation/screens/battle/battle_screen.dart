@@ -8,8 +8,10 @@ import '../../../data/models/user_model.dart';
 import '../../../data/providers/battle_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/translatable_text.dart';
 import '../../widgets/neon_button.dart';
 import '../../widgets/cached_avatar.dart';
+import '../../../l10n/app_strings.dart';
 
 class BattleScreen extends StatelessWidget {
   const BattleScreen({super.key});
@@ -162,7 +164,7 @@ class _CountdownView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _vsAvatar(AppAssets.maleAvatar, 'YOU'),
+              _vsAvatar(AppAssets.maleAvatar, S.you),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text('VS', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.neonGold)),
@@ -330,7 +332,7 @@ class _ArenaView extends StatelessWidget {
         children: [
           _battleAvatar(user),
           const SizedBox(height: 6),
-          const Text('YOU', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonCyan)),
+          Text(S.you, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonCyan)),
           const SizedBox(height: 2),
           Text(
             '${battle.playerScore}',
@@ -372,7 +374,12 @@ class _ArenaView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          Align(
+            alignment: Alignment.centerRight,
+            child: const TranslateChip(),
+          ),
+          const SizedBox(height: 10),
+          TranslatableText(
             question.question,
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary, height: 1.35),
           ),
@@ -402,12 +409,12 @@ class _ArenaView extends StatelessWidget {
         border = AppColors.neonGreen;
         text = AppColors.neonGreen;
         icon = Icons.check_circle;
-        tag = 'Correct';
+        tag = S.correct;
       } else if (index == battle.playerSelected) {
         border = AppColors.neonRed;
         text = AppColors.neonRed;
         icon = Icons.cancel;
-        tag = 'YOU';
+        tag = S.you;
       } else if (index == battle.botSelected) {
         border = AppColors.neonPink;
         text = AppColors.neonPink;
@@ -441,7 +448,7 @@ class _ArenaView extends StatelessWidget {
               Icon(icon, size: 18, color: text),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
+                child: TranslatableText(
                   option,
                   style: TextStyle(
                     fontSize: 14,
@@ -576,9 +583,9 @@ class _ResultView extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _resultStat('YOU', '${battle.playerScore}', '${battle.playerCorrect} correct', AppColors.neonCyan),
+              _resultStat(S.you, '${battle.playerScore}', '${battle.playerCorrect} correct', AppColors.neonCyan),
               Container(width: 1, height: 60, color: Colors.white12),
-              _resultStat('BOT', '${battle.botScore}', '${battle.botCorrect} correct', AppColors.neonPink),
+              _resultStat('BOT', '${battle.botScore}', S.battleBotCorrect(n: battle.botCorrect), AppColors.neonPink),
             ],
           ),
         ),

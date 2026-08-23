@@ -10,6 +10,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/purchase_celebration.dart';
 import 'purchase_history_screen.dart';
 import '../../widgets/cached_avatar.dart';
+import '../../../l10n/app_strings.dart';
 
 /// Maps shop item IDs to their avatar asset paths.
 String? _avatarPathForItem(String itemId) {
@@ -205,13 +206,13 @@ class _ShopScreenState extends State<ShopScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Power-Up Shop',
+        title: Text(S.shopTitle,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         actions: [
           IconButton(
             icon:
                 const Icon(Icons.history_rounded, color: AppColors.neonGold),
-            tooltip: 'Purchase History',
+            tooltip: S.purchaseTitle,
             onPressed: () {
               Navigator.push(
                 context,
@@ -238,7 +239,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       const Icon(Icons.monetization_on,
                           color: AppColors.neonGold, size: 24),
                       const SizedBox(width: 8),
-                      Text('${user.coins} Coins',
+                      Text(S.shopCoinsLabel(n: user.coins),
                           style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -251,7 +252,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       const Icon(Icons.diamond,
                           color: AppColors.neonPurple, size: 24),
                       const SizedBox(width: 8),
-                      Text('${user.gems} Gems',
+                      Text(S.shopGemsLabel(n: user.gems),
                           style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -278,7 +279,7 @@ class _ShopScreenState extends State<ShopScreen> {
                     children: [
                       Text(
                         _selectedCategory == 'all'
-                            ? 'ALL ITEMS'
+                            ? S.shopAllItems
                             : ShopCatalog.categoryName(_selectedCategory),
                         style: const TextStyle(
                           fontSize: 13,
@@ -289,7 +290,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       ),
                       const Spacer(),
                       Text(
-                        '${_filteredItems.length} items',
+                        S.shopItemCount(n: _filteredItems.length),
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textMuted,
@@ -326,13 +327,13 @@ class _ShopScreenState extends State<ShopScreen> {
                             color: AppColors.neonCyan.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.cloud_rounded, color: AppColors.neonCyan, size: 14),
                               SizedBox(width: 4),
                               Text(
-                                'CLOUD ITEMS',
+                                S.shopCloudItems,
                                 style: TextStyle(
                                   color: AppColors.neonCyan,
                                   fontSize: 10,
@@ -348,7 +349,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   ..._filteredCloudItems.map((cloudItem) {
                     final shopItem = ShopItem(
                       id: cloudItem['id'] ?? '',
-                      name: cloudItem['name'] ?? 'Item',
+                      name: cloudItem['name'] ?? S.item,
                       description: cloudItem['description'] ?? '',
                       cost: cloudItem['price'] ?? 0,
                       currency: cloudItem['currency'] == 'gems' ? ShopCurrency.gems : ShopCurrency.coins,
@@ -400,7 +401,7 @@ class _ShopScreenState extends State<ShopScreen> {
           final cat = categories[index];
           final isSelected = _selectedCategory == cat;
           final label = cat == 'all'
-              ? '🏪 All'
+              ? S.shopCatAll
               : ShopCatalog.categoryName(cat).split(' ').skip(1).join(' ');
 
           return Padding(
@@ -451,8 +452,8 @@ class _ShopScreenState extends State<ShopScreen> {
           context,
           itemName: item.name,
           subtitle: item.isCosmetic
-              ? 'Unlocked forever!'
-              : '+${item.quantity} added to your inventory',
+              ? S.shopUnlockedForever
+              : S.shopAdded(n: item.quantity),
           characterAsset: AppAssets.quizChampion,
           itemIcon: _iconFor(item.id),
           accent: item.costsCoins ? AppColors.neonGold : AppColors.neonPurple,
@@ -460,9 +461,9 @@ class _ShopScreenState extends State<ShopScreen> {
         break;
       case PurchaseStatus.alreadyOwned:
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             duration: Duration(milliseconds: 1200),
-            content: Text('You already own this item!'),
+            content: Text(S.shopAlreadyOwn),
           ),
         );
         break;
@@ -471,7 +472,7 @@ class _ShopScreenState extends State<ShopScreen> {
           SnackBar(
             duration: const Duration(milliseconds: 1200),
             content: Text(
-                'Not enough ${item.currencyLabel}! Earn more by playing quizzes.'),
+                S.shopNotEnough(currency: item.currencyLabel)),
             backgroundColor: Colors.red.shade800,
           ),
         );
@@ -565,8 +566,8 @@ class _ShopItemCard extends StatelessWidget {
                           color: AppColors.neonGold.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          'BEST VALUE',
+                        child: Text(
+                          S.shopBestValue,
                           style: TextStyle(
                             fontSize: 8,
                             fontWeight: FontWeight.w900,
@@ -605,9 +606,9 @@ class _ShopItemCard extends StatelessWidget {
 
   String _ownedLabel() {
     if (item.isCosmetic) {
-      return owned > 0 ? 'OWNED ✓' : 'NOT OWNED';
+      return owned > 0 ? S.shopOwnedCheck : S.shopNotOwned;
     }
-    return 'OWNED: x$owned';
+    return S.shopOwnedTimes(n: owned);
   }
 
   Widget _buildButton() {
@@ -619,8 +620,8 @@ class _ShopItemCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.neonCyan.withValues(alpha: 0.5)),
         ),
-        child: const Text(
-          'OWNED ✓',
+        child: Text(
+          S.shopOwnedCheck,
           style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,

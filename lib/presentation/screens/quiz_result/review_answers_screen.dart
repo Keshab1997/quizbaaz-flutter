@@ -5,6 +5,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/models/answer_record.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/translatable_text.dart';
+import '../../../l10n/app_strings.dart';
 
 /// Shows every question of the finished quiz with the player's answer,
 /// the correct answer and the explanation.
@@ -22,12 +24,12 @@ class ReviewAnswersScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Review Answers', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(S.reviewTitle, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       ),
       body: records.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
-                'No answers to review yet.',
+                S.reviewNone,
                 style: TextStyle(color: AppColors.textSecondary),
               ),
             )
@@ -57,10 +59,10 @@ class ReviewAnswersScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _summaryStat('Score', '${quiz.score}', AppColors.neonGold),
-          _summaryStat('Correct', '${quiz.correctCount}', AppColors.neonGreen),
-          _summaryStat('Wrong', '${quiz.wrongCount}', AppColors.neonRed),
-          _summaryStat('Skipped', '$skippedCount', AppColors.textMuted),
+          _summaryStat(S.score, '${quiz.score}', AppColors.neonGold),
+          _summaryStat(S.correct, '${quiz.correctCount}', AppColors.neonGreen),
+          _summaryStat(S.wrong, '${quiz.wrongCount}', AppColors.neonRed),
+          _summaryStat(S.skipped, '$skippedCount', AppColors.textMuted),
         ],
       ),
     );
@@ -107,7 +109,7 @@ class _QuestionReviewCard extends StatelessWidget {
               _statusBadge(),
               const Spacer(),
               Text(
-                'Q${index + 1}',
+                S.reviewQuestionNo(n: index + 1),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -117,7 +119,7 @@ class _QuestionReviewCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Text(
+          TranslatableText(
             q.question,
             style: const TextStyle(
               fontSize: 15,
@@ -154,8 +156,8 @@ class _QuestionReviewCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '💡 Explanation',
+                  Text(
+                    S.reviewExplanation,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -163,7 +165,7 @@ class _QuestionReviewCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
+                  TranslatableText(
                     q.explanation,
                     style: const TextStyle(
                       fontSize: 12,
@@ -183,10 +185,10 @@ class _QuestionReviewCard extends StatelessWidget {
   Widget _statusBadge() {
     final (String text, Color color, IconData icon) = switch (record.status) {
       AnswerStatus.answered => record.wasCorrect
-          ? ('Correct', AppColors.neonGreen, Icons.check_circle)
-          : ('Wrong', AppColors.neonRed, Icons.cancel),
+          ? (S.correct, AppColors.neonGreen, Icons.check_circle)
+          : (S.wrong, AppColors.neonRed, Icons.cancel),
       AnswerStatus.timedOut => ('Time\'s up', AppColors.neonGold, Icons.timer),
-      AnswerStatus.skipped => ('Skipped', AppColors.textMuted, Icons.fast_forward),
+      AnswerStatus.skipped => (S.skipped, AppColors.textMuted, Icons.fast_forward),
     };
 
     return Container(
@@ -232,8 +234,8 @@ class _QuestionReviewCard extends StatelessWidget {
     }
 
     final String? tag = isCorrectOption
-        ? 'Correct answer'
-        : (isUserPick && !wasCorrect ? 'Your answer' : null);
+        ? S.reviewCorrectAnswer
+        : (isUserPick && !wasCorrect ? S.reviewYourAnswer : null);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -247,7 +249,7 @@ class _QuestionReviewCard extends StatelessWidget {
           Icon(icon, size: 16, color: textColor),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
+            child: TranslatableText(
               option,
               style: TextStyle(
                 fontSize: 13,

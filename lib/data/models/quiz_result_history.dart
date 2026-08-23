@@ -1,3 +1,5 @@
+import '../../l10n/app_strings.dart';
+
 /// Represents a single quiz attempt stored in the history.
 ///
 /// Every finished quiz (daily or chapter) creates one of these records so the
@@ -45,7 +47,7 @@ class QuizResultHistory {
 
   /// Human-readable quiz label.
   String get displayTitle {
-    if (quizType == 'daily') return 'Daily Quiz';
+    if (quizType == 'daily') return S.dashDailyQuiz;
     return chapterTitle ?? 'Chapter Quiz';
   }
 
@@ -57,7 +59,7 @@ class QuizResultHistory {
 
   /// Category + chapter combined.
   String get fullSubjectPath {
-    if (quizType == 'daily') return 'Daily Quiz';
+    if (quizType == 'daily') return S.dashDailyQuiz;
     if (categoryTitle != null && chapterTitle != null) {
       return '$categoryTitle → $chapterTitle';
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../data/services/shop_service.dart';
+import '../../../l10n/app_strings.dart';
 
 /// Screen to view all users or guests from Firestore.
 class UserListScreen extends StatefulWidget {
@@ -181,7 +182,7 @@ class _UserListScreenState extends State<UserListScreen> {
           const SizedBox(width: 12),
           _buildMiniStat(Icons.check_circle_rounded, 'Active', isLoading ? '...' : '$activeUsers', AppColors.neonGreen),
           const SizedBox(width: 12),
-          _buildMiniStat(Icons.schedule_rounded, 'Today', isLoading ? '...' : '${_todayCount(users)}', AppColors.neonGold),
+          _buildMiniStat(Icons.schedule_rounded, S.today, isLoading ? '...' : '${_todayCount(users)}', AppColors.neonGold),
         ],
       ),
     );
@@ -301,14 +302,14 @@ class _UserListScreenState extends State<UserListScreen> {
             children: [
               const Text('Edit User', style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w900)),
               const SizedBox(height: 16),
-              _sheetField(usernameController, 'Username'),
+              _sheetField(usernameController, S.profileUsername),
               const SizedBox(height: 12),
               _sheetField(fullNameController, 'Full Name'),
               const SizedBox(height: 12),
               Row(children: [
-                Expanded(child: _sheetField(coinsController, 'Coins', TextInputType.number)),
+                Expanded(child: _sheetField(coinsController, S.coins, TextInputType.number)),
                 const SizedBox(width: 12),
-                Expanded(child: _sheetField(gemsController, 'Gems', TextInputType.number)),
+                Expanded(child: _sheetField(gemsController, S.gems, TextInputType.number)),
               ]),
               const SizedBox(height: 20),
               SizedBox(
@@ -327,7 +328,7 @@ class _UserListScreenState extends State<UserListScreen> {
                     _showSnack(ok ? '✅ User updated' : '❌ Update failed', ok);
                     if (ok) setState(_refreshUsers);
                   },
-                  child: const Text('Save'),
+                  child: Text(S.save),
                 ),
               ),
             ],
@@ -361,7 +362,7 @@ class _UserListScreenState extends State<UserListScreen> {
         title: const Text('Delete User?'),
         content: Text('Delete "${_displayName(user)}" from Firestore?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.cancel)),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);

@@ -8,6 +8,7 @@ import '../../../data/models/gift_claim.dart';
 import '../../../data/providers/rewards_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
+import '../../../l10n/app_strings.dart';
 
 class RewardsScreen extends StatelessWidget {
   const RewardsScreen({super.key});
@@ -20,7 +21,7 @@ class RewardsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('My Rewards & Gifts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(S.rewardsTitle, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
@@ -44,17 +45,17 @@ class RewardsScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Win Daily Real Gifts!',
+                        S.rewardsWinDaily,
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.neonGold),
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Finish #1 in Daily Live Quiz to receive high-tech gadgets & vouchers delivered to your home.',
+                        S.rewardsWinDailyBody,
                         style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                       ),
                     ],
@@ -65,23 +66,23 @@ class RewardsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          const Text(
-            'YOUR GIFTS & PRIZES',
+          Text(
+            S.rewardsYourGifts,
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Tap a prize to claim or track it.',
+          Text(
+            S.rewardsTapPrize,
             style: TextStyle(fontSize: 11, color: AppColors.textMuted),
           ),
           const SizedBox(height: 12),
 
           if (gifts.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 40),
               child: Center(
                 child: Text(
-                  'No prizes yet — win the Daily Quiz! 🏆',
+                  S.rewardsNone,
                   style: TextStyle(color: AppColors.textSecondary),
                 ),
               ),
@@ -203,13 +204,13 @@ class _GiftCard extends StatelessWidget {
 (String, Color) _statusInfo(ClaimStatus status) {
   switch (status) {
     case ClaimStatus.unclaimed:
-      return ('CLAIM NOW', AppColors.neonGold);
+      return (S.rewardsClaimNow, AppColors.neonGold);
     case ClaimStatus.processing:
-      return ('PROCESSING', AppColors.neonCyan);
+      return (S.rewardsProcessingCaps, AppColors.neonCyan);
     case ClaimStatus.shipped:
-      return ('SHIPPED', AppColors.neonPurple);
+      return (S.rewardsShippedCaps, AppColors.neonPurple);
     case ClaimStatus.delivered:
-      return ('DELIVERED', AppColors.neonGreen);
+      return (S.rewardsDeliveredCaps, AppColors.neonGreen);
   }
 }
 
@@ -272,7 +273,7 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sheetTitle('Delivery Address', widget.gift.title),
+          _sheetTitle(S.rewardsDeliveryAddress, widget.gift.title),
           const SizedBox(height: 16),
           Form(
             key: _formKey,
@@ -280,37 +281,37 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
               children: [
                 _buildField(
                   controller: _name,
-                  label: 'Full Name',
+                  label: S.profileFullName,
                   icon: Icons.person,
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? S.rewardsErrName : null,
                 ),
                 _buildField(
                   controller: _phone,
-                  label: 'Phone Number',
+                  label: S.rewardsPhone,
                   icon: Icons.phone,
                   keyboardType: TextInputType.phone,
-                  validator: (v) => (v == null || v.trim().length < 10) ? 'Enter a valid phone number' : null,
+                  validator: (v) => (v == null || v.trim().length < 10) ? S.rewardsErrPhone : null,
                 ),
                 _buildField(
                   controller: _address,
-                  label: 'Full Address (House, Street, Area)',
+                  label: S.rewardsAddress,
                   icon: Icons.home,
                   maxLines: 2,
-                  validator: (v) => (v == null || v.trim().length < 8) ? 'Enter your full address' : null,
+                  validator: (v) => (v == null || v.trim().length < 8) ? S.rewardsErrAddress : null,
                 ),
                 _buildField(
                   controller: _pincode,
-                  label: 'PIN Code',
+                  label: S.rewardsPin,
                   icon: Icons.local_post_office,
                   keyboardType: TextInputType.number,
-                  validator: (v) => (v == null || v.trim().length < 6) ? 'Enter a valid PIN code' : null,
+                  validator: (v) => (v == null || v.trim().length < 6) ? S.rewardsErrPin : null,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
           NeonButton(
-            text: 'SUBMIT & CLAIM 🎁',
+            text: S.rewardsSubmitClaim,
             onPressed: _submitting ? () {} : _submit,
           ),
         ],
@@ -374,7 +375,7 @@ class _DigitalClaimSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sheetTitle('Digital Reward', gift.title),
+          _sheetTitle(S.rewardsDigital, gift.title),
           const SizedBox(height: 16),
           Container(
             width: double.infinity,
@@ -386,8 +387,8 @@ class _DigitalClaimSheet extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Text(
-                  'YOUR REDEEM CODE',
+                Text(
+                  S.rewardsRedeemCode,
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.0),
                 ),
                 const SizedBox(height: 8),
@@ -401,8 +402,8 @@ class _DigitalClaimSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Copy the code and redeem it on the partner site.',
+                Text(
+                  S.rewardsRedeemHint,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                 ),
@@ -423,27 +424,27 @@ class _DigitalClaimSheet extends StatelessWidget {
                     await Clipboard.setData(ClipboardData(text: code));
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Code copied to clipboard! 📋')),
+                        SnackBar(content: Text(S.rewardsCodeCopied)),
                       );
                     }
                   },
                   icon: const Icon(Icons.copy, size: 18, color: AppColors.neonCyan),
-                  label: const Text('COPY CODE', style: TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.bold)),
+                  label: Text(S.rewardsCopyCode, style: TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           NeonButton(
-            text: gift.isClaimed ? 'CLAIMED ✓' : 'REDEEM & MARK CLAIMED',
+            text: gift.isClaimed ? S.rewardsClaimed : S.rewardsRedeemMark,
             onPressed: gift.isClaimed
                 ? () => Navigator.of(context).pop()
                 : () {
                     context.read<RewardsProvider>().redeemDigitalGift(gift.id);
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ Code redeemed successfully!'),
+                      SnackBar(
+                        content: Text(S.rewardsRedeemed),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -464,7 +465,7 @@ class _DeliverySheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['Processing', 'Shipped', 'Delivered'];
+    final steps = ['Processing', S.rewardsShipped, S.rewardsDelivered];
     final currentIndex = switch (gift.status) {
       ClaimStatus.processing => 0,
       ClaimStatus.shipped => 1,
@@ -477,7 +478,7 @@ class _DeliverySheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sheetTitle('Delivery Status', gift.title),
+          _sheetTitle(S.rewardsDeliveryStatus, gift.title),
           const SizedBox(height: 16),
           // Timeline
           Row(
@@ -536,8 +537,8 @@ class _DeliverySheet extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'DELIVERING TO',
+                Text(
+                  S.rewardsDeliveringTo,
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.0),
                 ),
                 const SizedBox(height: 8),

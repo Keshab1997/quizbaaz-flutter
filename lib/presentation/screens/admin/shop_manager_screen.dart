@@ -8,6 +8,7 @@ import '../../../data/models/shop_item.dart';
 import '../../../data/services/imgbb_service.dart';
 import '../../../data/services/shop_service.dart';
 import '../../widgets/glass_card.dart';
+import '../../../l10n/app_strings.dart';
 
 /// Admin screen to manage shop items
 class ShopManagerScreen extends StatefulWidget {
@@ -160,7 +161,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
         itemBuilder: (context, index) {
           final cat = categories[index];
           final isSelected = _selectedCategory == cat;
-          final label = cat == 'all' ? '🏪 All' : ShopCatalog.categoryName(cat).split(' ').skip(1).join(' ');
+          final label = cat == 'all' ? S.shopCatAll : ShopCatalog.categoryName(cat).split(' ').skip(1).join(' ');
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: GestureDetector(
@@ -312,7 +313,7 @@ class _ShopManagerScreenState extends State<ShopManagerScreen> {
         title: const Text('Delete Item?'),
         content: Text('Are you sure you want to delete "${item.name}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.cancel)),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -523,7 +524,7 @@ class _AddEditItemSheetState extends State<AddEditItemSheet> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildDropdown(
-                      label: 'Currency',
+                      label: S.currency,
                       value: _selectedCurrency,
                       items: const [
                         {'value': 'coins', 'label': '💰 Coins'},
@@ -646,7 +647,7 @@ class _AddEditItemSheetState extends State<AddEditItemSheet> {
                   const SizedBox(width: 12),
                   TextButton(
                     onPressed: _pickImage,
-                    child: const Text('Change'),
+                    child: Text(S.profileChange),
                   ),
                 ],
               )

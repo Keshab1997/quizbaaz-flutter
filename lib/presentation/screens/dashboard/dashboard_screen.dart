@@ -23,6 +23,7 @@ import '../profile/profile_screen.dart';
 import '../rewards/rewards_screen.dart';
 import '../shop/shop_screen.dart';
 import '../../widgets/cached_avatar.dart';
+import '../../../l10n/app_strings.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -85,11 +86,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   /// Time-aware greeting instead of a fixed "Good morning".
   String get _greeting {
     final hour = DateTime.now().hour;
-    if (hour < 5) return 'Still awake';
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    if (hour < 21) return 'Good evening';
-    return 'Good night';
+    if (hour < 5) return S.greetStillAwake;
+    if (hour < 12) return S.greetMorning;
+    if (hour < 17) return S.greetAfternoon;
+    if (hour < 21) return S.greetEvening;
+    return S.greetNight;
   }
 
   void _startDailyQuiz() {
@@ -135,9 +136,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildStreakCard(user, userProvider),
                       const SizedBox(height: 26),
                       _buildSectionHeader(
-                        eyebrow: 'PLAY YOUR WAY',
-                        title: 'Quick actions',
-                        actionLabel: 'See all',
+                        eyebrow: S.dashPlayYourWay,
+                        title: S.dashQuickActions,
+                        actionLabel: S.dashSeeAll,
                         onAction: () => _onNavTap(1),
                       ),
                       const SizedBox(height: 12),
@@ -146,9 +147,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildChampionCard(userProvider),
                       const SizedBox(height: 28),
                       _buildSectionHeader(
-                        eyebrow: 'LIVE TODAY',
-                        title: 'Leaderboard',
-                        actionLabel: 'View full',
+                        eyebrow: S.dashLiveToday,
+                        title: S.dashLeaderboard,
+                        actionLabel: S.dashViewFull,
                         onAction: () => _onNavTap(2),
                       ),
                       const SizedBox(height: 12),
@@ -524,7 +525,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: _buildStatCard(
             icon: Icons.local_fire_department_rounded,
             value: '${user.dailyStreak}',
-            label: 'day streak',
+            label: S.dashDayStreak,
             color: AppColors.neonGold,
             detail: user.dailyStreak > 0
                 ? 'Keep it alive'
@@ -536,7 +537,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: _buildStatCard(
             icon: Icons.track_changes_rounded,
             value: stats.accuracyLabel,
-            label: 'accuracy',
+            label: S.dashAccuracyShort,
             color: AppColors.neonCyan,
             detail: stats.hasData
                 ? (userProvider.percentileLabel ??
@@ -806,15 +807,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildQuickActions() {
     final actions = [
-      _QuickAction('Chapters', Icons.menu_book_rounded, AppColors.neonCyan,
+      _QuickAction(S.dashChapters, Icons.menu_book_rounded, AppColors.neonCyan,
           () => _onNavTap(1)),
-      _QuickAction('History', Icons.history_rounded, AppColors.neonPurple,
+      _QuickAction(S.dashHistory, Icons.history_rounded, AppColors.neonPurple,
           () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizHistoryScreen()))),
-      _QuickAction('Battle', Icons.bolt_rounded, AppColors.neonPink,
+      _QuickAction(S.dashBattle, Icons.bolt_rounded, AppColors.neonPink,
           () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BattleScreen()))),
-      _QuickAction('Rewards', Icons.card_giftcard_rounded, AppColors.neonGold,
+      _QuickAction(S.dashRewards, Icons.card_giftcard_rounded, AppColors.neonGold,
           () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RewardsScreen()))),
-      _QuickAction('Shop', Icons.storefront_rounded, AppColors.neonPurple,
+      _QuickAction(S.dashShop, Icons.storefront_rounded, AppColors.neonPurple,
           () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShopScreen()))),
     ];
 
@@ -1208,14 +1209,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Expanded(
                 child: _buildNavItem(
                   icon: Icons.home_rounded,
-                  label: 'Home',
+                  label: S.navHome,
                   index: 0,
                 ),
               ),
               Expanded(
                 child: _buildNavItem(
                   icon: Icons.menu_book_rounded,
-                  label: 'Explore',
+                  label: S.navExplore,
                   index: 1,
                 ),
               ),
@@ -1248,14 +1249,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Expanded(
                 child: _buildNavItem(
                   icon: Icons.emoji_events_rounded,
-                  label: 'Ranking',
+                  label: S.navRanking,
                   index: 2,
                 ),
               ),
               Expanded(
                 child: _buildNavItem(
                   icon: Icons.person_rounded,
-                  label: 'Profile',
+                  label: S.navProfile,
                   index: 3,
                 ),
               ),

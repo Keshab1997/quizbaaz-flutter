@@ -3,8 +3,21 @@ import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
 
 class AppTheme {
-  static ThemeData get darkTheme {
+  /// Kept for callers that do not care about language (tests, previews).
+  static ThemeData get darkTheme => darkThemeFor('en');
+
+  /// Builds the theme with a text theme whose font actually contains the
+  /// glyphs of [languageCode].
+  ///
+  /// This matters more than it looks: Poppins ships no Bengali glyphs, so a
+  /// Bangla UI on Poppins renders as tofu boxes (or an ugly system fallback)
+  /// on a lot of Android builds. Hind Siliguri covers Bengali *and* Latin, and
+  /// Poppins covers Devanagari, so two families cover all three languages.
+  static ThemeData darkThemeFor(String languageCode) {
     final base = ThemeData.dark(useMaterial3: true);
+    final textTheme = languageCode == 'bn'
+        ? GoogleFonts.hindSiliguriTextTheme(base.textTheme)
+        : GoogleFonts.poppinsTextTheme(base.textTheme);
     return base.copyWith(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: Colors.transparent,
@@ -16,7 +29,7 @@ class AppTheme {
         surface: AppColors.bgCard,
         error: AppColors.neonRed,
       ),
-      textTheme: GoogleFonts.poppinsTextTheme(base.textTheme).apply(
+      textTheme: textTheme.apply(
         bodyColor: AppColors.textPrimary,
         displayColor: AppColors.textPrimary,
       ),
