@@ -5,7 +5,6 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/champion_model.dart';
 import '../../../data/models/leaderboard_model.dart';
-import '../../../data/models/shop_item.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/models/user_stats.dart';
 import '../../../data/providers/quiz_provider.dart';
