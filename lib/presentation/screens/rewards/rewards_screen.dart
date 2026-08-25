@@ -10,8 +10,47 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
 import '../../../l10n/app_strings.dart';
 
-class RewardsScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_assets.dart';
+import '../../../data/models/gift_claim.dart';
+import '../../../data/models/quiz_result_history.dart';
+import '../../../data/providers/rewards_provider.dart';
+import '../../../data/providers/user_provider.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/neon_button.dart';
+import '../../../l10n/app_strings.dart';
+
+class RewardsScreen extends StatefulWidget {
   const RewardsScreen({super.key});
+
+  @override
+  State<RewardsScreen> createState() => _RewardsScreenState();
+}
+
+class _RewardsScreenState extends State<RewardsScreen> {
+  List<QuizResultHistory> _dailyQuizHistory = [];
+  bool _loadingHistory = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDailyHistory();
+  }
+
+  Future<void> _loadDailyHistory() async {
+    final userProvider = context.read<UserProvider>();
+    final history = await userProvider.loadQuizHistory();
+    if (mounted) {
+      setState(() {
+        _dailyQuizHistory = history.where((h) => h.quizType == 'daily' || h.coinsEarned > 0 || h.gemsEarned > 0).toList();
+        _loadingHistory = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +105,106 @@ class RewardsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
+          // 🏆 Daily Quiz Winnings Section
+          const Row(
+            children: [
+              Icon(Icons.stars_rounded, color: AppColors.neonGold, size: 18),
+              SizedBox(width: 6),
+              Text(
+                'DAILY QUIZ WINNINGS',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Coins, gems & shop items earned from daily quiz performances:',
+            style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+          ),
+          const SizedBox(height: 12),
+
+          if (_loadingHistory)
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: CircularProgressIndicator(color: AppColors.neonGold)),
+            )
+          else if (_dailyQuizHistory.isEmpty)
+            GlassCard(
+              borderRadius: 16,
+              padding: const EdgeInsets.all(16),
+              child: const Row(
+                children: [
+                  Icon(Icons.bolt_rounded, color: AppColors.neonGold, size: 24),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Play today\'s Daily Live Quiz to win coins, gems & shop prizes!',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ..._dailyQuizHistory.take(5).map((history) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: GlassCard(
+                    borderRadius: 16,
+                    padding: const EdgeInsets.all(14),
+                    borderColor: AppColors.neonGold.withValues(alpha: 0.3),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.neonGold.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.emoji_events_rounded, color: AppColors.neonGold, size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                history.title.isNotEmpty ? history.title : 'Daily Live Quiz',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+                              ),
+                              const SizedBox(height: 3),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${history.score} pts • ${history.accuracy.toStringAsFixed(0)}% Accuracy',
+                                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '+${history.coinsEarned} 💰',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.neonGold),
+                            ),
+                            if (history.gemsEarned > 0)
+                              Text(
+                                '+${history.gemsEarned} 💎',
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonPurple),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                )),
+
+          const SizedBox(height: 24),
+
+          // 🎁 Claimable Gifts Section
           Text(
             S.rewardsYourGifts,
             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
@@ -79,7 +218,7 @@ class RewardsScreen extends StatelessWidget {
 
           if (gifts.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 40),
+              padding: const EdgeInsets.symmetric(vertical: 20),
               child: Center(
                 child: Text(
                   S.rewardsNone,
