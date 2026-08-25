@@ -8,6 +8,7 @@ import '../models/chapter_model.dart';
 import '../models/question_model.dart';
 import '../services/hive_service.dart';
 import '../services/chapter_catalog_service.dart';
+import '../services/daily_quiz_generator.dart';
 import '../services/question_bank_service.dart';
 
 /// Question-bank access.
@@ -47,21 +48,13 @@ class QuizRepository {
   /// snappy, short enough that a newly added batch shows up the same session.
   static const _remoteCacheTtl = Duration(minutes: 15);
 
-  /// Daily quiz questions — Hive cache first, then the bundled bank.
+  /// Daily quiz questions — dynamically pooled & mixed across chapters for today's date.
   Future<List<QuestionModel>> getDailyQuizQuestions() async {
-    final cached = HiveService.cacheGetList(
-      HiveService.cacheDailyQuiz,
-      maxAge: _dailyCacheTtl,
+    final generator = DailyQuizGenerator(
+      bankService: _bankService,
+      catalogService: _catalogService,
     );
-    if (cached.isNotEmpty) {
-      return cached.map(QuestionModel.fromJson).toList();
-    }
-
-    final rows = await _readJsonList(AppAssets.jsonDailyQuiz, 'questions');
-    if (rows.isNotEmpty) {
-      await HiveService.cachePut(HiveService.cacheDailyQuiz, rows);
-    }
-    return rows.map(QuestionModel.fromJson).toList();
+    return generator.generateDailyQuestions();
   }
 
   /// Chapter/category tree: bundled catalogue merged with admin edits.

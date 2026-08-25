@@ -23,6 +23,7 @@ import '../profile/profile_screen.dart';
 import '../rewards/rewards_screen.dart';
 import '../shop/shop_screen.dart';
 import '../../widgets/cached_avatar.dart';
+import '../../widgets/daily_winner_celebration_dialog.dart';
 import '../../../l10n/app_strings.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -39,12 +40,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final userProvider = context.read<UserProvider>();
-      userProvider.initialize();
+      await userProvider.initialize();
+      if (!mounted) return;
       context
           .read<RewardsProvider>()
           .initialize(userId: userProvider.user.userId);
+
+      // Check and claim yesterday's daily leaderboard rewards!
+      final reward = await userProvider.checkAndClaimDailyLeaderboardRewards();
+      if (mounted && reward != null) {
+        DailyWinnerCelebrationDialog.show(context, reward);
+      }
     });
   }
 

@@ -15,6 +15,25 @@ import '../services/sync_service.dart';
 /// Result of a shop purchase attempt.
 enum PurchaseStatus { success, insufficientFunds, alreadyOwned }
 
+/// Reward details when claiming yesterday's daily leaderboard rank prizes.
+class DailyRewardResult {
+  final int rank;
+  final int coins;
+  final int gems;
+  final List<String> itemNames;
+  final int winningStreak;
+  final String? milestonePrizeTitle;
+
+  const DailyRewardResult({
+    required this.rank,
+    required this.coins,
+    required this.gems,
+    required this.itemNames,
+    required this.winningStreak,
+    this.milestonePrizeTitle,
+  });
+}
+
 /// Owns the player's profile, stats and ranking data.
 ///
 /// **Hive is the source of truth.** Every mutation writes to Hive first and
@@ -330,6 +349,120 @@ class UserProvider extends ChangeNotifier {
   }
 
   bool get canEarnDailyRewards => _lastDailyRewardDate != _todayKey();
+
+  /// Checks yesterday's leaderboard rank and automatically claims shop gifts,
+  /// coins, gems, and winning streak grand prizes if player placed in Top 10!
+  Future<DailyRewardResult?> checkAndClaimDailyLeaderboardRewards() async {
+    final now = DateTime.now();
+    final yesterday = now.subtract(const Duration(days: 1));
+    final m = yesterday.month.toString().padLeft(2, '0');
+    final d = yesterday.day.toString().padLeft(2, '0');
+    final yesterdayKey = '${yesterday.year}-$m-$d';
+
+    final claimedKey = 'claimed_daily_rank_$yesterdayKey';
+    if (HiveService.getMeta<bool>(claimedKey) == true) return null;
+
+    if (_user.username.isEmpty || _user.isGuest) return null;
+
+    try {
+      // Pull yesterday's champions / leaderboard
+      final champions = await _rankings.refreshChampions(limit: 10);
+      var userRank = -1;
+
+      for (var i = 0; i < champions.length; i++) {
+        if (champions[i].username == _user.username || champions[i].userId == _user.userId) {
+          userRank = i + 1;
+          break;
+        }
+      }
+
+      if (userRank <= 0 || userRank > 10) return null;
+
+      // Mark as claimed for yesterday
+      await HiveService.setMeta(claimedKey, true);
+
+      int coins = 0;
+      int gems = 0;
+      final itemNames = <String>[];
+      final itemIdsToGrant = <String>[];
+
+      if (userRank == 1) {
+        coins = 500;
+        gems = 50;
+        itemIdsToGrant.add(ShopItemIds.vipAvatar);
+        itemIdsToGrant.add(ShopItemIds.streakShield);
+        itemNames.add('VIP Golden Avatar');
+        itemNames.add('Streak Freeze Shield');
+      } else if (userRank == 2) {
+        coins = 300;
+        gems = 25;
+        itemIdsToGrant.add(ShopItemIds.coinBooster);
+        itemNames.add('2x Coin Booster');
+      } else if (userRank == 3) {
+        coins = 200;
+        gems = 15;
+        itemIdsToGrant.add(ShopItemIds.freezeTime);
+        itemNames.add('+10s Freeze Time Pack');
+      } else {
+        coins = 100;
+        gems = 5;
+      }
+
+      // Track Winning Streak
+      var streak = (HiveService.getMeta<int>('winning_streak') ?? 0);
+      if (userRank <= 3) {
+        streak += 1;
+      } else {
+        streak = 0;
+      }
+      await HiveService.setMeta('winning_streak', streak);
+
+      String? milestoneTitle;
+      if (streak == 3) {
+        milestoneTitle = '3-Day Legend Grand Prize';
+        itemIdsToGrant.add(ShopItemIds.starterPack);
+        _handlePackPurchase(ShopCatalog.items.firstWhere((i) => i.id == ShopItemIds.starterPack));
+        itemNames.add('🎁 Starter Pack');
+      } else if (streak == 7) {
+        milestoneTitle = '7-Day Grand Champion Prize';
+        itemIdsToGrant.add(ShopItemIds.goldenAvatar);
+        gems += 100;
+        itemNames.add('👑 Golden Knight Avatar (+100 Gems)');
+      } else if (streak >= 14 && streak % 7 == 0) {
+        milestoneTitle = 'Quiz Monarch Grand Prize';
+        itemIdsToGrant.add(ShopItemIds.legendPack);
+        _handlePackPurchase(ShopCatalog.items.firstWhere((i) => i.id == ShopItemIds.legendPack));
+        itemNames.add('👑 Legend Pack (+5000 Coins)');
+      }
+
+      // Credit Coins & Gems
+      _user.coins += coins;
+      _user.gems += gems;
+
+      // Credit items to inventory
+      for (final id in itemIdsToGrant) {
+        _user.inventory[id] = inventoryCount(id) + 1;
+        if (id.startsWith('vip_avatar') || id.startsWith('golden_avatar')) {
+          _user.inventory['cloud_avatar_$id'] = 1;
+        }
+      }
+
+      notifyListeners();
+      await _persistUser();
+
+      return DailyRewardResult(
+        rank: userRank,
+        coins: coins,
+        gems: gems,
+        itemNames: itemNames,
+        winningStreak: streak,
+        milestonePrizeTitle: milestoneTitle,
+      );
+    } catch (e) {
+      debugPrint('UserProvider: checkAndClaimDailyLeaderboardRewards failed – $e');
+      return null;
+    }
+  }
 
   bool grantQuizRewards({
     required int coins,
