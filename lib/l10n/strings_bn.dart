@@ -220,9 +220,9 @@ const Map<String, String> kStringsBn = {
   'rewardsYourGifts': 'আপনার উপহার ও পুরস্কার',
   'rewardsTapPrize': 'ক্লেইম বা ট্র্যাক করতে পুরস্কারে ট্যাপ করুন।',
   'rewardsNone': 'এখনও কোনো পুরস্কার নেই — দৈনিক কুইজ জিতুন! 🏆',
-  'rewardsWinDaily': 'প্রতিদিন সত্যিকারের উপহার জিতুন!',
+  'rewardsWinDaily': 'প্রতিদিন কুইজ খেলে পুরষ্কার জিতুন!',
   'rewardsWinDailyBody':
-      'দৈনিক লাইভ কুইজে ১ নম্বর হয়ে বাড়িতে ডেলিভারি হওয়া গ্যাজেট ও ভাউচার জিতুন।',
+      'ডেইলি কুইজে অংশগ্রহণ করে প্রতিদিন Coins, Gems, শপ আইটেম এবং ব্যাজ জিতে নিন।',
   'rewardsClaimNow': 'এখনই ক্লেইম করুন',
   'rewardsClaimed': 'ক্লেইম হয়েছে ✓',
   'rewardsProcessing': 'প্রক্রিয়াধীন',

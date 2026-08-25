@@ -220,9 +220,9 @@ const Map<String, String> kStringsHi = {
   'rewardsYourGifts': 'आपके उपहार और इनाम',
   'rewardsTapPrize': 'क्लेम या ट्रैक करने के लिए इनाम पर टैप करें।',
   'rewardsNone': 'अभी कोई इनाम नहीं — डेली क्विज़ जीतें! 🏆',
-  'rewardsWinDaily': 'हर दिन असली इनाम जीतें!',
+  'rewardsWinDaily': 'रोजाना क्विज़ खेलकर इनाम जीतें!',
   'rewardsWinDailyBody':
-      'डेली लाइव क्विज़ में #1 आएँ और घर बैठे गैजेट व वाउचर पाएँ।',
+      'डेली लाइव क्विज़ में हिस्सा लेकर हर दिन Coins, Gems, लाइफलाइन और बैज जीतें।',
   'rewardsClaimNow': 'अभी क्लेम करें',
   'rewardsClaimed': 'क्लेम हो गया ✓',
   'rewardsProcessing': 'प्रक्रिया में',

@@ -227,9 +227,9 @@ const Map<String, String> kStringsEn = {
   'rewardsYourGifts': 'YOUR GIFTS & PRIZES',
   'rewardsTapPrize': 'Tap a prize to claim or track it.',
   'rewardsNone': 'No prizes yet — win the Daily Quiz! 🏆',
-  'rewardsWinDaily': 'Win Daily Real Gifts!',
+  'rewardsWinDaily': 'Win Daily Quiz Rewards & Prizes!',
   'rewardsWinDailyBody':
-      'Finish #1 in Daily Live Quiz to receive high-tech gadgets & vouchers delivered to your home.',
+      'Play the Daily Live Quiz to win Coins, Gems, Shop Lifelines, Boosters & Badges every day!',
   'rewardsClaimNow': 'CLAIM NOW',
   'rewardsClaimed': 'CLAIMED ✓',
   'rewardsProcessing': 'Processing',
