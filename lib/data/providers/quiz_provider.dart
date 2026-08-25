@@ -560,8 +560,7 @@ class QuizProvider extends ChangeNotifier {
   // -------------------------------------------------------------- Lifelines --
 
   /// Uses the 50-50 lifeline. Consumes one unit from the player's inventory.
-  /// Returns false if it can't be used (already used this question, no stock,
-  /// or answer already submitted).
+  /// Removes 2 wrong options so exactly 2 options remain (1 correct + 1 wrong).
   bool useFiftyFifty() {
     if (_fiftyFiftyUsed || _isAnswerSubmitted || currentQuestion == null) {
       return false;
@@ -571,15 +570,12 @@ class QuizProvider extends ChangeNotifier {
     }
     _fiftyFiftyUsed = true;
     final correct = currentQuestion!.correctIndex;
-    // Built from the real option count: hardcoding 0..3 disabled indices that
-    // do not exist on a 2- or 3-option question, and left a four-option one
-    // correct only by luck.
     final wrongOptions = [
       for (var i = 0; i < currentQuestion!.optionTexts.length; i++)
         if (i != correct) i
     ]..shuffle();
-    // Halve the choices, leaving the answer and at least one distractor.
-    final toRemove = (wrongOptions.length / 2).floor();
+    // Remove 2 wrong options on a 4-option question to leave exactly 2 options active.
+    final toRemove = wrongOptions.length >= 2 ? 2 : 1;
     _disabledOptionIndices = wrongOptions.take(toRemove).toList();
     notifyListeners();
     return true;
