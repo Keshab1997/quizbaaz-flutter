@@ -1347,6 +1347,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+}
   Widget _buildNavItem({
     required IconData icon,
     required String label,
@@ -1375,8 +1376,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
-/// Labels for the streak ring (repeats when the goal is longer than a week).
-const List<String> _weekdayInitials = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 class _QuickAction {
   final String title;
