@@ -531,6 +531,44 @@ class UserProvider extends ChangeNotifier {
     return true;
   }
 
+  /// Grants XP based on quiz performance. Returns true if the player leveled up.
+  bool grantXp({required int score, required int correctCount, required bool isDailyQuiz}) {
+    int baseXp = correctCount * 10;
+    if (isDailyQuiz) baseXp += score * 2;
+
+    // Apply XP booster if active
+    if (hasItem(ShopItemIds.xpBooster)) {
+      baseXp *= 2;
+      consumeItem(ShopItemIds.xpBooster);
+    }
+
+    _user.xp += baseXp;
+
+    // Level up: every 1000 XP = 1 level
+    final newLevel = (_user.xp ~/ 1000) + 1;
+    final leveledUp = newLevel > _user.level;
+    if (leveledUp) {
+      _user.level = newLevel;
+      // Bonus gems on level up
+      _user.gems += 5 * (newLevel - _user.level + 1);
+    }
+
+    notifyListeners();
+    _persistUser();
+    return leveledUp;
+  }
+
+  int get userXp => _user.xp;
+  int get userLevel => _user.level;
+  int get xpForNextLevel => ((_user.level) * 1000) - _user.xp;
+  double get xpProgressPercent {
+    final currentLevelXp = (_user.level - 1) * 1000;
+    final nextLevelXp = _user.level * 1000;
+    final range = nextLevelXp - currentLevelXp;
+    if (range == 0) return 1.0;
+    return (_user.xp - currentLevelXp) / range;
+  }
+
   // ---------------------------------------------------------------- Stats --
 
   /// Records a finished quiz: updates [UserStats], the daily streak and the
@@ -604,12 +642,23 @@ class UserProvider extends ChangeNotifier {
     await _saveQuizHistory(history);
 
     if (isDaily && !_user.isGuest) {
-      await SyncService.pushLeaderboardEntry(
-        user: _user,
-        score: _stats.bestDailyScore,
-        timeSeconds: _stats.bestDailyTimeSeconds,
-      );
-      await refreshRankings(force: true);
+      // Score Shield: prevents a bad score from being pushed to leaderboard
+      final scoreShielded = isDaily &&
+          !_user.isGuest &&
+          hasItem(ShopItemIds.scoreShield) &&
+          (score ?? 0) < _stats.bestDailyScore;
+      if (scoreShielded) {
+        consumeItem(ShopItemIds.scoreShield);
+      }
+
+      if (!scoreShielded) {
+        await SyncService.pushLeaderboardEntry(
+          user: _user,
+          score: _stats.bestDailyScore,
+          timeSeconds: _stats.bestDailyTimeSeconds,
+        );
+        await refreshRankings(force: true);
+      }
     }
     await SyncService.pushUser(_user);
     await SyncService.pushStats(_user.userId, _stats);
@@ -759,6 +808,8 @@ class UserProvider extends ChangeNotifier {
       coins: _user.coins + (wasGuest ? _config.signupBonusCoins : 0),
       gems: _user.gems + (wasGuest ? _config.signupBonusGems : 0),
       dailyStreak: _user.dailyStreak,
+      xp: _user.xp,
+      level: _user.level,
       isGuest: false,
       playedTodayDailyQuiz: _user.playedTodayDailyQuiz,
       isAdmin: _user.isAdmin,
