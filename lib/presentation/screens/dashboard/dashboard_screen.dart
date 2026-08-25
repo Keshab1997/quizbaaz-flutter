@@ -22,6 +22,7 @@ import '../history/quiz_history_screen.dart';
 import '../profile/profile_screen.dart';
 import '../rewards/rewards_screen.dart';
 import '../shop/shop_screen.dart';
+import '../../widgets/aura_avatar.dart';
 import '../../widgets/cached_avatar.dart';
 import '../../widgets/daily_winner_celebration_dialog.dart';
 import '../../../l10n/app_strings.dart';
@@ -135,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(user),
+                      _buildHeader(user, userProvider),
                       const SizedBox(height: 18),
                       _buildHeroCard(heroAsset, userProvider),
                       const SizedBox(height: 14),
@@ -215,33 +216,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildHeader(UserModel user) {
+  Widget _buildHeader(UserModel user, UserProvider userProvider) {
     return Row(
       children: [
-        GestureDetector(
+        AuraAvatar(
+          url: user.effectiveAvatar,
+          size: 68,
+          showCrown: userProvider.hasItem(ShopItemIds.vipAvatar) ||
+              userProvider.hasItem('vip_avatar'),
+          fallbackAsset: user.avatarPath,
           onTap: () => _openTab(3, const ProfileScreen()),
-          child: Container(
-            width: 72,
-            height: 72,
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: AppColors.primaryGradient,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.neonPurple.withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: _avatarImage(
-                user.effectiveAvatar,
-                alignment: const Alignment(0, -0.72),
-              ),
-            ),
-          ),
         ),
         const SizedBox(width: 13),
         Expanded(
