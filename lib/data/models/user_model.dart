@@ -14,6 +14,8 @@ class UserModel {
   int coins;
   int gems;
   int dailyStreak;
+  int xp;
+  int level;
   bool isGuest;
   bool playedTodayDailyQuiz;
 
@@ -39,6 +41,8 @@ class UserModel {
     this.coins = 0,
     this.gems = 0,
     this.dailyStreak = 0,
+    this.xp = 0,
+    this.level = 1,
     this.isGuest = false,
     this.playedTodayDailyQuiz = false,
     this.isAdmin = false,
@@ -115,6 +119,8 @@ class UserModel {
         'coins': coins,
         'gems': gems,
         'daily_streak': dailyStreak,
+        'xp': xp,
+        'level': level,
         'is_guest': isGuest,
         'played_today_daily_quiz': playedTodayDailyQuiz,
         'is_admin': isAdmin,
@@ -136,6 +142,8 @@ class UserModel {
       coins: (json['coins'] as num?)?.toInt() ?? 0,
       gems: (json['gems'] as num?)?.toInt() ?? 0,
       dailyStreak: (json['daily_streak'] as num?)?.toInt() ?? 0,
+      xp: (json['xp'] as num?)?.toInt() ?? 0,
+      level: (json['level'] as num?)?.toInt() ?? 1,
       isGuest: json['is_guest'] as bool? ?? false,
       playedTodayDailyQuiz: json['played_today_daily_quiz'] as bool? ?? false,
       isAdmin: json['is_admin'] as bool? ?? false,
@@ -162,6 +170,8 @@ class UserModel {
       coins: 0,
       gems: 0,
       dailyStreak: 0,
+      xp: 0,
+      level: 1,
       isGuest: isGuest,
       inventory: const {},
     );
@@ -184,6 +194,8 @@ class UserModel {
     int? coins,
     int? gems,
     int? dailyStreak,
+    int? xp,
+    int? level,
     bool? isGuest,
     bool? playedTodayDailyQuiz,
     bool? isAdmin,
@@ -201,6 +213,8 @@ class UserModel {
       coins: coins ?? this.coins,
       gems: gems ?? this.gems,
       dailyStreak: dailyStreak ?? this.dailyStreak,
+      xp: xp ?? this.xp,
+      level: level ?? this.level,
       isGuest: isGuest ?? this.isGuest,
       playedTodayDailyQuiz: playedTodayDailyQuiz ?? this.playedTodayDailyQuiz,
       isAdmin: isAdmin ?? this.isAdmin,
