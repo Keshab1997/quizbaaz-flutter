@@ -546,6 +546,13 @@ class QuizProvider extends ChangeNotifier {
       isDailyQuiz: _isDailyQuiz,
     );
 
+    // Grant XP
+    _userProvider.grantXp(
+      score: _score,
+      correctCount: _correctCount,
+      isDailyQuiz: _isDailyQuiz,
+    );
+
     if (granted) {
       _earnedCoins = coins;
       _earnedGems = gems;
