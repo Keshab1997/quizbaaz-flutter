@@ -50,7 +50,7 @@ class QuizRepository {
   Future<List<QuestionModel>> getDailyQuizQuestions() async {
     final generator = DailyQuizGenerator(
       bankService: _bankService,
-      catalogService: _catalogService,
+      quizRepository: this,
     );
     return generator.generateDailyQuestions();
   }
