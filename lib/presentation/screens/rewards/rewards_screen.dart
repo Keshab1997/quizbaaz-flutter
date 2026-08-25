@@ -5,18 +5,6 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../data/models/gift_claim.dart';
-import '../../../data/providers/rewards_provider.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/neon_button.dart';
-import '../../../l10n/app_strings.dart';
-
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_assets.dart';
-import '../../../data/models/gift_claim.dart';
 import '../../../data/models/quiz_result_history.dart';
 import '../../../data/providers/rewards_provider.dart';
 import '../../../data/providers/user_provider.dart';
@@ -168,7 +156,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                history.title.isNotEmpty ? history.title : 'Daily Live Quiz',
+                                history.displayTitle.isNotEmpty ? history.displayTitle : 'Daily Live Quiz',
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
                               ),
                               const SizedBox(height: 3),
