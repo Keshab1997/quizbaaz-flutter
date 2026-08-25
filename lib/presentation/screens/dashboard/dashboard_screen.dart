@@ -617,10 +617,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  static String _getWeekdayName(int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return 'M';
+      case DateTime.tuesday:
+        return 'T';
+      case DateTime.wednesday:
+        return 'W';
+      case DateTime.thursday:
+        return 'T';
+      case DateTime.friday:
+        return 'F';
+      case DateTime.saturday:
+        return 'S';
+      case DateTime.sunday:
+        return 'S';
+      default:
+        return '';
+    }
+  }
+
+  static String _getWeekdayShort(int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return 'Mon';
+      case DateTime.tuesday:
+        return 'Tue';
+      case DateTime.wednesday:
+        return 'Wed';
+      case DateTime.thursday:
+        return 'Thu';
+      case DateTime.friday:
+        return 'Fri';
+      case DateTime.saturday:
+        return 'Sat';
+      case DateTime.sunday:
+        return 'Sun';
+      default:
+        return '';
+    }
+  }
+
   Widget _buildStreakCard(UserModel user, UserProvider userProvider) {
     final goal = userProvider.config.streakGoalDays;
     final completed = user.dailyStreak.clamp(0, goal).toInt();
     final remaining = goal - completed;
+    final now = DateTime.now();
+
+    DateTime? lastPlayDate;
+    if (user.lastStreakDate != null && user.lastStreakDate!.isNotEmpty) {
+      try {
+        lastPlayDate = DateTime.parse(user.lastStreakDate!);
+      } catch (_) {}
+    }
+
     return GlassCard(
       borderRadius: 22,
       padding: const EdgeInsets.fromLTRB(15, 14, 15, 15),
@@ -701,40 +752,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(goal, (index) {
-              final isDone = index < completed;
-              final label = _weekdayInitials[index % _weekdayInitials.length];
-              return Column(
-                children: [
-                  Container(
-                    width: 27,
-                    height: 27,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isDone
-                          ? AppColors.neonGold.withValues(alpha: 0.18)
-                          : Colors.white.withValues(alpha: 0.045),
-                      border: Border.all(
-                        color: isDone
-                            ? AppColors.neonGold.withValues(alpha: 0.75)
-                            : Colors.white.withValues(alpha: 0.10),
+              final dayDate = now.subtract(Duration(days: (goal - 1) - index));
+              final isToday = index == (goal - 1);
+
+              bool isAttended = false;
+              if (lastPlayDate != null && user.dailyStreak > 0) {
+                final diff = DateTime(lastPlayDate.year, lastPlayDate.month, lastPlayDate.day)
+                    .difference(DateTime(dayDate.year, dayDate.month, dayDate.day))
+                    .inDays;
+                if (diff >= 0 && diff < user.dailyStreak) {
+                  isAttended = true;
+                }
+              }
+
+              final label = _getWeekdayName(dayDate.weekday);
+              final dayShort = _getWeekdayShort(dayDate.weekday);
+              final dateStr = '${dayDate.day}/${dayDate.month}';
+
+              return GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      duration: const Duration(seconds: 2),
+                      content: Text(
+                        '📅 $dayShort ($dateStr)${isToday ? " Today" : ""}: ${isAttended ? "Attended ✓" : "Missed ❌"}',
+                      ),
+                      backgroundColor: isAttended ? AppColors.neonGreen : AppColors.neonRed,
+                    ),
+                  );
+                },
+                child: Column(
+                  children: [
+                    Container(
+                      width: 27,
+                      height: 27,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isAttended
+                            ? AppColors.neonGold.withValues(alpha: 0.18)
+                            : Colors.white.withValues(alpha: 0.045),
+                        border: Border.all(
+                          color: isToday
+                              ? AppColors.neonCyan
+                              : isAttended
+                                  ? AppColors.neonGold.withValues(alpha: 0.75)
+                                  : Colors.white.withValues(alpha: 0.10),
+                          width: isToday ? 2 : 1,
+                        ),
+                      ),
+                      child: Icon(
+                        isAttended ? Icons.check_rounded : Icons.circle_outlined,
+                        size: 14,
+                        color: isAttended ? AppColors.neonGold : AppColors.textMuted,
                       ),
                     ),
-                    child: Icon(
-                      isDone ? Icons.check_rounded : Icons.circle_outlined,
-                      size: 14,
-                      color: isDone ? AppColors.neonGold : AppColors.textMuted,
+                    const SizedBox(height: 4),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: isToday ? AppColors.neonCyan : (isAttended ? AppColors.neonGold : AppColors.textMuted),
+                        fontSize: 9,
+                        fontWeight: isToday || isAttended ? FontWeight.w900 : FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               );
             }),
           ),
