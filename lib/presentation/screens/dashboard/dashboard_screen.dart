@@ -1347,7 +1347,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-}
   Widget _buildNavItem({
     required IconData icon,
     required String label,
