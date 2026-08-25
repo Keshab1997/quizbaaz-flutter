@@ -306,6 +306,32 @@ class ProfileScreen extends StatelessWidget {
                           .toList(),
                     );
                   }),
+                  // Purchased badges from shop
+                  Builder(builder: (context) {
+                    final purchased = _purchasedBadges(userProvider);
+                    if (purchased.isEmpty) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+                        const Divider(color: Colors.white12),
+                        const SizedBox(height: 14),
+                        Text('🏆 Shop Badges',
+                            style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.neonGold)),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 18,
+                          runSpacing: 14,
+                          children: purchased
+                              .map((b) => _buildBadge(b.title, b.icon, b.color))
+                              .toList(),
+                        ),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),
@@ -676,6 +702,21 @@ class ProfileScreen extends StatelessWidget {
     return badges;
   }
 
+  /// Badges purchased from the shop.
+  List<_Badge> _purchasedBadges(UserProvider userProvider) {
+    final badges = <_Badge>[];
+    if (userProvider.hasItem(ShopItemIds.championBadge)) {
+      badges.add(const _Badge('Champion', Icons.emoji_events_rounded, AppColors.neonGold));
+    }
+    if (userProvider.hasItem(ShopItemIds.scholarBadge)) {
+      badges.add(const _Badge('Scholar', Icons.school_rounded, AppColors.neonPurple));
+    }
+    if (userProvider.hasItem(ShopItemIds.legendBadge)) {
+      badges.add(const _Badge('Legend', Icons.star_rounded, AppColors.neonPink));
+    }
+    return badges;
+  }
+
   Widget _buildStatTile({
     required IconData icon,
     required Color color,
@@ -900,7 +941,7 @@ class ProfileScreen extends StatelessWidget {
                   ? (gender == UserGender.male
                           ? AppColors.neonCyan
                           : AppColors.neonPink)
-                  : AppColors.textMuted,
+                      : AppColors.textMuted,
               size: 22,
             ),
             const SizedBox(width: 6),
@@ -911,7 +952,7 @@ class ProfileScreen extends StatelessWidget {
                     ? (gender == UserGender.male
                             ? AppColors.neonCyan
                             : AppColors.neonPink)
-                    : AppColors.textMuted,
+                        : AppColors.textMuted,
                 fontWeight: FontWeight.w700,
               ),
             ),
