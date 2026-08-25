@@ -42,8 +42,6 @@ class QuizRepository {
   final QuestionBankService _bankService;
   final ChapterCatalogService _catalogService;
 
-  static const _dailyCacheTtl = Duration(hours: 12);
-
   /// Admin-authored questions are cached briefly — long enough to keep a quiz
   /// snappy, short enough that a newly added batch shows up the same session.
   static const _remoteCacheTtl = Duration(minutes: 15);

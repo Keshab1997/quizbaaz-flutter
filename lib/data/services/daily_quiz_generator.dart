@@ -4,10 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../../core/constants/app_colors.dart';
-import '../models/chapter_model.dart';
 import '../models/question_model.dart';
-import '../repositories/quiz_repository.dart';
 import '../services/hive_service.dart';
 import 'chapter_catalog_service.dart';
 import 'question_bank_service.dart';

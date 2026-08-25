@@ -301,8 +301,8 @@ class _AiGenerationReviewScreenState extends State<AiGenerationReviewScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  alignment: Alignment.centerRight,
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       for (final mix in DifficultyMix.values)
