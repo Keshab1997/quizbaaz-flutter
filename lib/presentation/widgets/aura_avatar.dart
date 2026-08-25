@@ -76,8 +76,6 @@ class _AuraAvatarState extends State<AuraAvatar>
 
   @override
   Widget build(BuildContext context) {
-    final double avatarRadius = widget.size * 0.42;
-
     return GestureDetector(
       onTap: widget.onTap,
       child: SizedBox(
