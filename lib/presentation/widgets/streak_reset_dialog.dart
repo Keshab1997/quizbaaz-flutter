@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_colors.dart';
-import '../../data/models/shop_item.dart';
 import '../../data/providers/user_provider.dart';
 import '../screens/shop/shop_screen.dart';
 import 'glass_card.dart';
