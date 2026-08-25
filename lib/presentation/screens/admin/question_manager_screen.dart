@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -7,8 +10,10 @@ import '../../../data/models/localized_text.dart';
 import '../../../data/models/question_model.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/repositories/quiz_repository.dart';
+import '../../../data/services/ai_question_generator.dart';
 import '../../../data/services/question_bank_service.dart';
 import '../../../data/services/question_fingerprint.dart';
+import '../../../data/services/question_prompt_builder.dart';
 import '../../../data/services/question_validator.dart';
 import '../../widgets/glass_card.dart';
 import 'ai_generation_review_screen.dart';
@@ -162,6 +167,11 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
         ),
         actions: [
           IconButton(
+            tooltip: 'Import ChatGPT/Gemini JSON',
+            icon: const Icon(Icons.code_rounded, color: AppColors.neonGold),
+            onPressed: _showJsonImportSheet,
+          ),
+          IconButton(
             tooltip: 'Reload',
             icon: const Icon(Icons.refresh_rounded),
             onPressed: _loading ? null : _load,
@@ -172,6 +182,15 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          FloatingActionButton.extended(
+            heroTag: 'import_json',
+            backgroundColor: AppColors.neonGold,
+            foregroundColor: Colors.black,
+            onPressed: _showJsonImportSheet,
+            icon: const Icon(Icons.content_paste_rounded, size: 19),
+            label: const Text('Import JSON'),
+          ),
+          const SizedBox(height: 10),
           FloatingActionButton.extended(
             heroTag: 'generate',
             backgroundColor: AppColors.neonPurple,
@@ -761,6 +780,199 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
         backgroundColor: error ? AppColors.neonRed : null,
       ));
   }
+
+  Future<void> _showJsonImportSheet() async {
+    final prompt = QuestionPromptBuilder.buildGenerationPrompt(
+      chapter: widget.chapter,
+      subjectName: widget.subjectName,
+      count: 10,
+      idPrefix: _slug,
+      startSequence: QuestionFingerprint.nextSequence(_questions.map((q) => q.id)),
+      existingStems: [for (final q in _questions) q.questionText.resolve('en')],
+    );
+
+    final jsonText = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _JsonImportSheet(prompt: prompt),
+    );
+
+    if (jsonText == null || jsonText.trim().isEmpty) return;
+
+    final parsedQuestions = _parseCustomJsonQuestions(
+      jsonText,
+      idPrefix: _slug,
+      startSequence: QuestionFingerprint.nextSequence(_questions.map((q) => q.id)),
+    );
+
+    if (parsedQuestions.isEmpty) {
+      _toast('❌ Valid questions could not be parsed from JSON. Please check format.', error: true);
+      return;
+    }
+
+    final stems = {for (final q in _questions) q.id: q.questionText.resolve('en')};
+    final fingerprints = {for (final q in _questions) QuestionFingerprint.fingerprint(q.questionText.resolve('en'))}..remove('');
+
+    final drafts = <GeneratedQuestion>[];
+    for (final q in parsedQuestions) {
+      final result = QuestionValidator.validate(
+        q,
+        existingStems: stems,
+        existingFingerprints: fingerprints,
+      );
+      drafts.add(GeneratedQuestion(question: q, validation: result));
+    }
+
+    final approved = await Navigator.push<List<QuestionModel>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AiGenerationReviewScreen(
+          chapter: widget.chapter,
+          subjectName: widget.subjectName,
+          idPrefix: _slug,
+          startSequence: QuestionFingerprint.nextSequence(_questions.map((q) => q.id)),
+          existingStems: [for (final q in _questions) q.questionText.resolve('en')],
+          existingFingerprints: fingerprints,
+          actorUid: _actorUid,
+          initialDrafts: drafts,
+        ),
+      ),
+    );
+
+    if (approved == null || approved.isEmpty) return;
+
+    try {
+      final result = await _bank.appendQuestions(
+        chapterId: _chapterId,
+        questions: approved,
+        actorUid: _actorUid,
+        source: 'manual_json_import',
+      );
+      await _invalidateCaches();
+      await _load();
+      if (mounted) _showAppendResult(result);
+    } catch (e) {
+      _toast('Could not save imported questions: $e', error: true);
+    }
+  }
+
+  static List<QuestionModel> _parseCustomJsonQuestions(
+    String raw, {
+    required String idPrefix,
+    required int startSequence,
+  }) {
+    var text = raw.trim();
+    if (text.startsWith('```')) {
+      final firstNewline = text.indexOf('\n');
+      if (firstNewline > 0) text = text.substring(firstNewline + 1);
+      final closing = text.lastIndexOf('```');
+      if (closing >= 0) text = text.substring(0, closing);
+      text = text.trim();
+    }
+
+    dynamic decoded;
+    try {
+      decoded = jsonDecode(text);
+    } catch (_) {
+      final start = text.indexOf('[');
+      final end = text.lastIndexOf(']');
+      if (start >= 0 && end > start) {
+        try {
+          decoded = jsonDecode(text.substring(start, end + 1));
+        } catch (_) {}
+      }
+    }
+
+    if (decoded == null) {
+      final start = text.indexOf('{');
+      final end = text.lastIndexOf('}');
+      if (start >= 0 && end > start) {
+        try {
+          decoded = [jsonDecode(text.substring(start, end + 1))];
+        } catch (_) {}
+      }
+    }
+
+    if (decoded == null) return [];
+
+    final list = decoded is List ? decoded : [decoded];
+    final questions = <QuestionModel>[];
+    var seq = startSequence;
+
+    for (final item in list) {
+      if (item is! Map) continue;
+      final map = Map<String, dynamic>.from(item);
+
+      // Question stem
+      LocalizedText questionText;
+      if (map['question'] is Map) {
+        questionText = LocalizedText.fromJson(map['question']);
+      } else if (map['question'] is String) {
+        questionText = LocalizedText(
+          en: map['question'].toString(),
+          bn: map['question_bn']?.toString() ?? '',
+          hi: map['question_hi']?.toString() ?? '',
+        );
+      } else {
+        continue;
+      }
+
+      // Options
+      List<LocalizedText> optionTexts = [];
+      if (map['options'] is List) {
+        for (final opt in (map['options'] as List)) {
+          if (opt is Map) {
+            optionTexts.add(LocalizedText.fromJson(opt));
+          } else if (opt != null) {
+            optionTexts.add(LocalizedText(en: opt.toString()));
+          }
+        }
+      }
+
+      if (optionTexts.length < 2) continue;
+
+      // Correct index
+      int correctIndex = 0;
+      if (map['correct_index'] != null) {
+        correctIndex = (map['correct_index'] as num?)?.toInt() ?? 0;
+      } else if (map['correctIndex'] != null) {
+        correctIndex = (map['correctIndex'] as num?)?.toInt() ?? 0;
+      } else if (map['correct_answer'] != null) {
+        final ansStr = map['correct_answer'].toString().toLowerCase().trim();
+        final idx = optionTexts.indexWhere(
+            (o) => o.toJson().values.any((val) => val.toLowerCase().trim() == ansStr));
+        if (idx >= 0) correctIndex = idx;
+      }
+
+      // Explanation
+      LocalizedText explanationText = const LocalizedText.empty();
+      if (map['explanation'] is Map) {
+        explanationText = LocalizedText.fromJson(map['explanation']);
+      } else if (map['explanation'] is String) {
+        explanationText = LocalizedText(en: map['explanation'].toString());
+      }
+
+      // ID
+      String id = map['id']?.toString().trim() ?? '';
+      if (id.isEmpty) {
+        id = QuestionFingerprint.buildId(idPrefix, seq);
+      }
+      seq++;
+
+      questions.add(QuestionModel(
+        id: id,
+        questionText: questionText,
+        optionTexts: optionTexts,
+        correctIndex: correctIndex.clamp(0, optionTexts.length - 1),
+        explanationText: explanationText,
+        points: (map['points'] as num?)?.toInt() ?? 10,
+        timeLimitSec: (map['time_limit_sec'] as num?)?.toInt() ?? 15,
+      ));
+    }
+
+    return questions;
+  }
 }
 
 // =========================================================== question sheet ==
@@ -1121,6 +1333,223 @@ class _QuestionSheetState extends State<_QuestionSheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _JsonImportSheet extends StatefulWidget {
+  final String prompt;
+
+  const _JsonImportSheet({required this.prompt});
+
+  @override
+  State<_JsonImportSheet> createState() => _JsonImportSheetState();
+}
+
+class _JsonImportSheetState extends State<_JsonImportSheet> {
+  late final TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  void _copyPrompt() {
+    Clipboard.setData(ClipboardData(text: widget.prompt));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✅ AI Prompt copied! Paste into ChatGPT or Gemini.'),
+        backgroundColor: AppColors.neonGreen,
+      ),
+    );
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      setState(() {
+        _textController.text = data.text!;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('📋 Pasted from clipboard!')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.88),
+        decoration: const BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            Container(
+              width: 42,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 12, 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.code_rounded, color: AppColors.neonGold, size: 22),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Import JSON / ChatGPT / Gemini',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    color: AppColors.textSecondary,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Step 1: Prompt
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.neonPurple.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.copy_rounded, color: AppColors.neonPurple, size: 18),
+                              SizedBox(width: 6),
+                              Text(
+                                'Step 1: Copy AI Prompt',
+                                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Copy this chapter-specific prompt and paste it into ChatGPT, Gemini, or Claude when API rate limit occurs.',
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.neonPurple,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              onPressed: _copyPrompt,
+                              icon: const Icon(Icons.content_copy_rounded, size: 16),
+                              label: const Text('Copy Prompt for ChatGPT / Gemini', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Step 2: Paste JSON
+                    const Row(
+                      children: [
+                        Icon(Icons.content_paste_rounded, color: AppColors.neonGold, size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          'Step 2: Paste ChatGPT / Gemini JSON',
+                          style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Paste the JSON code block or array generated by AI:',
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: _pasteFromClipboard,
+                          icon: const Icon(Icons.paste_rounded, size: 14, color: AppColors.neonGold),
+                          label: const Text('Paste Clipboard', style: TextStyle(fontSize: 11, color: AppColors.neonGold)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: _textController,
+                      maxLines: 8,
+                      minLines: 5,
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontFamily: 'monospace'),
+                      decoration: InputDecoration(
+                        hintText: '[\n  {\n    "question": { "en": "...", "bn": "...", "hi": "..." },\n    "options": [...],\n    "correct_index": 0\n  }\n]',
+                        hintStyle: TextStyle(color: AppColors.textMuted.withValues(alpha: 0.5), fontSize: 11),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.05),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: AppColors.neonGold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Submit Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.neonGold,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context, _textController.text);
+                        },
+                        icon: const Icon(Icons.check_circle_rounded, size: 20),
+                        label: const Text('Parse & Review Questions', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

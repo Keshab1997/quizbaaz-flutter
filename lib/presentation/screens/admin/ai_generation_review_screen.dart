@@ -28,6 +28,7 @@ class AiGenerationReviewScreen extends StatefulWidget {
   final List<String> existingStems;
   final Set<String> existingFingerprints;
   final String actorUid;
+  final List<GeneratedQuestion>? initialDrafts;
 
   const AiGenerationReviewScreen({
     super.key,
@@ -39,6 +40,7 @@ class AiGenerationReviewScreen extends StatefulWidget {
     required this.existingFingerprints,
     required this.actorUid,
     this.count = 10,
+    this.initialDrafts,
   });
 
   @override
@@ -77,6 +79,28 @@ class _AiGenerationReviewScreenState extends State<AiGenerationReviewScreen> {
   }
 
   void _start() {
+    if (widget.initialDrafts != null && widget.initialDrafts!.isNotEmpty) {
+      setState(() {
+        _running = false;
+        _results = widget.initialDrafts!;
+        _progress = GenerationProgress(
+          stage: GenerationStage.done,
+          requested: widget.initialDrafts!.length,
+          accepted: widget.initialDrafts!.length,
+          message: 'Loaded ${widget.initialDrafts!.length} questions from JSON',
+          results: widget.initialDrafts!,
+        );
+        _selected
+          ..clear()
+          ..addAll(
+            widget.initialDrafts!
+                .where((r) => r.isClean)
+                .map((r) => r.question.id),
+          );
+      });
+      return;
+    }
+
     setState(() {
       _running = true;
       _results = [];
