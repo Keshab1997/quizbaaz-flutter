@@ -465,14 +465,8 @@ class QuizProvider extends ChangeNotifier {
         _userProvider.consumeItem(ShopItemIds.doublePoints);
       }
 
-      if (_isPractice) {
-        // A replay still updates the best score on the set card — a student
-        // who improves should see it — but credits nothing.
-        _recordSetProgress();
-      } else {
-        _grantRewards();
-        _recordSetProgress();
-      }
+      _grantRewards();
+      _recordSetProgress();
     }
     notifyListeners();
   }
@@ -513,9 +507,14 @@ class QuizProvider extends ChangeNotifier {
               ? config.gemsHighScore
               : 0);
     } else {
-      // Chapter quiz = practice mode: smaller rewards, always claimable.
+      // Chapter quiz: coins & gems granted every time based on performance
       coins = _correctCount * config.coinsPerCorrectPractice;
-      gems = isPerfect ? config.gemsHighScore : 0;
+      if (isPerfect) coins += config.perfectBonusCoins;
+      gems = isPerfect
+          ? config.gemsPerfect
+          : (_correctCount >= config.highScoreThreshold
+              ? config.gemsHighScore
+              : 0);
     }
 
     // Apply coin booster if active

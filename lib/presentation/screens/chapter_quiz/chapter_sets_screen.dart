@@ -262,7 +262,7 @@ class _ChapterSetsScreenState extends State<ChapterSetsScreen>
         borderRadius: 16,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         borderColor: isNext ? widget.accent.withValues(alpha: 0.45) : null,
-        onTap: locked ? null : () => _play(index, practice: done != null),
+        onTap: locked ? null : () => _play(index, practice: false),
         child: Row(
           children: [
             Container(
@@ -335,7 +335,7 @@ class _ChapterSetsScreenState extends State<ChapterSetsScreen>
 
   Widget _retryChip(int index) {
     return TextButton.icon(
-      onPressed: () => _play(index, practice: true),
+      onPressed: () => _play(index, practice: false),
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         minimumSize: const Size(0, 32),
@@ -503,7 +503,7 @@ class _ChapterSetsScreenState extends State<ChapterSetsScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 side: BorderSide(color: widget.accent.withValues(alpha: 0.5)),
               ),
-              onPressed: () => _play(entry.setIndex, practice: true),
+              onPressed: () => _play(entry.setIndex, practice: false),
               icon: Icon(Icons.refresh_rounded, size: 15, color: widget.accent),
               label: Text(S.setsRetry,
                   style: TextStyle(fontSize: 11.5, color: widget.accent)),
