@@ -387,25 +387,21 @@ class UserProvider extends ChangeNotifier {
       final itemIdsToGrant = <String>[];
 
       if (userRank == 1) {
-        coins = 500;
-        gems = 50;
-        itemIdsToGrant.add(ShopItemIds.vipAvatar);
-        itemIdsToGrant.add(ShopItemIds.streakShield);
-        itemNames.add('VIP Golden Avatar');
-        itemNames.add('Streak Freeze Shield');
-      } else if (userRank == 2) {
-        coins = 300;
-        gems = 25;
-        itemIdsToGrant.add(ShopItemIds.coinBooster);
-        itemNames.add('2x Coin Booster');
-      } else if (userRank == 3) {
-        coins = 200;
-        gems = 15;
-        itemIdsToGrant.add(ShopItemIds.freezeTime);
-        itemNames.add('+10s Freeze Time Pack');
-      } else {
         coins = 100;
+        gems = 10;
+        itemIdsToGrant.add(ShopItemIds.freezeTime);
+        itemNames.add('+10s Freeze Time');
+      } else if (userRank == 2) {
+        coins = 50;
         gems = 5;
+        itemIdsToGrant.add(ShopItemIds.fiftyFifty);
+        itemNames.add('50-50 Lifeline');
+      } else if (userRank == 3) {
+        coins = 30;
+        gems = 2;
+      } else {
+        coins = 15;
+        gems = 1;
       }
 
       // Track Winning Streak
@@ -419,20 +415,20 @@ class UserProvider extends ChangeNotifier {
 
       String? milestoneTitle;
       if (streak == 3) {
-        milestoneTitle = '3-Day Legend Grand Prize';
-        itemIdsToGrant.add(ShopItemIds.starterPack);
-        _handlePackPurchase(ShopCatalog.items.firstWhere((i) => i.id == ShopItemIds.starterPack));
-        itemNames.add('🎁 Starter Pack');
+        milestoneTitle = '3-Day Streak Bonus';
+        gems += 20;
+        itemIdsToGrant.add(ShopItemIds.streakShield);
+        itemNames.add('Streak Freeze Shield (+20 Gems)');
       } else if (streak == 7) {
-        milestoneTitle = '7-Day Grand Champion Prize';
-        itemIdsToGrant.add(ShopItemIds.goldenAvatar);
-        gems += 100;
-        itemNames.add('👑 Golden Knight Avatar (+100 Gems)');
+        milestoneTitle = '7-Day Champion Bonus';
+        gems += 50;
+        itemIdsToGrant.add(ShopItemIds.coinBooster);
+        itemNames.add('2x Coin Booster (+50 Gems)');
       } else if (streak >= 14 && streak % 7 == 0) {
-        milestoneTitle = 'Quiz Monarch Grand Prize';
-        itemIdsToGrant.add(ShopItemIds.legendPack);
-        _handlePackPurchase(ShopCatalog.items.firstWhere((i) => i.id == ShopItemIds.legendPack));
-        itemNames.add('👑 Legend Pack (+5000 Coins)');
+        milestoneTitle = 'Quiz Monarch Bonus';
+        gems += 100;
+        itemIdsToGrant.add(ShopItemIds.championBadge);
+        itemNames.add('Champion Badge (+100 Gems)');
       }
 
       // Credit Coins & Gems
