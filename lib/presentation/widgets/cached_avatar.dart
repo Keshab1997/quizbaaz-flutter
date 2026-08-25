@@ -61,6 +61,8 @@ class CachedAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isNetwork =
         url.startsWith('http://') || url.startsWith('https://');
+    final isAnimatedFormat = url.toLowerCase().contains('.gif') ||
+        url.toLowerCase().contains('.webp');
 
     Widget image;
     if (isNetwork) {
@@ -70,10 +72,9 @@ class CachedAvatar extends StatelessWidget {
         alignment: alignment,
         width: width,
         height: height,
-        // Avatars never need more than 512px — decoding smaller keeps the
-        // memory cache light and avoids jank while scrolling.
-        memCacheWidth: 512,
-        maxWidthDiskCache: 512,
+        // Do not force memCacheWidth for animated GIF/WebP so animation frames loop smoothly
+        memCacheWidth: isAnimatedFormat ? null : 512,
+        maxWidthDiskCache: isAnimatedFormat ? null : 512,
         useOldImageOnUrlChange: true,
         fadeOutDuration: const Duration(milliseconds: 200),
         fadeInDuration: const Duration(milliseconds: 200),

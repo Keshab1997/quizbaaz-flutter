@@ -4,7 +4,7 @@ import '../../core/constants/app_assets.dart';
 import '../../data/models/champion_model.dart';
 import 'glass_card.dart';
 import 'name_effect_text.dart';
-import 'cached_avatar.dart';
+import 'aura_avatar.dart';
 
 class ChampionPodiumWidget extends StatelessWidget {
   final ChampionModel? champion;
@@ -15,29 +15,6 @@ class ChampionPodiumWidget extends StatelessWidget {
     this.champion,
     this.onViewProfile,
   });
-
-  bool _isNetworkAvatar(String avatar) =>
-      avatar.startsWith('http://') || avatar.startsWith('https://');
-
-  Widget _championAvatar(String avatar) {
-    final safeAvatar = avatar.isNotEmpty ? avatar : AppAssets.championBoy;
-    if (_isNetworkAvatar(safeAvatar)) {
-      return CachedAvatar(
-        url: safeAvatar,
-        fit: BoxFit.cover,
-        fallbackIcon: Icons.person,
-        fallbackIconColor: AppColors.neonGold,
-        fallbackIconSize: 48,
-      );
-    }
-    return Image.asset(
-      safeAvatar,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => const Center(
-        child: Icon(Icons.person, size: 48, color: AppColors.neonGold),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +42,8 @@ class ChampionPodiumWidget extends StatelessWidget {
         ),
       );
     }
+
+    final avatar = champ.avatarPath.isNotEmpty ? champ.avatarPath : AppAssets.championBoy;
 
     return GlassCard(
       borderColor: AppColors.neonGold.withValues(alpha: 0.4),
@@ -118,23 +97,12 @@ class ChampionPodiumWidget extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              // 3D Character standing on podium
-              Container(
-                width: 85,
-                height: 95,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.neonPurple.withValues(alpha: 0.3),
-                      AppColors.neonCyan.withValues(alpha: 0.1),
-                    ],
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: _championAvatar(champ.avatarPath),
-                ),
+              // 3D Animated Holographic Aura Avatar
+              AuraAvatar(
+                url: avatar,
+                size: 85,
+                showCrown: true,
+                fallbackAsset: AppAssets.championBoy,
               ),
               const SizedBox(width: 14),
               // Details
@@ -155,7 +123,7 @@ class ChampionPodiumWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      champ.username,
+                      '@${champ.username}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,

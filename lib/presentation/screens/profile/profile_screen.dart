@@ -14,7 +14,6 @@ import '../../widgets/name_effect_text.dart';
 import 'avatar_selection_screen.dart';
 import '../shop/purchase_history_screen.dart';
 import '../../../data/models/shop_item.dart';
-import '../../widgets/cached_avatar.dart';
 import '../../../l10n/app_strings.dart';
 
 class ProfileScreen extends StatelessWidget {
