@@ -117,10 +117,10 @@ class _RewardsScreenState extends State<RewardsScreen> {
               child: Center(child: CircularProgressIndicator(color: AppColors.neonGold)),
             )
           else if (_dailyQuizHistory.isEmpty)
-            GlassCard(
+            const GlassCard(
               borderRadius: 16,
-              padding: const EdgeInsets.all(16),
-              child: const Row(
+              padding: EdgeInsets.all(16),
+              child: Row(
                 children: [
                   Icon(Icons.bolt_rounded, color: AppColors.neonGold, size: 24),
                   SizedBox(width: 12),
