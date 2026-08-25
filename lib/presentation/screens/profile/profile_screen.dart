@@ -8,6 +8,7 @@ import '../../../data/models/user_stats.dart';
 import '../../../data/providers/locale_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../screens/settings/language_screen.dart';
+import '../../widgets/aura_avatar.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/name_effect_text.dart';
 import 'avatar_selection_screen.dart';
@@ -53,30 +54,12 @@ class ProfileScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const AvatarSelectionScreen()),
                       );
                     },
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        gradient: AppColors.primaryGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.neonPurple.withValues(alpha: 0.4),
-                            blurRadius: 25,
-                            spreadRadius: 3,
-                          ),
-                        ],
-                      ),
-                      child: Container(
-                        margin: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(21),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(21),
-                          child: _buildProfileAvatar(user),
-                        ),
-                      ),
+                    child: AuraAvatar(
+                      url: user.effectiveAvatar,
+                      size: 130,
+                      showCrown: userProvider.hasItem(ShopItemIds.vipAvatar) ||
+                          userProvider.hasItem('vip_avatar'),
+                      fallbackAsset: user.avatarPath,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -643,7 +626,8 @@ class ProfileScreen extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 18, color: AppColors.neonCyan),
-          const SizedBox(width: 10),          Expanded(
+          const SizedBox(width: 10),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -662,28 +646,6 @@ class ProfileScreen extends StatelessWidget {
           if (trailing != null) trailing,
         ],
       ),
-    );
-  }
-
-  Widget _buildProfileAvatar(UserModel user) {
-    final avatar = user.effectiveAvatar;
-    final isRemoteAvatar = avatar.startsWith('http://') || avatar.startsWith('https://');
-
-    if (isRemoteAvatar) {
-      return CachedAvatar(
-        url: avatar,
-        fit: BoxFit.contain,
-        fallbackAsset: user.avatarPath,
-        fallbackIcon: Icons.person,
-        fallbackIconColor: Colors.white,
-        fallbackIconSize: 60,
-      );
-    }
-
-    return Image.asset(
-      avatar,
-      fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 60, color: Colors.white),
     );
   }
 
