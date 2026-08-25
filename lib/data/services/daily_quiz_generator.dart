@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import '../models/question_model.dart';
 import '../repositories/quiz_repository.dart';
 import '../services/hive_service.dart';
-import 'chapter_catalog_service.dart';
 import 'question_bank_service.dart';
 
 /// Generates a daily mixed question set by pooling questions across all
@@ -20,15 +19,12 @@ import 'question_bank_service.dart';
 /// - Questions come from diverse subjects (Maths, Science, History, etc.).
 class DailyQuizGenerator {
   final QuestionBankService _bankService;
-  final ChapterCatalogService _catalogService;
   final QuizRepository _quizRepository;
 
   DailyQuizGenerator({
     QuestionBankService? bankService,
-    ChapterCatalogService? catalogService,
     QuizRepository? quizRepository,
   })  : _bankService = bankService ?? QuestionBankService(),
-        _catalogService = catalogService ?? ChapterCatalogService(),
         _quizRepository = quizRepository ?? QuizRepository();
 
   /// Integer seed derived from date key `yyyyMMdd` (e.g. 20260825).
