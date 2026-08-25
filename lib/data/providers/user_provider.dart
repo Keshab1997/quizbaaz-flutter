@@ -352,11 +352,11 @@ class UserProvider extends ChangeNotifier {
 
   // -------------------------------------------------------------- Rewards --
 
+  static String _dateKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
   static String _todayKey() {
-    final now = DateTime.now();
-    final m = now.month.toString().padLeft(2, '0');
-    final d = now.day.toString().padLeft(2, '0');
-    return '${now.year}-$m-$d';
+    return _dateKey(DateTime.now());
   }
 
   bool get canEarnDailyRewards => _lastDailyRewardDate != _todayKey();
