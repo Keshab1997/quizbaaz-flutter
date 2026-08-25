@@ -310,24 +310,27 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                           : Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        cat['icon'] as IconData,
-                        color: isSelected ? AppColors.neonPurple : AppColors.textSecondary,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        cat['label'] as String,
-                        style: TextStyle(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          cat['icon'] as IconData,
                           color: isSelected ? AppColors.neonPurple : AppColors.textSecondary,
-                          fontSize: 13,
-                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          size: 18,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Text(
+                          cat['label'] as String,
+                          style: TextStyle(
+                            color: isSelected ? AppColors.neonPurple : AppColors.textSecondary,
+                            fontSize: 13,
+                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
