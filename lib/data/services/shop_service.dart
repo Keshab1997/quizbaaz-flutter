@@ -156,6 +156,28 @@ class ShopService {
         'name_key': name.toLowerCase(),
         'updated_at': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+
+      // If category is avatars, mirror to avatars collection as well
+      if (category == 'avatars' || category == 'avatar') {
+        final imageUrl = (item['icon_url'] ?? item['image_url'] ?? '').toString();
+        if (imageUrl.isNotEmpty) {
+          await _db.collection(_avatars).doc(id).set({
+            'id': id,
+            'name': name,
+            'category': 'premium',
+            'image_url': imageUrl,
+            'is_premium': item['is_cosmetic'] == true || price > 0,
+            'price': price,
+            'currency': item['currency'] ?? 'gems',
+            'is_active': item['is_active'] ?? true,
+            'name_key': name.toLowerCase(),
+            'updated_at': FieldValue.serverTimestamp(),
+            'created_at': item['created_at'] ?? DateTime.now().toIso8601String(),
+          }, SetOptions(merge: true));
+        }
+        unawaited(refreshAvatarCache());
+      }
+
       await _logAdminAction(action: 'save', entity: 'shop_item', entityId: id, details: {'name': name, 'category': category});
       _clearError();
       return true;
@@ -176,6 +198,40 @@ class ShopService {
         ...doc.data(),
         'id': doc.id,
       }).toList();
+
+      // Also merge active avatars from the avatars collection
+      try {
+        final avatarsSnapshot = await _db.collection(_avatars)
+            .where('is_active', isEqualTo: true)
+            .get();
+        final existingIds = items.map((e) => (e['id'] ?? '').toString()).toSet();
+        final existingUrls = items.map((e) => (e['icon_url'] ?? e['image_url'] ?? '').toString()).toSet();
+
+        for (final doc in avatarsSnapshot.docs) {
+          final data = doc.data();
+          final id = doc.id;
+          final imageUrl = (data['image_url'] ?? data['avatar_url'] ?? '').toString();
+          if (!existingIds.contains(id) && !existingUrls.contains(imageUrl) && imageUrl.isNotEmpty) {
+            final isPremium = data['is_premium'] == true || data['category'] == 'premium' || ((data['price'] as num?) ?? 0) > 0;
+            items.add({
+              'id': id,
+              'name': (data['name'] ?? 'Avatar').toString(),
+              'description': 'Unlock ${(data['name'] ?? 'Avatar')} Avatar',
+              'category': 'avatars',
+              'price': (data['price'] as num?)?.toInt() ?? 0,
+              'currency': 'gems',
+              'quantity': 1,
+              'is_cosmetic': isPremium,
+              'icon_url': imageUrl,
+              'is_active': true,
+              'created_at': data['created_at'] ?? DateTime.now().toIso8601String(),
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint('ShopService: merge avatars into shop items skipped - $e');
+      }
+
       items.sort((a, b) => (b['created_at'] ?? '').toString().compareTo((a['created_at'] ?? '').toString()));
       _clearError();
       return items;
@@ -230,6 +286,26 @@ class ShopService {
         'name_key': name.toLowerCase(),
         'updated_at': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+
+      // Also mirror to shop_items if premium
+      if (avatar['is_premium'] == true || category == 'premium' || price > 0) {
+        await _db.collection(_shopItems).doc(id).set({
+          'id': id,
+          'name': name,
+          'description': 'Unlock $name Avatar',
+          'category': 'avatars',
+          'price': price,
+          'currency': avatar['currency'] ?? 'gems',
+          'quantity': 1,
+          'is_cosmetic': true,
+          'icon_url': imageUrl,
+          'is_active': avatar['is_active'] ?? true,
+          'name_key': name.toLowerCase(),
+          'updated_at': FieldValue.serverTimestamp(),
+          'created_at': avatar['created_at'] ?? DateTime.now().toIso8601String(),
+        }, SetOptions(merge: true));
+      }
+
       await _logAdminAction(action: 'save', entity: 'avatar', entityId: id, details: {'name': name, 'category': category});
       _clearError();
       // Keep the local avatar cache in sync so users see the change quickly.
@@ -303,6 +379,44 @@ class ShopService {
       final avatars = snapshot.docs
           .map((doc) => {..._sanitizeForCache(doc.data()), 'id': doc.id})
           .toList();
+
+      // Also merge items from shop_items collection where category is avatars
+      try {
+        final shopSnapshot = await _db
+            .collection(_shopItems)
+            .where('is_active', isEqualTo: true)
+            .get();
+        final existingIds = avatars.map((e) => (e['id'] ?? '').toString()).toSet();
+        final existingUrls = avatars.map((e) => (e['image_url'] ?? e['avatar_url'] ?? '').toString()).toSet();
+
+        for (final doc in shopSnapshot.docs) {
+          final data = doc.data();
+          final id = doc.id;
+          final itemCategory = (data['category'] ?? '').toString().toLowerCase();
+          final imageUrl = (data['icon_url'] ?? data['image_url'] ?? '').toString();
+
+          if ((itemCategory == 'avatars' || itemCategory == 'avatar') &&
+              !existingIds.contains(id) &&
+              !existingUrls.contains(imageUrl) &&
+              imageUrl.isNotEmpty) {
+            final isPremium = data['is_cosmetic'] == true || ((data['price'] as num?) ?? 0) > 0;
+            avatars.add({
+              ..._sanitizeForCache(data),
+              'id': id,
+              'name': (data['name'] ?? 'Avatar').toString(),
+              'category': isPremium ? 'premium' : 'male',
+              'image_url': imageUrl,
+              'is_premium': isPremium,
+              'price': (data['price'] as num?)?.toInt() ?? 0,
+              'currency': data['currency'] ?? 'gems',
+              'is_active': true,
+              'created_at': data['created_at'] ?? DateTime.now().toIso8601String(),
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint('ShopService: merge shop avatars error - $e');
+      }
 
       // Cache the full unfiltered list so every category is served locally.
       if (isReady) {

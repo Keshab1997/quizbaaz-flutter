@@ -189,7 +189,7 @@ class UserProvider extends ChangeNotifier {
       item.costsCoins ? _user.coins >= item.cost : _user.gems >= item.cost;
 
   PurchaseStatus purchaseItem(ShopItem item) {
-    if (item.isCosmetic && hasItem(item.id)) {
+    if (item.isCosmetic && (hasItem(item.id) || hasItem('cloud_avatar_${item.id}'))) {
       return PurchaseStatus.alreadyOwned;
     }
     if (!canAfford(item)) {
@@ -207,6 +207,14 @@ class UserProvider extends ChangeNotifier {
       _handlePackPurchase(item);
     } else {
       _user.inventory[item.id] = inventoryCount(item.id) + item.quantity;
+      if (item.category == 'avatars' || item.isCosmetic) {
+        if (!item.id.startsWith('cloud_avatar_')) {
+          _user.inventory['cloud_avatar_${item.id}'] = 1;
+        } else {
+          final rawId = item.id.replaceFirst('cloud_avatar_', '');
+          _user.inventory[rawId] = 1;
+        }
+      }
     }
 
     notifyListeners();

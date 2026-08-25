@@ -118,16 +118,25 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
   }
 
   String _cloudAvatarInventoryId(Map<String, dynamic> avatar) =>
-      'cloud_avatar_${(avatar['id'] ?? avatar['image_url'] ?? '').toString()}';
+      (avatar['id'] ?? avatar['image_url'] ?? '').toString();
+
+  bool _isCloudAvatarOwned(UserProvider userProvider, Map<String, dynamic> avatar) {
+    final id = _cloudAvatarInventoryId(avatar);
+    final imageUrl = (avatar['image_url'] ?? avatar['avatar_url'] ?? '').toString();
+    return userProvider.hasItem(id) ||
+        userProvider.hasItem('cloud_avatar_$id') ||
+        (imageUrl.isNotEmpty && userProvider.hasItem(imageUrl));
+  }
 
   ShopItem _cloudAvatarShopItem(Map<String, dynamic> avatar) {
     final name = (avatar['name'] ?? 'Premium Cloud Avatar').toString();
+    final id = _cloudAvatarInventoryId(avatar);
     return ShopItem(
-      id: _cloudAvatarInventoryId(avatar),
+      id: id,
       name: name,
       description: S.avatarUnlockTitle(name: name),
       cost: (avatar['price'] as num?)?.toInt() ?? 50,
-      currency: ShopCurrency.gems,
+      currency: (avatar['currency'] == 'coins') ? ShopCurrency.coins : ShopCurrency.gems,
       quantity: 1,
       isCosmetic: true,
       category: 'avatars',
@@ -350,10 +359,15 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
 
     // Filter cloud avatars by category
     final cloudAvatars = _cloudAvatars.where((avatar) {
-      final category = (avatar['category'] ?? '').toString();
-      final isPremium = avatar['is_premium'] == true || category == 'premium';
-      if (_selectedCategory == 'premium') return isPremium;
-      return category == _selectedCategory && !isPremium;
+      final category = (avatar['category'] ?? '').toString().toLowerCase();
+      final isPremium = avatar['is_premium'] == true ||
+          category == 'premium' ||
+          category == 'avatars' ||
+          ((avatar['price'] as num?) ?? 0) > 0;
+      if (_selectedCategory == 'premium') return isPremium || category == 'avatars';
+      if (_selectedCategory == 'male') return category == 'male' && !isPremium;
+      if (_selectedCategory == 'female') return category == 'female' && !isPremium;
+      return true;
     }).toList();
 
     return CustomScrollView(
@@ -442,9 +456,12 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
                   final cloudAvatar = cloudAvatars[index];
                   final imageUrl = (cloudAvatar['image_url'] ?? cloudAvatar['avatar_url'] ?? '').toString();
                   final isSelected = _selectedAvatar == imageUrl;
-                  final category = (cloudAvatar['category'] ?? '').toString();
-                  final isPremium = cloudAvatar['is_premium'] == true || category == 'premium';
-                  final isOwned = !isPremium || userProvider.hasItem(_cloudAvatarInventoryId(cloudAvatar));
+                  final category = (cloudAvatar['category'] ?? '').toString().toLowerCase();
+                  final isPremium = cloudAvatar['is_premium'] == true ||
+                      category == 'premium' ||
+                      category == 'avatars' ||
+                      ((cloudAvatar['price'] as num?) ?? 0) > 0;
+                  final isOwned = !isPremium || _isCloudAvatarOwned(userProvider, cloudAvatar);
 
                   return _buildCloudAvatarCard(
                     cloudAvatar: cloudAvatar,
