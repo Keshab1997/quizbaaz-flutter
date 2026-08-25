@@ -798,6 +798,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
       builder: (_) => _JsonImportSheet(prompt: prompt),
     );
 
+    if (!mounted) return;
     if (jsonText == null || jsonText.trim().isEmpty) return;
 
     final parsedQuestions = _parseCustomJsonQuestions(
@@ -854,7 +855,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
       await _load();
       if (mounted) _showAppendResult(result);
     } catch (e) {
-      _toast('Could not save imported questions: $e', error: true);
+      if (mounted) _toast('Could not save imported questions: $e', error: true);
     }
   }
 
