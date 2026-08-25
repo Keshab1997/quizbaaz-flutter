@@ -752,13 +752,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(goal, (index) {
-              final dayDate = now.subtract(Duration(days: (goal - 1) - index));
-              final isToday = index == (goal - 1);
+              final mondayOfThisWeek = DateTime(now.year, now.month, now.day)
+                  .subtract(Duration(days: now.weekday - 1));
+              final dayDate = mondayOfThisWeek.add(Duration(days: index));
+              final isToday = dayDate.year == now.year &&
+                  dayDate.month == now.month &&
+                  dayDate.day == now.day;
+              final isFuture = dayDate.isAfter(DateTime(now.year, now.month, now.day));
 
               bool isAttended = false;
-              if (lastPlayDate != null && user.dailyStreak > 0) {
+              if (!isFuture && lastPlayDate != null && user.dailyStreak > 0) {
                 final diff = DateTime(lastPlayDate.year, lastPlayDate.month, lastPlayDate.day)
-                    .difference(DateTime(dayDate.year, dayDate.month, dayDate.day))
+                    .difference(dayDate)
                     .inDays;
                 if (diff >= 0 && diff < user.dailyStreak) {
                   isAttended = true;
@@ -776,9 +781,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     SnackBar(
                       duration: const Duration(seconds: 2),
                       content: Text(
-                        '📅 $dayShort ($dateStr)${isToday ? " Today" : ""}: ${isAttended ? "Attended ✓" : "Missed ❌"}',
+                        isFuture
+                            ? '📅 $dayShort ($dateStr): Future Day'
+                            : '📅 $dayShort ($dateStr)${isToday ? " Today" : ""}: ${isAttended ? "Attended ✓" : "Missed ❌"}',
                       ),
-                      backgroundColor: isAttended ? AppColors.neonGreen : AppColors.neonRed,
+                      backgroundColor: isAttended
+                          ? AppColors.neonGreen
+                          : (isFuture ? Colors.white24 : AppColors.neonRed),
                     ),
                   );
                 },
@@ -811,7 +820,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text(
                       label,
                       style: TextStyle(
-                        color: isToday ? AppColors.neonCyan : (isAttended ? AppColors.neonGold : AppColors.textMuted),
+                        color: isToday
+                            ? AppColors.neonCyan
+                            : (isAttended ? AppColors.neonGold : AppColors.textMuted),
                         fontSize: 9,
                         fontWeight: isToday || isAttended ? FontWeight.w900 : FontWeight.w700,
                       ),
