@@ -5,7 +5,7 @@
 ![QuizBaaz 3D Banner](assets/images/characters/quizbaaz_mascot_boy.png)
 
 ### **A Next-Gen 3D Gamified Quiz Platform built with Flutter**
-*Chapter-Wise Question Bank • Daily 10-Question Live Quiz • Live Leaderboard • Yesterday's Champion Gifts • 3D Streaks • Zero-Friction Guest Trial • Central Admin Panel*
+*Chapter-Wise Question Bank • Daily 10-Question Live Quiz • Live Leaderboard • Yesterday's Champion & In-Game Rewards • 3D Streaks • Zero-Friction Guest Trial • Central Admin Panel*
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)](https://dart.dev)
@@ -22,8 +22,8 @@
    - Futuristic Navy Blue + Purple Gradient aesthetic with realistic glossy glassmorphism cards and neon glowing borders.
 2. **🏆 Daily 10-Question Competitive Quiz:**
    - 10 fresh questions every single day with real-time countdown timer, speed-based bonus scoring, and anti-cheat mechanisms.
-3. **🥇 Yesterday's Champion & Real Gifts Tracker:**
-   - Everyone on the home screen sees who won yesterday (#1 Podium with 3D trophy), their score, and what reward/gift they won (Smartwatch, Voucher, Cash).
+3. **🥇 Yesterday's Champion & In-Game Rewards Tracker:**
+   - Everyone on the home screen sees who won yesterday (#1 Podium with 3D trophy), their score, and what in-game reward they earned (Coins, Gems, Power-Ups, Shop Items).
 4. **🔥 3D Daily Streak Fire Flame:**
    - Motivating daily streak system with interactive fire animations and weekly milestone rewards.
 5. **📚 Chapter-wise JSON Question Bank:**
@@ -31,7 +31,7 @@
 6. **🚪 Zero-Friction Guest Trial Onboarding:**
    - Visitors can explore the dashboard and play trial quizzes immediately without forced registration, boosting user acquisition.
 7. **🛡️ Dynamic Admin Web Control Panel:**
-   - Bulk JSON/Excel question uploader, Daily Quiz scheduler, Yesterday's Winner dispatcher, and Gift courier tracker.
+   - Bulk JSON/Excel question uploader, Daily Quiz scheduler, Yesterday's Winner & in-game reward dispatcher.
 8. **🌍 Fully Trilingual (English · বাংলা · हिन्दी):**
    - Interface *and* quiz content in three languages from one switch. Picked automatically from the device locale, changeable any time from **Profile → Settings → Language**, stored locally and kept across restarts. The font swaps to Hind Siliguri for Bangla so no glyph is ever missing.
 9. **📚 Trilingual Question Bank:**
