@@ -297,29 +297,40 @@ class _AiGenerationReviewScreenState extends State<AiGenerationReviewScreen> {
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textSecondary)),
-              const Spacer(),
-              for (final mix in DifficultyMix.values)
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: ChoiceChip(
-                    label: Text(mix.label,
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: _difficulty == mix
-                                ? AppColors.bgDark
-                                : AppColors.textSecondary)),
-                    selected: _difficulty == mix,
-                    showCheckmark: false,
-                    backgroundColor: Colors.white.withValues(alpha: 0.05),
-                    selectedColor: AppColors.neonCyan,
-                    side: BorderSide(
-                        color: _difficulty == mix
-                            ? AppColors.neonCyan
-                            : Colors.white12),
-                    onSelected: (_) => setState(() => _difficulty = mix),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final mix in DifficultyMix.values)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: ChoiceChip(
+                            label: Text(mix.label,
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: _difficulty == mix
+                                        ? AppColors.bgDark
+                                        : AppColors.textSecondary)),
+                            selected: _difficulty == mix,
+                            showCheckmark: false,
+                            backgroundColor: Colors.white.withValues(alpha: 0.05),
+                            selectedColor: AppColors.neonCyan,
+                            side: BorderSide(
+                                color: _difficulty == mix
+                                    ? AppColors.neonCyan
+                                    : Colors.white12),
+                            onSelected: (_) => setState(() => _difficulty = mix),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
+              ),
             ],
           ),
           SwitchListTile(
