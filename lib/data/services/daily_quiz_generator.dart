@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../models/question_model.dart';
+import '../repositories/quiz_repository.dart';
 import '../services/hive_service.dart';
 import 'chapter_catalog_service.dart';
 import 'question_bank_service.dart';
@@ -20,12 +21,15 @@ import 'question_bank_service.dart';
 class DailyQuizGenerator {
   final QuestionBankService _bankService;
   final ChapterCatalogService _catalogService;
+  final QuizRepository _quizRepository;
 
   DailyQuizGenerator({
     QuestionBankService? bankService,
     ChapterCatalogService? catalogService,
+    QuizRepository? quizRepository,
   })  : _bankService = bankService ?? QuestionBankService(),
-        _catalogService = catalogService ?? ChapterCatalogService();
+        _catalogService = catalogService ?? ChapterCatalogService(),
+        _quizRepository = quizRepository ?? QuizRepository();
 
   /// Integer seed derived from date key `yyyyMMdd` (e.g. 20260825).
   static int _dateSeed(DateTime date) {
@@ -59,19 +63,21 @@ class DailyQuizGenerator {
       final pooledQuestions = <Map<String, dynamic>>[];
       final seenStems = <String>{};
 
-      // 1. Fetch all category & chapter definitions
-      final categories = await _catalogService.fetchCategories();
+      // 1. Fetch all bundled + remote category & chapter definitions
+      final categories = await _quizRepository.getCategoriesAndChapters();
 
       for (final category in categories) {
         for (final chapter in category.chapters) {
           // Read asset questions for chapter
-          final assetRows = await _readJsonList(chapter.jsonFile, 'questions');
-          for (final row in assetRows) {
-            final q = QuestionModel.fromJson(row);
-            final stem = q.questionText.resolve('en').trim().toLowerCase();
-            if (stem.isNotEmpty && !seenStems.contains(stem)) {
-              seenStems.add(stem);
-              pooledQuestions.add(row);
+          if (chapter.jsonFile.isNotEmpty) {
+            final assetRows = await _readJsonList(chapter.jsonFile, 'questions');
+            for (final row in assetRows) {
+              final q = QuestionModel.fromJson(row);
+              final stem = q.questionText.resolve('en').trim().toLowerCase();
+              if (stem.isNotEmpty && !seenStems.contains(stem)) {
+                seenStems.add(stem);
+                pooledQuestions.add(row);
+              }
             }
           }
 
@@ -91,11 +97,12 @@ class DailyQuizGenerator {
         }
       }
 
-      if (pooledQuestions.length >= 5) {
+      if (pooledQuestions.isNotEmpty) {
         // Deterministic shuffle using today's date seed
         final rng = Random(_dateSeed(targetDate));
         final shuffled = [...pooledQuestions]..shuffle(rng);
-        final selected = shuffled.take(10).toList();
+        final countToTake = min(10, shuffled.length);
+        final selected = shuffled.take(countToTake).toList();
 
         await HiveService.cachePut(cacheKey, selected);
         return selected.map(QuestionModel.fromJson).toList();
@@ -104,7 +111,7 @@ class DailyQuizGenerator {
       debugPrint('DailyQuizGenerator: Error mixing daily questions — $e');
     }
 
-    // Fallback: Read from bundled daily_quiz.json
+    // Fallback: Read from bundled daily_quiz.json if available
     final fallbackRows = await _readJsonList('assets/data/daily_quiz.json', 'questions');
     if (fallbackRows.isNotEmpty) {
       await HiveService.cachePut(cacheKey, fallbackRows);
