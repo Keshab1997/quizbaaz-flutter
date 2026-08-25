@@ -25,6 +25,7 @@ import '../shop/shop_screen.dart';
 import '../../widgets/aura_avatar.dart';
 import '../../widgets/cached_avatar.dart';
 import '../../widgets/daily_winner_celebration_dialog.dart';
+import '../../widgets/streak_reset_dialog.dart';
 import '../../../l10n/app_strings.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -53,6 +54,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final reward = await userProvider.checkAndClaimDailyLeaderboardRewards();
       if (mounted && reward != null) {
         DailyWinnerCelebrationDialog.show(context, reward);
+      } else if (mounted) {
+        // Check if daily streak was reset and warn player / offer Streak Shield recovery!
+        final streakReset = userProvider.checkStreakResetWarning();
+        if (streakReset != null) {
+          StreakResetDialog.show(context, streakReset);
+        }
       }
     });
   }

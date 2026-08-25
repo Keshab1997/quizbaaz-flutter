@@ -34,6 +34,17 @@ class DailyRewardResult {
   });
 }
 
+/// Details when a user's daily streak gets reset due to missing a day.
+class StreakResetDetails {
+  final int lostStreak;
+  final bool hasShield;
+
+  const StreakResetDetails({
+    required this.lostStreak,
+    required this.hasShield,
+  });
+}
+
 /// Owns the player's profile, stats and ranking data.
 ///
 /// **Hive is the source of truth.** Every mutation writes to Hive first and
@@ -349,6 +360,47 @@ class UserProvider extends ChangeNotifier {
   }
 
   bool get canEarnDailyRewards => _lastDailyRewardDate != _todayKey();
+
+  /// Checks if the user missed yesterday and lost their streak today.
+  StreakResetDetails? checkStreakResetWarning() {
+    final now = DateTime.now();
+    final today = _dateKey(now);
+    final yesterday = _dateKey(now.subtract(const Duration(days: 1)));
+
+    final lastDate = _user.lastStreakDate;
+    if (lastDate == null || lastDate == today || lastDate == yesterday) {
+      return null;
+    }
+
+    final String lastWarnedDate = HiveService.getMeta<String>('warned_streak_reset_date') ?? '';
+    if (lastWarnedDate == today) return null;
+
+    final lostStreak = _user.dailyStreak;
+    if (lostStreak <= 0) return null;
+
+    // Record warned today
+    HiveService.setMeta('warned_streak_reset_date', today);
+
+    final hasShield = hasItem(ShopItemIds.streakShield);
+
+    return StreakResetDetails(
+      lostStreak: lostStreak,
+      hasShield: hasShield,
+    );
+  }
+
+  /// Restores player's streak using 1 Streak Freeze Shield from inventory.
+  bool restoreStreakWithShield(int lostStreak) {
+    if (!consumeItem(ShopItemIds.streakShield)) return false;
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    final m = yesterday.month.toString().padLeft(2, '0');
+    final d = yesterday.day.toString().padLeft(2, '0');
+    _user.lastStreakDate = '${yesterday.year}-$m-$d';
+    _user.dailyStreak = lostStreak;
+    notifyListeners();
+    _persistUser();
+    return true;
+  }
 
   /// Checks yesterday's leaderboard rank and automatically claims shop gifts,
   /// coins, gems, and winning streak grand prizes if player placed in Top 10!
