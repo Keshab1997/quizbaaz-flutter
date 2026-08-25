@@ -840,6 +840,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
       ),
     );
 
+    if (!mounted) return;
     if (approved == null || approved.isEmpty) return;
 
     try {
@@ -909,11 +910,11 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
       if (map['question'] is Map) {
         questionText = LocalizedText.fromJson(map['question']);
       } else if (map['question'] is String) {
-        questionText = LocalizedText(
-          en: map['question'].toString(),
-          bn: map['question_bn']?.toString() ?? '',
-          hi: map['question_hi']?.toString() ?? '',
-        );
+        questionText = LocalizedText.fromJson({
+          'en': map['question'].toString(),
+          'bn': map['question_bn']?.toString() ?? '',
+          'hi': map['question_hi']?.toString() ?? '',
+        });
       } else {
         continue;
       }
@@ -925,7 +926,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
           if (opt is Map) {
             optionTexts.add(LocalizedText.fromJson(opt));
           } else if (opt != null) {
-            optionTexts.add(LocalizedText(en: opt.toString()));
+            optionTexts.add(LocalizedText.fromJson(opt.toString()));
           }
         }
       }
@@ -950,7 +951,7 @@ class _QuestionManagerScreenState extends State<QuestionManagerScreen> {
       if (map['explanation'] is Map) {
         explanationText = LocalizedText.fromJson(map['explanation']);
       } else if (map['explanation'] is String) {
-        explanationText = LocalizedText(en: map['explanation'].toString());
+        explanationText = LocalizedText.fromJson(map['explanation'].toString());
       }
 
       // ID
