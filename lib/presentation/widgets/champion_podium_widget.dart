@@ -101,7 +101,6 @@ class ChampionPodiumWidget extends StatelessWidget {
               AuraAvatar(
                 url: avatar,
                 size: 85,
-                showCrown: true,
                 fallbackAsset: AppAssets.championBoy,
               ),
               const SizedBox(width: 14),

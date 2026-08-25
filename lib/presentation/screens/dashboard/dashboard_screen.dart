@@ -223,8 +223,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         AuraAvatar(
           url: user.effectiveAvatar,
           size: 68,
-          showCrown: userProvider.hasItem(ShopItemIds.vipAvatar) ||
-              userProvider.hasItem('vip_avatar'),
           fallbackAsset: user.avatarPath,
           onTap: () => _openTab(3, const ProfileScreen()),
         ),

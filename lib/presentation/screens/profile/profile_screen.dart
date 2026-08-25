@@ -56,8 +56,6 @@ class ProfileScreen extends StatelessWidget {
                     child: AuraAvatar(
                       url: user.effectiveAvatar,
                       size: 130,
-                      showCrown: userProvider.hasItem(ShopItemIds.vipAvatar) ||
-                          userProvider.hasItem('vip_avatar'),
                       fallbackAsset: user.avatarPath,
                     ),
                   ),

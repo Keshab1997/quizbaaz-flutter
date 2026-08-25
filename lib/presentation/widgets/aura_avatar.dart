@@ -4,18 +4,16 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import 'cached_avatar.dart';
 
-/// Animated Holographic Neon Aura Avatar frame for Champions & VIP Avatars.
+/// Animated Holographic Neon Aura Avatar frame.
 ///
 /// Features:
 /// - 60 FPS rotating holographic neon gradient ring
 /// - Pulsing glowing border
 /// - Floating sparkle particles
-/// - Optional 3D Golden Crown on top (`showCrown`)
 /// - Full GIF / WebP / Network image support
 class AuraAvatar extends StatefulWidget {
   final String url;
   final double size;
-  final bool showCrown;
   final bool isAnimated;
   final List<Color> auraColors;
   final String? fallbackAsset;
@@ -25,7 +23,6 @@ class AuraAvatar extends StatefulWidget {
     super.key,
     required this.url,
     this.size = 100,
-    this.showCrown = false,
     this.isAnimated = true,
     this.auraColors = const [
       AppColors.neonCyan,
@@ -80,7 +77,7 @@ class _AuraAvatarState extends State<AuraAvatar>
       onTap: widget.onTap,
       child: SizedBox(
         width: widget.size,
-        height: widget.size + (widget.showCrown ? 16 : 0),
+        height: widget.size,
         child: Stack(
           alignment: Alignment.center,
           clipBehavior: Clip.none,
@@ -195,39 +192,6 @@ class _AuraAvatarState extends State<AuraAvatar>
                     ],
                   );
                 },
-              ),
-
-            // Floating 3D Golden Crown on top
-            if (widget.showCrown)
-              Positioned(
-                top: -12,
-                child: AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    final float = math.sin(_controller.value * 2 * math.pi) * 3;
-                    return Transform.translate(
-                      offset: Offset(0, float),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: AppColors.neonGold.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.neonGold.withValues(alpha: 0.4),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.workspace_premium_rounded,
-                          color: AppColors.neonGold,
-                          size: 22,
-                        ),
-                      ),
-                    );
-                  },
-                ),
               ),
           ],
         ),
