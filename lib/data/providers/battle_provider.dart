@@ -871,14 +871,14 @@ class BattleProvider extends ChangeNotifier {
       HiveService.markBattleRoomProcessed(_roomId!);
     }
 
-    if (isPlayerWin) {
-      _earnedCoins = config.coinsPerCorrectPractice * 2;
-      _earnedGems = config.gemsHighScore;
+    if (isPlayerWin || isForfeit) {
+      _earnedCoins = 50;
+      _earnedGems = 2;
     } else if (isDraw) {
-      _earnedCoins = config.coinsPerCorrectPractice;
+      _earnedCoins = 10;
       _earnedGems = 0;
     } else {
-      _earnedCoins = (config.coinsPerCorrectPractice / 2).round();
+      _earnedCoins = 0;
       _earnedGems = 0;
     }
 
