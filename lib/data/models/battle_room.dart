@@ -136,6 +136,8 @@ class BattleRoomData {
   final BattleRoomPlayer? playerA;
   final BattleRoomPlayer? playerB;
   final String? winner; // 'a' | 'b' | 'draw' | null
+  final bool abandoned;
+  final String? abandonedBy; // 'a' | 'b' — who left
 
   const BattleRoomData({
     required this.roomId,
@@ -152,9 +154,12 @@ class BattleRoomData {
     this.playerA,
     this.playerB,
     this.winner,
+    this.abandoned = false,
+    this.abandonedBy,
   });
 
   bool get isFinished => phase == BattleRoomPhase.finished;
+  bool get isAbandoned => abandoned;
 
   /// Read-only mapping: 'a'/'b' -> player.
   BattleRoomPlayer? playerOf(String side) =>
@@ -210,6 +215,8 @@ class BattleRoomData {
             )
           : null,
       winner: json['winner']?.toString(),
+      abandoned: json['abandoned'] as bool? ?? false,
+      abandonedBy: json['abandoned_by']?.toString(),
     );
   }
 }

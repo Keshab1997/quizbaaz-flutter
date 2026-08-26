@@ -330,6 +330,25 @@ class BattleProvider extends ChangeNotifier {
 
   Future<void> rematch() => startBattle(_difficulty);
 
+  /// Player intentionally left mid-match → opponent wins instantly.
+  /// Writes 'abandoned: true' + 'phase: finished' to Firestore so the
+  /// opponent's client sees the room update and transitions to _ResultView
+  /// with isForfeit = true within one stream tick (~1 s).
+  void forfeitAndLeave() {
+    _disposeTimers();
+    if (isLive && _roomId != null) {
+      _roomService.finishRoom(_roomId!, _side == 'a' ? 'b' : 'a');
+      _roomService.advanceState(_roomId!, {
+        'phase': 'finished',
+        'abandoned': true,
+        'abandoned_by': _side,
+      });
+      _roomService.leaveQueue(_userId);
+    }
+    _phase = BattlePhase.setup;
+    notifyListeners();
+  }
+
   void cancelSearch() {
     if (_phase != BattlePhase.searching) return;
     if (_liveCapable) _roomService.leaveQueue(_userId);
@@ -416,6 +435,15 @@ class BattleProvider extends ChangeNotifier {
 
     if (_questions.isEmpty && room.hasQuestions) {
       _questions = room.questions;
+    }
+
+    // Opponent abandoned mid-match → instant forfeit win for us.
+    if (room.isAbandoned && room.abandonedBy != null && room.abandonedBy != _side) {
+      if (_phase != BattlePhase.finished) {
+        _forfeitWin = true;
+        _finishBattle();
+      }
+      return;
     }
 
     if (room.isFinished) {

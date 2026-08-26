@@ -24,33 +24,170 @@ class BattleScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final battle = context.watch<BattleProvider>();
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: Text(
-          S.battleArena,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+    return PopScope(
+      // Always intercept back — we handle it ourselves
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        await _onBackPressed(context, battle);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(
+            S.battleArena,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            onPressed: () => _onBackPressed(context, battle),
+          ),
+          actions: [
+            if (battle.phase == BattlePhase.question ||
+                battle.phase == BattlePhase.reveal)
+              QuizLanguagePills(
+                available: battle.availableLanguages,
+                selected: battle.displayLanguage,
+                onSelected: battle.setDisplayLanguage,
+              ),
+          ],
+        ),
+        body: switch (battle.phase) {
+          BattlePhase.setup => const _SetupView(),
+          BattlePhase.searching => const _SearchingView(),
+          BattlePhase.found => const _VsIntroView(),
+          BattlePhase.countdown => _CountdownView(
+              countdownValue: battle.countdownValue,
+            ),
+          BattlePhase.question || BattlePhase.reveal => const _ArenaView(),
+          BattlePhase.finished => const _ResultView(),
+        },
+      ),
+    );
+  }
+
+  Future<void> _onBackPressed(BuildContext context, BattleProvider battle) async {
+    // Setup বা finished phase-এ সরাসরি বের হয়ে যাও
+    if (battle.phase == BattlePhase.setup ||
+        battle.phase == BattlePhase.finished) {
+      if (context.mounted) Navigator.of(context).pop();
+      return;
+    }
+
+    // Searching-এ cancel করে বের হও
+    if (battle.phase == BattlePhase.searching) {
+      battle.cancelSearch();
+      if (context.mounted) Navigator.of(context).pop();
+      return;
+    }
+
+    // Live match চলছে — confirm dialog দেখাও
+    if (battle.isLive &&
+        (battle.phase == BattlePhase.question ||
+            battle.phase == BattlePhase.reveal ||
+            battle.phase == BattlePhase.found ||
+            battle.phase == BattlePhase.countdown)) {
+      final confirm = await _showForfeitDialog(context);
+      if (confirm == true && context.mounted) {
+        battle.forfeitAndLeave();
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
+    // Bot match চলছে — confirm dialog
+    final confirm = await _showQuitDialog(context);
+    if (confirm == true && context.mounted) {
+      battle.cancelSearch();
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future<bool?> _showForfeitDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1B2646),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          '🏳️ Forfeit Match?',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+          ),
+        ),
+        content: const Text(
+          'Your opponent will be declared the winner.\nAre you sure you want to leave?',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
         actions: [
-          if (battle.phase == BattlePhase.question ||
-              battle.phase == BattlePhase.reveal)
-            QuizLanguagePills(
-              available: battle.availableLanguages,
-              selected: battle.displayLanguage,
-              onSelected: battle.setDisplayLanguage,
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text(
+              'Stay',
+              style: TextStyle(
+                color: AppColors.neonCyan,
+                fontWeight: FontWeight.w800,
+              ),
             ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Forfeit',
+              style: TextStyle(
+                color: AppColors.neonRed,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
         ],
       ),
-      body: switch (battle.phase) {
-        BattlePhase.setup => const _SetupView(),
-        BattlePhase.searching => const _SearchingView(),
-        BattlePhase.found => const _VsIntroView(),
-        BattlePhase.countdown => _CountdownView(
-            countdownValue: battle.countdownValue,
+    );
+  }
+
+  Future<bool?> _showQuitDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1B2646),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          '🚪 Quit Match?',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
           ),
-        BattlePhase.question || BattlePhase.reveal => const _ArenaView(),
-        BattlePhase.finished => const _ResultView(),
-      },
+        ),
+        content: const Text(
+          'Your progress will be lost.\nAre you sure?',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text(
+              'Continue',
+              style: TextStyle(
+                color: AppColors.neonCyan,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Quit',
+              style: TextStyle(
+                color: AppColors.neonRed,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
