@@ -1888,7 +1888,7 @@ class _FighterImage extends StatelessWidget {
           child: Transform(
             alignment: Alignment.center,
             transform: flip
-                ? (Matrix4.identity()..scaleByDouble(-1.0))
+                ? (Matrix4.identity()..scaleByDouble(-1.0, 1.0, 1.0, 1.0))
                 : Matrix4.identity(),
             child: Image.asset(
               asset,
