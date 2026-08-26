@@ -1468,7 +1468,7 @@ class _PointsBreakdown extends StatelessWidget {
             if (pts.timeBonus > 0) _chip('⏱ Speed', pts.timeBonus, color),
             if (pts.streakBonus > 0) _chip('🔥 Streak', pts.streakBonus, color),
           ] else
-            Text(
+            const Text(
               'No points',
               style: TextStyle(
                 fontSize: 10,
