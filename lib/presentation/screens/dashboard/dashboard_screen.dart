@@ -1677,7 +1677,7 @@ class _BattleArenaCardState extends State<_BattleArenaCard>
                     builder: (_, __) => Positioned(
                       left: 0,
                       bottom: 28 + _floatAnim.value,
-                      child: _FighterImage(
+                      child: const _FighterImage(
                         asset: AppAssets.battleFighterBlue,
                         glowColor: AppColors.neonCyan,
                         label: 'YOU',
@@ -1692,7 +1692,7 @@ class _BattleArenaCardState extends State<_BattleArenaCard>
                     builder: (_, __) => Positioned(
                       right: 0,
                       bottom: 28 - _floatAnim.value,
-                      child: _FighterImage(
+                      child: const _FighterImage(
                         asset: AppAssets.battleFighterPink,
                         glowColor: AppColors.neonPink,
                         label: 'BOT',
@@ -1888,7 +1888,7 @@ class _FighterImage extends StatelessWidget {
           child: Transform(
             alignment: Alignment.center,
             transform: flip
-                ? (Matrix4.identity()..scale(-1.0, 1.0))
+                ? (Matrix4.identity()..scaleByDouble(-1.0))
                 : Matrix4.identity(),
             child: Image.asset(
               asset,
