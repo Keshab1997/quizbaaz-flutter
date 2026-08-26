@@ -2,121 +2,93 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quizbaaz/data/models/battle_scoring.dart';
 
 void main() {
-  const base = 100;
-  const speed = 100;
-  const streak = 25;
+  const base = 10;
+  const speed = 5;
+  const streakPer = 2;
 
-  group('BattleScoring', () {
+  group('BattleScoring — new formula (10 + 5 + 2×streak)', () {
     test('wrong answer pays nothing', () {
       final parts = BattleScoring.compute(
         correct: false,
-        remainingSec: 10,
-        totalSec: 15,
+        answeredBeforeOpponent: true,
         streak: 3,
         basePoints: base,
-        timeBonusMax: speed,
-        streakBonus: streak,
+        speedBonus: speed,
+        streakBonusPerStreak: streakPer,
       );
       expect(BattleScoring.total(parts), 0);
       expect(parts.base, 0);
+      expect(parts.speedBonus, 0);
+      expect(parts.streakBonus, 0);
     });
 
-    test('full speed + base, no streak', () {
+    test('correct, answered first, no streak → 10 + 5 = 15', () {
       final parts = BattleScoring.compute(
         correct: true,
-        remainingSec: 15,
-        totalSec: 15,
+        answeredBeforeOpponent: true,
         streak: 0,
         basePoints: base,
-        timeBonusMax: speed,
-        streakBonus: streak,
+        speedBonus: speed,
+        streakBonusPerStreak: streakPer,
       );
-      expect(BattleScoring.total(parts), 200);
+      expect(parts.base, 10);
+      expect(parts.speedBonus, 5);
+      expect(parts.streakBonus, 0);
+      expect(BattleScoring.total(parts), 15);
     });
 
-    test('half time remaining gives half the speed bonus', () {
+    test('correct, answered after opponent, no streak → 10 only', () {
       final parts = BattleScoring.compute(
         correct: true,
-        remainingSec: 8,
-        totalSec: 15,
+        answeredBeforeOpponent: false,
         streak: 0,
         basePoints: base,
-        timeBonusMax: speed,
-        streakBonus: streak,
+        speedBonus: speed,
+        streakBonusPerStreak: streakPer,
       );
-      // 100 * 8 / 15 = 53.33 → 53
-      expect(parts.timeBonus, 53);
-      expect(BattleScoring.total(parts), 153);
+      expect(parts.base, 10);
+      expect(parts.speedBonus, 0);
+      expect(BattleScoring.total(parts), 10);
     });
 
-    test('2nd consecutive correct earns the streak bonus', () {
+    test('streak=1 → +2×1=2 streak bonus', () {
       final parts = BattleScoring.compute(
         correct: true,
-        remainingSec: 4,
-        totalSec: 15,
+        answeredBeforeOpponent: false,
         streak: 1,
         basePoints: base,
-        timeBonusMax: speed,
-        streakBonus: streak,
+        speedBonus: speed,
+        streakBonusPerStreak: streakPer,
       );
-      // 100 * 4 / 15 = 26.67 → 27; + streak 25 → 152
-      expect(parts.timeBonus, 27);
-      expect(parts.streakBonus, 25);
-      expect(BattleScoring.total(parts), 152);
+      expect(parts.streakBonus, 2);
+      expect(BattleScoring.total(parts), 12);
     });
 
-    test('timeout answer pays nothing even after a streak', () {
-      final parts = BattleScoring.compute(
-        correct: false,
-        remainingSec: 0,
-        totalSec: 15,
-        streak: 4,
-        basePoints: base,
-        timeBonusMax: speed,
-        streakBonus: streak,
-      );
-      expect(BattleScoring.total(parts), 0);
-    });
-
-    test('speed bonus never exceeds the cap', () {
+    test('streak=3 → +2×3=6 streak bonus, first → 10+5+6=21', () {
       final parts = BattleScoring.compute(
         correct: true,
-        remainingSec: 60,
-        totalSec: 15,
-        streak: 0,
+        answeredBeforeOpponent: true,
+        streak: 3,
         basePoints: base,
-        timeBonusMax: speed,
-        streakBonus: streak,
+        speedBonus: speed,
+        streakBonusPerStreak: streakPer,
       );
-      expect(parts.timeBonus, 100);
+      expect(parts.base, 10);
+      expect(parts.speedBonus, 5);
+      expect(parts.streakBonus, 6);
+      expect(BattleScoring.total(parts), 21);
     });
 
-    test('breakdown line reads base + speed + streak', () {
+    test('breakdown string format', () {
       final parts = BattleScoring.compute(
         correct: true,
-        remainingSec: 6,
-        totalSec: 15,
+        answeredBeforeOpponent: true,
         streak: 2,
         basePoints: base,
-        timeBonusMax: speed,
-        streakBonus: streak,
+        speedBonus: speed,
+        streakBonusPerStreak: streakPer,
       );
-      expect(BattleScoring.breakdown(parts), '100 + 40 + 25');
-      expect(BattleScoring.total(parts), 165);
-    });
-
-    test('custom config is honoured (admin-tuned battle)', () {
-      final parts = BattleScoring.compute(
-        correct: true,
-        remainingSec: 10,
-        totalSec: 20,
-        streak: 0,
-        basePoints: 50,
-        timeBonusMax: 40,
-        streakBonus: 10,
-      );
-      // 40 * 10 / 20 = 20
-      expect(BattleScoring.total(parts), 70);
+      expect(BattleScoring.breakdown(parts), '10 + 5 + 4');
     });
   });
 }

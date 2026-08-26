@@ -42,11 +42,10 @@ class AppConfig {
   /// Base points for a correct battle answer (both sides).
   final int battleBasePoints;
 
-  /// Maximum speed bonus: points = battleBasePoints +
-  /// round(battleTimeBonusMax * remaining/total) + streak bonus.
-  final int battleTimeBonusMax;
+  /// Speed bonus: awarded when player answers before opponent.
+  final int battleSpeedBonus;
 
-  /// Bonus per consecutive correct answer, from the 2nd one on.
+  /// Bonus per consecutive correct answer streak (multiplied by streak count).
   final int battleStreakBonus;
 
   /// Seconds spent looking for a real player before falling back to a bot
@@ -72,9 +71,9 @@ class AppConfig {
     this.signupBonusGems = 20,
     this.streakGoalDays = 7,
     this.battleQuestionCount = 5,
-    this.battleBasePoints = 100,
-    this.battleTimeBonusMax = 100,
-    this.battleStreakBonus = 25,
+    this.battleBasePoints = 10,
+    this.battleSpeedBonus = 5,
+    this.battleStreakBonus = 2,
     this.battleSearchSeconds = 6,
     this.adminUserIds = const <String>[],
     this.leaderboardCacheMinutes = 10,
@@ -82,7 +81,7 @@ class AppConfig {
 
   /// Maximum points a single battle question can pay out (base + speed + streak).
   int get battleMaxPointsPerQuestion =>
-      battleBasePoints + battleTimeBonusMax + battleStreakBonus;
+      battleBasePoints + battleSpeedBonus + (battleStreakBonus * 5);
 
   /// Total seconds a full daily quiz can take.
   int get dailyTotalSeconds => dailyQuestionCount * secondsPerQuestion;
@@ -119,7 +118,7 @@ class AppConfig {
         'streak_goal_days': streakGoalDays,
         'battle_question_count': battleQuestionCount,
         'battle_base_points': battleBasePoints,
-        'battle_time_bonus_max': battleTimeBonusMax,
+        'battle_speed_bonus': battleSpeedBonus,
         'battle_streak_bonus': battleStreakBonus,
         'battle_search_seconds': battleSearchSeconds,
         'admin_user_ids': adminUserIds,
@@ -152,8 +151,8 @@ class AppConfig {
           intOr('battle_question_count', fallback.battleQuestionCount),
       battleBasePoints:
           intOr('battle_base_points', fallback.battleBasePoints),
-      battleTimeBonusMax:
-          intOr('battle_time_bonus_max', fallback.battleTimeBonusMax),
+      battleSpeedBonus:
+          intOr('battle_speed_bonus', fallback.battleSpeedBonus),
       battleStreakBonus:
           intOr('battle_streak_bonus', fallback.battleStreakBonus),
       battleSearchSeconds:

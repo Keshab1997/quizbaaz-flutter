@@ -33,19 +33,22 @@ class BattleOpponent {
 
 /// Points a single question just paid out, for the reveal summary.
 class BattleRoundPoints {
-  final int base;
-  final int timeBonus;
-  final int streakBonus;
+  final int base;         // +10 for correct answer
+  final int speedBonus;   // +5 if answered before opponent
+  final int streakBonus;  // +2 × streak count
 
   const BattleRoundPoints({
     required this.base,
-    required this.timeBonus,
+    required this.speedBonus,
     required this.streakBonus,
   });
 
-  int get total => base + timeBonus + streakBonus;
+  int get total => base + speedBonus + streakBonus;
 
-  static const zero = BattleRoundPoints(base: 0, timeBonus: 0, streakBonus: 0);
+  // backward-compat alias used in live room write/read
+  int get timeBonus => speedBonus;
+
+  static const zero = BattleRoundPoints(base: 0, speedBonus: 0, streakBonus: 0);
 }
 
 /// Drives a 1-vs-1 battle — live room or bot.
@@ -256,7 +259,7 @@ class BattleProvider extends ChangeNotifier {
 
   int get battleQuestionCount => _userProvider.config.battleQuestionCount;
   int get battleBasePoints => _userProvider.config.battleBasePoints;
-  int get battleTimeBonusMax => _userProvider.config.battleTimeBonusMax;
+  int get battleSpeedBonus => _userProvider.config.battleSpeedBonus;
   int get battleStreakBonus => _userProvider.config.battleStreakBonus;
 
   /// Total matchmaking window in whole seconds (for the searching progress bar).
@@ -685,11 +688,12 @@ class BattleProvider extends ChangeNotifier {
       0,
       ((_questionDeadlineMs - now) / 1000).round(),
     );
+    // Bot answered first only if player hasn't answered yet
+    final botAnsweredFirst = !_playerAnswered;
     if (_opponentSelected == question.correctIndex) {
       _lastRoundOpponent = _computePoints(
         correct: true,
-        remainingSec: remaining,
-        totalSec: _questionDurationSec,
+        answeredFirst: botAnsweredFirst,
         streak: _opponentStreak,
       );
       _opponentStreak += 1;
@@ -720,11 +724,12 @@ class BattleProvider extends ChangeNotifier {
       ((_questionDeadlineMs - now) / 1000).round(),
     );
 
+    // Player answered first if opponent hasn't answered yet
+    final playerAnsweredFirst = !opponentAnswered;
     if (right) {
       _lastRoundPlayer = _computePoints(
         correct: true,
-        remainingSec: remaining,
-        totalSec: _questionDurationSec,
+        answeredFirst: playerAnsweredFirst,
         streak: _playerStreak,
       );
       _playerStreak += 1;
@@ -736,7 +741,7 @@ class BattleProvider extends ChangeNotifier {
     }
 
     if (isLive) {
-      _writeMyAnswer(selected: index, right: right, remaining: remaining);
+      _writeMyAnswer(selected: index, right: right, remaining: 0);
     }
     notifyListeners();
     _maybeReveal(now);
@@ -775,7 +780,7 @@ class BattleProvider extends ChangeNotifier {
       if (answer != null) {
         _lastRoundOpponent = BattleRoundPoints(
           base: answer.points - answer.timeBonus - answer.streakBonus,
-          timeBonus: answer.timeBonus,
+          speedBonus: answer.timeBonus,
           streakBonus: answer.streakBonus,
         );
       }
@@ -801,27 +806,24 @@ class BattleProvider extends ChangeNotifier {
     }
   }
 
-  /// Thin wrapper over the pure [BattleScoring] with the live config values.
-  /// Kept as a method so the provider stays readable at its call sites.
+  /// New scoring: base=10, speed=+5 if before opponent, streak=+2×streak.
   BattleRoundPoints _computePoints({
     required bool correct,
-    required int remainingSec,
-    required int totalSec,
+    required bool answeredFirst, // true = this side answered before the other
     required int streak,
   }) {
     final cfg = _userProvider.config;
     final parts = BattleScoring.compute(
       correct: correct,
-      remainingSec: remainingSec,
-      totalSec: totalSec,
+      answeredBeforeOpponent: answeredFirst,
       streak: streak,
       basePoints: cfg.battleBasePoints,
-      timeBonusMax: cfg.battleTimeBonusMax,
-      streakBonus: cfg.battleStreakBonus,
+      speedBonus: cfg.battleSpeedBonus,
+      streakBonusPerStreak: cfg.battleStreakBonus,
     );
     return BattleRoundPoints(
       base: parts.base,
-      timeBonus: parts.timeBonus,
+      speedBonus: parts.speedBonus,
       streakBonus: parts.streakBonus,
     );
   }

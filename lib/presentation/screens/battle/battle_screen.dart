@@ -282,8 +282,9 @@ class _SetupViewState extends State<_SetupView>
             const SizedBox(height: 8),
             Text(
               '⚡ ${battle.battleQuestionCount} questions • '
-              'base ${battle.battleBasePoints} + speed ${battle.battleTimeBonusMax} '
-              '+ streak ${battle.battleStreakBonus} pts',
+              '✅ Correct +${battle.battleBasePoints}  '
+              '⚡ First +${battle.battleSpeedBonus}  '
+              '🔥 Streak +${battle.battleStreakBonus}×n pts',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 11,
@@ -1601,8 +1602,8 @@ class _PointsBreakdown extends StatelessWidget {
           ),
           if (pts.total > 0) ...[
             const SizedBox(height: 2),
-            _chip('⚡ Base', pts.base, color),
-            if (pts.timeBonus > 0) _chip('⏱ Speed', pts.timeBonus, color),
+            _chip('✅ Correct', pts.base, color),
+            if (pts.speedBonus > 0) _chip('⚡ First!', pts.speedBonus, color),
             if (pts.streakBonus > 0) _chip('🔥 Streak', pts.streakBonus, color),
           ] else
             const Text(
