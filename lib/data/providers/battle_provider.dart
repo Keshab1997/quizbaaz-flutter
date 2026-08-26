@@ -672,6 +672,8 @@ class BattleProvider extends ChangeNotifier {
       _opponentStreak = 0;
     }
     notifyListeners();
+    // If player already answered, trigger reveal immediately.
+    _maybeReveal(now);
   }
 
   // ------------------------------------------------------------ answers --
@@ -762,6 +764,8 @@ class BattleProvider extends ChangeNotifier {
 
   void _tickReveal(int now) {
     if (now < _revealUntilMs) return;
+    // Guard: mark as advancing so repeated ticks don't call this twice.
+    _revealUntilMs = now + 999999;
     if (isLive) {
       _goToNextQuestionLive();
     } else {
@@ -797,6 +801,7 @@ class BattleProvider extends ChangeNotifier {
   // ------------------------------------------------------------- advance --
 
   void _goToNextQuestion() {
+    if (_phase == BattlePhase.finished) return;
     if (_currentIndex < _questions.length - 1) {
       _currentIndex++;
       _startQuestion(DateTime.now().millisecondsSinceEpoch);
