@@ -856,8 +856,6 @@ class BattleProvider extends ChangeNotifier {
     _disposeTimers();
     _phase = BattlePhase.finished;
 
-    final config = _userProvider.config;
-
     if (isLive) {
       final winner =
           isPlayerWin ? _side : isDraw ? 'draw' : (_side == 'a' ? 'b' : 'a');
