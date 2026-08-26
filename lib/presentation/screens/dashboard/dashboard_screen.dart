@@ -145,27 +145,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // 1. Header — নাম + coins/gems
                       _buildHeader(user, userProvider),
-                      const SizedBox(height: 18),
-                      _buildHeroCard(heroAsset, userProvider),
-                      const SizedBox(height: 14),
-                      _buildStatStrip(user, userProvider),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 16),
+
+                      // 2. Streak Card — daily motivation সবার আগে
                       _buildStreakCard(user, userProvider),
-                      const SizedBox(height: 26),
-                      _buildSectionHeader(
-                        eyebrow: S.dashPlayYourWay,
-                        title: S.dashQuickActions,
-                        actionLabel: S.dashSeeAll,
-                        onAction: () => _onNavTap(1),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildQuickActions(),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 16),
+
+                      // 3. Battle Arena Card — exciting hook
                       const _BattleArenaCard(),
                       const SizedBox(height: 22),
+
+                      // 4. Daily Quiz Hero Card
+                      _buildSectionHeader(
+                        eyebrow: S.dashDailyQuiz.toUpperCase(),
+                        title: S.dashDailyQuiz,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildHeroCard(heroAsset, userProvider),
+                      const SizedBox(height: 14),
+
+                      // 5. Stat Strip — personal performance
+                      _buildStatStrip(user, userProvider),
+                      const SizedBox(height: 22),
+
+                      // 6. Daily Quiz Champion Card
+                      _buildSectionHeader(
+                        eyebrow: S.dashDailyChampion,
+                        title: S.dashDailyChampionTitle,
+                      ),
+                      const SizedBox(height: 12),
                       _buildChampionCard(userProvider),
                       const SizedBox(height: 28),
+
+                      // 7. Daily Quiz Leaderboard
                       _buildSectionHeader(
                         eyebrow: S.dashLiveToday,
                         title: S.dashLeaderboard,
@@ -174,6 +188,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 12),
                       _buildLeaderboardPreview(userProvider),
+                      const SizedBox(height: 28),
+
+                      // 8. Quick Actions — explore at the bottom
+                      _buildSectionHeader(
+                        eyebrow: S.dashExploreMore,
+                        title: S.dashMoreOptions,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildQuickActions(),
                       const SizedBox(height: 12),
                       if (userProvider.isAdmin) _buildAdminShortcut(),
                     ],
@@ -425,7 +448,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           child: const Text(
-                            'DAILY CHALLENGE',
+                            'DAILY QUIZ',
                             style: TextStyle(
                               color: AppColors.neonCyan,
                               fontSize: 9,
@@ -844,8 +867,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildSectionHeader({
     required String eyebrow,
     required String title,
-    required String actionLabel,
-    required VoidCallback onAction,
+    String? actionLabel,
+    VoidCallback? onAction,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -876,26 +899,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ),
-        TextButton(
-          onPressed: onAction,
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.textSecondary,
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        if (actionLabel != null && onAction != null)
+          TextButton(
+            onPressed: onAction,
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.textSecondary,
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  actionLabel,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(width: 3),
+                const Icon(Icons.arrow_forward_rounded, size: 13),
+              ],
+            ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                actionLabel,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(width: 3),
-              const Icon(Icons.arrow_forward_rounded, size: 13),
-            ],
-          ),
-        ),
       ],
     );
   }
