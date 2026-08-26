@@ -36,8 +36,22 @@ class AppConfig {
   /// Length of the streak ring shown on the dashboard.
   final int streakGoalDays;
 
-  /// Battle length.
+  /// Battle length (1v1 questions per match).
   final int battleQuestionCount;
+
+  /// Base points for a correct battle answer (both sides).
+  final int battleBasePoints;
+
+  /// Maximum speed bonus: points = battleBasePoints +
+  /// round(battleTimeBonusMax * remaining/total) + streak bonus.
+  final int battleTimeBonusMax;
+
+  /// Bonus per consecutive correct answer, from the 2nd one on.
+  final int battleStreakBonus;
+
+  /// Seconds spent looking for a real player before falling back to a bot
+  /// (guests and offline players use a short 3 s scan).
+  final int battleSearchSeconds;
 
   /// User ids allowed to open the admin panel.
   final List<String> adminUserIds;
@@ -57,10 +71,18 @@ class AppConfig {
     this.signupBonusCoins = 500,
     this.signupBonusGems = 20,
     this.streakGoalDays = 7,
-    this.battleQuestionCount = 7,
+    this.battleQuestionCount = 5,
+    this.battleBasePoints = 100,
+    this.battleTimeBonusMax = 100,
+    this.battleStreakBonus = 25,
+    this.battleSearchSeconds = 6,
     this.adminUserIds = const <String>[],
     this.leaderboardCacheMinutes = 10,
   });
+
+  /// Maximum points a single battle question can pay out (base + speed + streak).
+  int get battleMaxPointsPerQuestion =>
+      battleBasePoints + battleTimeBonusMax + battleStreakBonus;
 
   /// Total seconds a full daily quiz can take.
   int get dailyTotalSeconds => dailyQuestionCount * secondsPerQuestion;
@@ -96,6 +118,10 @@ class AppConfig {
         'signup_bonus_gems': signupBonusGems,
         'streak_goal_days': streakGoalDays,
         'battle_question_count': battleQuestionCount,
+        'battle_base_points': battleBasePoints,
+        'battle_time_bonus_max': battleTimeBonusMax,
+        'battle_streak_bonus': battleStreakBonus,
+        'battle_search_seconds': battleSearchSeconds,
         'admin_user_ids': adminUserIds,
         'leaderboard_cache_minutes': leaderboardCacheMinutes,
       };
@@ -124,6 +150,14 @@ class AppConfig {
       streakGoalDays: intOr('streak_goal_days', fallback.streakGoalDays),
       battleQuestionCount:
           intOr('battle_question_count', fallback.battleQuestionCount),
+      battleBasePoints:
+          intOr('battle_base_points', fallback.battleBasePoints),
+      battleTimeBonusMax:
+          intOr('battle_time_bonus_max', fallback.battleTimeBonusMax),
+      battleStreakBonus:
+          intOr('battle_streak_bonus', fallback.battleStreakBonus),
+      battleSearchSeconds:
+          intOr('battle_search_seconds', fallback.battleSearchSeconds),
       adminUserIds: (json['admin_user_ids'] as List<dynamic>?)
               ?.map((e) => '$e')
               .toList() ??

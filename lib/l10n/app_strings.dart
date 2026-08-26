@@ -360,6 +360,29 @@ class S {
   static String get battlePlayer => raw('battlePlayer');
   static String battleBotCorrect({required Object n}) =>
       fill(raw('battleBotCorrect'), {'n': n});
+  static String get battleArena => raw('battleArena');
+  static String battleRulesLine({required Object n}) =>
+      fill(raw('battleRulesLine'), {'n': n});
+  static String get battleChooseDifficulty => raw('battleChooseDifficulty');
+  static String get battleEasy => raw('battleEasy');
+  static String get battleEasyDesc => raw('battleEasyDesc');
+  static String get battleNormal => raw('battleNormal');
+  static String get battleNormalDesc => raw('battleNormalDesc');
+  static String get battleHard => raw('battleHard');
+  static String get battleHardDesc => raw('battleHardDesc');
+  static String get battleStartFinding => raw('battleStartFinding');
+  static String get battleSearching => raw('battleSearching');
+  static String get battleSearchingHint => raw('battleSearchingHint');
+  static String get battleCancelSearch => raw('battleCancelSearch');
+  static String get battleBotMatch => raw('battleBotMatch');
+  static String get battleLiveMatch => raw('battleLiveMatch');
+  static String get battleFoundHint => raw('battleFoundHint');
+  static String get battleGetReady => raw('battleGetReady');
+  static String get battleRematch => raw('battleRematch');
+  static String get battleBackHome => raw('battleBackHome');
+  static String get battleWinTitle => raw('battleWinTitle');
+  static String get battleDrawTitle => raw('battleDrawTitle');
+  static String get battleLoseTitle => raw('battleLoseTitle');
 
   // ---- language
   static String get languageTitle => raw('languageTitle');

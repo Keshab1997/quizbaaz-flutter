@@ -41,6 +41,15 @@ class HiveService {
   static const _quizHistoryKey = 'quiz_history';
   static const _purchaseHistoryKey = 'purchase_history';
   static const _chapterSetsKey = 'chapter_set_progress';
+  static const _battleUsedQuestionsKey = 'battle_used_questions';
+  static const _battleProcessedRoomsKey = 'battle_processed_rooms';
+
+  /// How many question ids are remembered before the no-repeat cycle restarts.
+  static const battleUsedQuestionsCap = 1000;
+
+  /// How many finished room ids are remembered so a room can never pay out
+  /// coins twice on the same device.
+  static const battleProcessedRoomsCap = 50;
 
   // Legacy keys (v1 schema, single box).
   static const _bestScoreKey = 'best_daily_score';
@@ -220,6 +229,70 @@ class HiveService {
     } catch (e) {
       debugPrint('Hive: failed to decode quiz history – $e');
       return const [];
+    }
+  }
+
+  // ------------------------------------------------------------ battle --
+
+  /// The ids of questions already used in past battles, oldest first.
+  ///
+  /// The battle question generator filters these out so every match throws
+  /// NEW questions; once the unseen pool runs dry the list is cleared and the
+  /// cycle restarts (see `battle_used_questions` in the generator docs).
+  static List<String> loadBattleUsedQuestionIds() {
+    final raw = _statsBox.get(_battleUsedQuestionsKey);
+    if (raw is! String) return const [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => e.toString()).toList();
+    } catch (e) {
+      debugPrint('Hive: failed to decode battle used questions – $e');
+      return const [];
+    }
+  }
+
+  /// Appends battle question ids, keeping the newest [battleUsedQuestionsCap].
+  static Future<void> recordBattleUsedQuestionIds(List<String> ids) async {
+    if (ids.isEmpty) return;
+    final current = loadBattleUsedQuestionIds().toList();
+    final seen = current.toSet();
+    for (final id in ids) {
+      if (seen.add(id)) current.add(id);
+    }
+    if (current.length > battleUsedQuestionsCap) {
+      current.removeRange(0, current.length - battleUsedQuestionsCap);
+    }
+    await _statsBox.put(_battleUsedQuestionsKey, jsonEncode(current));
+  }
+
+  /// Clears the used-question ledger (cycle restart).
+  static Future<void> clearBattleUsedQuestionIds() async {
+    await _statsBox.delete(_battleUsedQuestionsKey);
+  }
+
+  /// Marks a live room as paid out on this device (single-award guard).
+  static Future<bool> markBattleRoomProcessed(String roomId) async {
+    final raw = _statsBox.get(_battleProcessedRoomsKey);
+    final List<String> processed = raw is String
+        ? (jsonDecode(raw) as List).map((e) => e.toString()).toList()
+        : <String>[];
+    if (processed.contains(roomId)) return false;
+    processed.add(roomId);
+    if (processed.length > battleProcessedRoomsCap) {
+      processed.removeRange(0, processed.length - battleProcessedRoomsCap);
+    }
+    await _statsBox.put(_battleProcessedRoomsKey, jsonEncode(processed));
+    return true;
+  }
+
+  /// True when this device already processed rewards for [roomId].
+  static bool isBattleRoomProcessed(String roomId) {
+    final raw = _statsBox.get(_battleProcessedRoomsKey);
+    if (raw is! String) return false;
+    try {
+      return (jsonDecode(raw) as List).map((e) => e.toString()).contains(roomId);
+    } catch (_) {
+      return false;
     }
   }
 

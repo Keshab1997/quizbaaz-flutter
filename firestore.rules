@@ -137,6 +137,36 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // -------------------------------------------------------- battle 1v1 --
+    //
+    // Matchmaking presence + live rooms (see docs/12_BATTLE_1V1_REAL_PLAYER_PLAN.md).
+    // A queue entry is visible to every signed-in player searching in the
+    // same difficulty, but only its owner can touch it. Rooms may only be
+    // read/written by the two players inside them.
+
+    match /battle_queue/{uid} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isOwner(uid);
+    }
+
+    match /battle_rooms/{roomId} {
+      function isInRoom() {
+        return isSignedIn() && (
+          request.resource.data.players.a.uid == request.auth.uid ||
+          request.resource.data.players.b.uid == request.auth.uid
+        );
+      }
+      function isInRoomSnap() {
+        return isSignedIn() && (
+          resource.data.players.a.uid == request.auth.uid ||
+          resource.data.players.b.uid == request.auth.uid
+        );
+      }
+      allow read: if isInRoomSnap();
+      allow create, update: if isInRoom();
+      allow delete: if false;
+    }
+
     // ---------------------------------------------------------------- audit --
     //
     // Append-only from the client. Nothing may rewrite history, including an
