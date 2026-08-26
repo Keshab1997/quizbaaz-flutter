@@ -947,8 +947,49 @@ class _CountdownViewState extends State<_CountdownView>
 
 // ------------------------------------------------------------------ Arena ---
 
-class _ArenaView extends StatelessWidget {
+/// Arena view: compact scoreboard pinned at top, question + options below.
+/// Converted to StatefulWidget to support per-question slide-in animation.
+class _ArenaView extends StatefulWidget {
   const _ArenaView();
+
+  @override
+  State<_ArenaView> createState() => _ArenaViewState();
+}
+
+class _ArenaViewState extends State<_ArenaView>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _qCtrl;
+  late final Animation<Offset> _qSlide;
+  late final Animation<double> _qFade;
+  int _lastIndex = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    _qCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
+    _qSlide = Tween<Offset>(
+      begin: const Offset(0.08, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _qCtrl, curve: Curves.easeOutCubic));
+    _qFade = CurvedAnimation(parent: _qCtrl, curve: Curves.easeOut);
+    _qCtrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _qCtrl.dispose();
+    super.dispose();
+  }
+
+  void _animateIfNewQuestion(int index) {
+    if (index != _lastIndex) {
+      _lastIndex = index;
+      _qCtrl.forward(from: 0);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -962,199 +1003,107 @@ class _ArenaView extends StatelessWidget {
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _scoreboard(battle, user),
-        const SizedBox(height: 16),
+    _animateIfNewQuestion(battle.currentIndex);
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Q${battle.currentIndex + 1}/${battle.totalQuestions}',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            // IMPROVED: timer pulses red when ≤5s
-            _TimerBadge(seconds: battle.secondsRemaining),
-          ],
+    return Column(
+      children: [
+        // ── Compact scoreboard (fixed height, never pushes options down) ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          child: _CompactScoreboard(battle: battle, user: user),
         ),
-        const SizedBox(height: 12),
 
-        _questionCard(context, question),
-        const SizedBox(height: 16),
-
-        ...question
-            .optionsIn(battle.displayLanguage)
-            .asMap()
-            .entries
-            .map((e) => _OptionTile(battle: battle, index: e.key, option: e.value)),
-
-        const SizedBox(height: 12),
-        _statusRow(battle),
-      ],
-    );
-  }
-
-  Widget _scoreboard(BattleProvider battle, UserModel user) {
-    return Row(
-      children: [
-        Expanded(child: _playerCard(battle, user)),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            'VS',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: AppColors.neonGold,
-            ),
+        // ── Q counter + timer row ──
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // progress dots
+              Row(
+                children: List.generate(battle.totalQuestions, (i) {
+                  final done = i < battle.currentIndex;
+                  final current = i == battle.currentIndex;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.only(right: 5),
+                    width: current ? 18 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: current
+                          ? AppColors.neonCyan
+                          : done
+                              ? AppColors.neonCyan.withValues(alpha: 0.4)
+                              : Colors.white12,
+                    ),
+                  );
+                }),
+              ),
+              _TimerBadge(seconds: battle.secondsRemaining),
+            ],
           ),
         ),
-        Expanded(child: _opponentCard(battle)),
+
+        // ── Scrollable question + options ──
+        Expanded(
+          child: SlideTransition(
+            position: _qSlide,
+            child: FadeTransition(
+              opacity: _qFade,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+                children: [
+                  _questionCard(context, question),
+                  const SizedBox(height: 12),
+                  ...question
+                      .optionsIn(battle.displayLanguage)
+                      .asMap()
+                      .entries
+                      .map((e) => _OptionTile(
+                            battle: battle,
+                            index: e.key,
+                            option: e.value,
+                          )),
+                  const SizedBox(height: 8),
+                  _statusRow(battle),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
-    );
-  }
-
-  Widget _playerCard(BattleProvider battle, UserModel user) {
-    return GlassCard(
-      borderRadius: 16,
-      borderColor: AppColors.neonCyan.withValues(alpha: 0.5),
-      child: Column(
-        children: [
-          SizedBox(
-            width: 52,
-            height: 52,
-            child: _AvatarCircle(asset: user.effectiveAvatar, size: 52),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            S.you,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              color: AppColors.neonCyan,
-            ),
-          ),
-          const SizedBox(height: 2),
-          // IMPROVED: score animates when it changes
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, anim) => ScaleTransition(
-              scale: anim,
-              child: child,
-            ),
-            child: Text(
-              '${battle.playerScore}',
-              key: ValueKey(battle.playerScore),
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          _streakChip(battle.playerStreak, AppColors.neonCyan),
-        ],
-      ),
-    );
-  }
-
-  Widget _opponentCard(BattleProvider battle) {
-    return GlassCard(
-      borderRadius: 16,
-      borderColor: AppColors.neonPink.withValues(alpha: 0.5),
-      child: Column(
-        children: [
-          SizedBox(
-            width: 52,
-            height: 52,
-            child: _AvatarCircle(asset: battle.opponentAvatar, size: 52),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            battle.opponentName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              color: AppColors.neonPink,
-            ),
-          ),
-          const SizedBox(height: 2),
-          // IMPROVED: opponent score also animates
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, anim) => ScaleTransition(
-              scale: anim,
-              child: child,
-            ),
-            child: Text(
-              '${battle.opponentScore}',
-              key: ValueKey(battle.opponentScore),
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          _streakChip(battle.opponentStreak, AppColors.neonPink),
-        ],
-      ),
-    );
-  }
-
-  Widget _streakChip(int streak, Color color) {
-    if (streak < 2) return const SizedBox(height: 14);
-    return Container(
-      margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: color.withValues(alpha: 0.15),
-      ),
-      child: Text(
-        '🔥$streak',
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: color),
-      ),
     );
   }
 
   Widget _questionCard(BuildContext context, QuestionModel question) {
     final language = context.watch<BattleProvider>().displayLanguage;
     final primary = question.questionIn(language);
-    final secondary =
-        language == 'en' ? null : question.questionIn('en');
+    final secondary = language == 'en' ? null : question.questionIn('en');
 
     return GlassCard(
-      borderRadius: 20,
-      borderColor: AppColors.neonPurple.withValues(alpha: 0.3),
+      borderRadius: 18,
+      borderColor: AppColors.neonPurple.withValues(alpha: 0.35),
       backgroundColor: const Color(0x331E1B4B),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             primary,
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
-              height: 1.35,
+              height: 1.4,
             ),
           ),
           if (secondary != null && secondary != primary) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               secondary,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 color: AppColors.textSecondary,
               ),
             ),
@@ -1166,47 +1115,7 @@ class _ArenaView extends StatelessWidget {
 
   Widget _statusRow(BattleProvider battle) {
     if (battle.phase == BattlePhase.reveal) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.neonGold.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: AppColors.neonGold.withValues(alpha: 0.4),
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              battle.revealMessage,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: AppColors.neonGold,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _pointsSummary(
-                  label: S.you,
-                  pts: battle.lastRoundPlayer,
-                  color: AppColors.neonCyan,
-                ),
-                Container(width: 1, height: 30, color: Colors.white12),
-                _pointsSummary(
-                  label: battle.opponentName,
-                  pts: battle.lastRoundOpponent,
-                  color: AppColors.neonPink,
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
+      return _RevealPanel(battle: battle);
     }
 
     return Container(
@@ -1257,38 +1166,328 @@ class _ArenaView extends StatelessWidget {
             const SizedBox(width: 8),
             const Text(
               '🎯 Choose the right answer!',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ],
         ],
       ),
     );
   }
+}
 
-  Widget _pointsSummary({
-    required String label,
-    required BattleRoundPoints pts,
-    required Color color,
-  }) {
-    return Column(
+// ── Compact horizontal scoreboard ─────────────────────────────────────────
+
+class _CompactScoreboard extends StatelessWidget {
+  final BattleProvider battle;
+  final UserModel user;
+
+  const _CompactScoreboard({required this.battle, required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withValues(alpha: 0.05),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        children: [
+          // Player side
+          Expanded(child: _playerSide()),
+          // VS divider
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'VS',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.neonGold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Container(width: 1, height: 22, color: Colors.white12),
+              ],
+            ),
+          ),
+          // Opponent side
+          Expanded(child: _opponentSide()),
+        ],
+      ),
+    );
+  }
+
+  Widget _playerSide() {
+    return Row(
       children: [
-        Text(
-          '$label +${pts.total}',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w900,
-            color: color,
+        _AvatarCircle(asset: user.effectiveAvatar, size: 36),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                S.you,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.neonCyan,
+                ),
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: Text(
+                  '${battle.playerScore}',
+                  key: ValueKey(battle.playerScore),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              if (battle.playerStreak >= 2)
+                Text(
+                  '🔥${battle.playerStreak}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.neonCyan,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+            ],
           ),
         ),
-        if (pts.total > 0)
-          Text(
-            '${pts.base} + ${pts.timeBonus} + ${pts.streakBonus}',
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-          ),
       ],
+    );
+  }
+
+  Widget _opponentSide() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                battle.opponentName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.neonPink,
+                ),
+              ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: Text(
+                  '${battle.opponentScore}',
+                  key: ValueKey(battle.opponentScore),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              if (battle.opponentStreak >= 2)
+                Text(
+                  '🔥${battle.opponentStreak}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.neonPink,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        _AvatarCircle(asset: battle.opponentAvatar, size: 36),
+      ],
+    );
+  }
+}
+
+// ── Reveal panel with animated point breakdown ─────────────────────────────
+
+class _RevealPanel extends StatefulWidget {
+  final BattleProvider battle;
+  const _RevealPanel({required this.battle});
+
+  @override
+  State<_RevealPanel> createState() => _RevealPanelState();
+}
+
+class _RevealPanelState extends State<_RevealPanel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    )..forward();
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final battle = widget.battle;
+    return FadeTransition(
+      opacity: _fade,
+      child: SlideTransition(
+        position: _slide,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.neonGold.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.neonGold.withValues(alpha: 0.4),
+            ),
+          ),
+          child: Column(
+            children: [
+              Text(
+                battle.revealMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.neonGold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Point breakdown table
+              Row(
+                children: [
+                  Expanded(
+                    child: _PointsBreakdown(
+                      label: S.you,
+                      pts: battle.lastRoundPlayer,
+                      color: AppColors.neonCyan,
+                      align: CrossAxisAlignment.start,
+                    ),
+                  ),
+                  Container(width: 1, height: 56, color: Colors.white12),
+                  Expanded(
+                    child: _PointsBreakdown(
+                      label: battle.opponentName,
+                      pts: battle.lastRoundOpponent,
+                      color: AppColors.neonPink,
+                      align: CrossAxisAlignment.end,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PointsBreakdown extends StatelessWidget {
+  final String label;
+  final BattleRoundPoints pts;
+  final Color color;
+  final CrossAxisAlignment align;
+
+  const _PointsBreakdown({
+    required this.label,
+    required this.pts,
+    required this.color,
+    required this.align,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLeft = align == CrossAxisAlignment.start;
+    return Padding(
+      padding: EdgeInsets.only(
+        left: isLeft ? 8 : 16,
+        right: isLeft ? 16 : 8,
+      ),
+      child: Column(
+        crossAxisAlignment: align,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '+${pts.total} pts',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: pts.total > 0 ? Colors.white : AppColors.textMuted,
+            ),
+          ),
+          if (pts.total > 0) ...[
+            const SizedBox(height: 2),
+            _chip('⚡ Base', pts.base, color),
+            if (pts.timeBonus > 0) _chip('⏱ Speed', pts.timeBonus, color),
+            if (pts.streakBonus > 0) _chip('🔥 Streak', pts.streakBonus, color),
+          ] else
+            Text(
+              'No points',
+              style: TextStyle(
+                fontSize: 10,
+                color: AppColors.textMuted,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(String lbl, int val, Color color) {
+    return Text(
+      '$lbl +$val',
+      style: TextStyle(
+        fontSize: 10,
+        color: color.withValues(alpha: 0.8),
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 }

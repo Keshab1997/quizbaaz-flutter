@@ -752,7 +752,7 @@ class BattleProvider extends ChangeNotifier {
     }
 
     _phase = BattlePhase.reveal;
-    _revealUntilMs = now + 1800;
+    _revealUntilMs = now + 3200;
     notifyListeners();
 
     if (isLive) {
