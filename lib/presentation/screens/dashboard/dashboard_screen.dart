@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -159,7 +161,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 12),
                       _buildQuickActions(),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 22),
+                      const _BattleArenaCard(),
+                      const SizedBox(height: 22),
                       _buildChampionCard(userProvider),
                       const SizedBox(height: 28),
                       _buildSectionHeader(
@@ -1528,3 +1532,651 @@ class _MarqueeTextState extends State<_MarqueeText>
   }
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🥊 BATTLE ARENA CARD — animated 3D illustration, pure Flutter CustomPaint
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _BattleArenaCard extends StatefulWidget {
+  const _BattleArenaCard();
+
+  @override
+  State<_BattleArenaCard> createState() => _BattleArenaCardState();
+}
+
+class _BattleArenaCardState extends State<_BattleArenaCard>
+    with TickerProviderStateMixin {
+  // floating / bob animation for the two fighters
+  late final AnimationController _floatCtrl;
+  // lightning bolt flash
+  late final AnimationController _flashCtrl;
+  // VS pulse
+  late final AnimationController _vsCtrl;
+  // overall entrance
+  late final AnimationController _enterCtrl;
+
+  late final Animation<double> _floatAnim;
+  late final Animation<double> _flashAnim;
+  late final Animation<double> _vsAnim;
+  late final Animation<double> _enterAnim;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _floatCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat(reverse: true);
+
+    _flashCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat();
+
+    _vsCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+
+    _enterCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+
+    _floatAnim = Tween<double>(begin: -6, end: 6).animate(
+      CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut),
+    );
+    _flashAnim = CurvedAnimation(parent: _flashCtrl, curve: Curves.easeInOut);
+    _vsAnim = Tween<double>(begin: 0.92, end: 1.08).animate(
+      CurvedAnimation(parent: _vsCtrl, curve: Curves.easeInOut),
+    );
+    _enterAnim = CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOutCubic);
+  }
+
+  @override
+  void dispose() {
+    _floatCtrl.dispose();
+    _flashCtrl.dispose();
+    _vsCtrl.dispose();
+    _enterCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _enterAnim,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.12),
+          end: Offset.zero,
+        ).animate(_enterAnim),
+        child: GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const BattleScreen()),
+          ),
+          child: Container(
+            height: 178,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1A0A3D), Color(0xFF0D1F4D), Color(0xFF1A0A2E)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(
+                color: AppColors.neonPurple.withValues(alpha: 0.5),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neonPurple.withValues(alpha: 0.3),
+                  blurRadius: 32,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 8),
+                ),
+                BoxShadow(
+                  color: AppColors.neonPink.withValues(alpha: 0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: Stack(
+                children: [
+                  // ── Animated background stars / sparks ──
+                  AnimatedBuilder(
+                    animation: _flashAnim,
+                    builder: (_, __) => CustomPaint(
+                      size: const Size(double.infinity, 178),
+                      painter: _ArenaBgPainter(progress: _flashAnim.value),
+                    ),
+                  ),
+
+                  // ── Left fighter (cyan) ──
+                  AnimatedBuilder(
+                    animation: _floatAnim,
+                    builder: (_, __) => Positioned(
+                      left: 16,
+                      top: 16 + _floatAnim.value,
+                      child: _Fighter3D(
+                        color: AppColors.neonCyan,
+                        label: 'YOU',
+                        facingRight: true,
+                      ),
+                    ),
+                  ),
+
+                  // ── Right fighter (pink), floats opposite phase ──
+                  AnimatedBuilder(
+                    animation: _floatAnim,
+                    builder: (_, __) => Positioned(
+                      right: 16,
+                      top: 16 - _floatAnim.value,
+                      child: _Fighter3D(
+                        color: AppColors.neonPink,
+                        label: 'BOT',
+                        facingRight: false,
+                      ),
+                    ),
+                  ),
+
+                  // ── Centre VS badge ──
+                  Positioned.fill(
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: ScaleTransition(
+                        scale: _vsAnim,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Lightning bolt
+                            AnimatedBuilder(
+                              animation: _flashAnim,
+                              builder: (_, __) => CustomPaint(
+                                size: const Size(36, 44),
+                                painter: _LightningPainter(
+                                  progress: _flashAnim.value,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    AppColors.neonGold,
+                                    Color(0xFFFF8C3C),
+                                  ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.neonGold.withValues(alpha: 0.7),
+                                    blurRadius: 20,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: const Text(
+                                'VS',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF1A1030),
+                                  fontStyle: FontStyle.italic,
+                                  letterSpacing: 2,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // ── Bottom CTA bar ──
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            AppColors.neonPurple.withValues(alpha: 0.35),
+                          ],
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '⚔️ BATTLE ARENA',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Challenge a bot or real player!',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              gradient: const LinearGradient(
+                                colors: [AppColors.neonPink, AppColors.neonPurple],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.neonPink.withValues(alpha: 0.5),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'FIGHT',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(Icons.bolt_rounded,
+                                    color: Colors.white, size: 14),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── 3D fighter illustration (pure CustomPaint) ─────────────────────────────
+
+class _Fighter3D extends StatelessWidget {
+  final Color color;
+  final String label;
+  final bool facingRight;
+
+  const _Fighter3D({
+    required this.color,
+    required this.label,
+    required this.facingRight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 88,
+          height: 110,
+          child: CustomPaint(
+            painter: _FighterPainter(color: color, facingRight: facingRight),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: color.withValues(alpha: 0.18),
+            border: Border.all(color: color.withValues(alpha: 0.5)),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: color,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FighterPainter extends CustomPainter {
+  final Color color;
+  final bool facingRight;
+
+  _FighterPainter({required this.color, required this.facingRight});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final cx = w / 2;
+
+    // flip canvas for left-facing fighter
+    if (!facingRight) {
+      canvas.save();
+      canvas.translate(w, 0);
+      canvas.scale(-1, 1);
+    }
+
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.18)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(cx, h * 0.55), width: 64, height: 80),
+      glowPaint,
+    );
+
+    // ── Body shadow (3D depth) ──
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx - 14, h * 0.38 + 3, 28, 52),
+        const Radius.circular(10),
+      ),
+      shadowPaint,
+    );
+
+    // ── Legs ──
+    final legPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [color.withValues(alpha: 0.9), color.withValues(alpha: 0.5)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(cx - 14, h * 0.7, 28, h * 0.3));
+    // left leg
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx - 14, h * 0.7, 11, h * 0.28),
+        const Radius.circular(6),
+      ),
+      legPaint,
+    );
+    // right leg
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx + 3, h * 0.72, 11, h * 0.26),
+        const Radius.circular(6),
+      ),
+      legPaint,
+    );
+    // boots
+    final bootPaint = Paint()..color = color.withValues(alpha: 0.7);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx - 16, h * 0.93, 14, 8),
+        const Radius.circular(4),
+      ),
+      bootPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx + 1, h * 0.93, 14, 8),
+        const Radius.circular(4),
+      ),
+      bootPaint,
+    );
+
+    // ── Torso ──
+    final bodyPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          color,
+          color.withValues(alpha: 0.7),
+          color.withValues(alpha: 0.5),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(Rect.fromLTWH(cx - 15, h * 0.36, 30, 36));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx - 15, h * 0.36, 30, 36),
+        const Radius.circular(10),
+      ),
+      bodyPaint,
+    );
+    // chest highlight
+    final highlightPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.25)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx - 8, h * 0.38, 10, 16),
+        const Radius.circular(5),
+      ),
+      highlightPaint,
+    );
+
+    // ── Back arm (punch-ready, behind body) ──
+    final armPaint = Paint()
+      ..color = color.withValues(alpha: 0.6)
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 9
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(
+      Offset(cx - 10, h * 0.42),
+      Offset(cx - 26, h * 0.58),
+      armPaint,
+    );
+
+    // ── Front arm (extended punch) ──
+    final fistPaint = Paint()
+      ..color = color
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 10
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(
+      Offset(cx + 10, h * 0.40),
+      Offset(cx + 32, h * 0.34),
+      fistPaint,
+    );
+    // fist glow
+    final fistGlow = Paint()
+      ..color = color.withValues(alpha: 0.8)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    canvas.drawCircle(Offset(cx + 32, h * 0.34), 10, fistGlow);
+    canvas.drawCircle(
+      Offset(cx + 32, h * 0.34),
+      8,
+      Paint()..color = color,
+    );
+
+    // ── Head ──
+    final headGlow = Paint()
+      ..color = color.withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    canvas.drawCircle(Offset(cx + 2, h * 0.22), 20, headGlow);
+    // head base
+    final headPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [Colors.white.withValues(alpha: 0.9), color],
+        center: const Alignment(-0.3, -0.3),
+      ).createShader(Rect.fromCircle(center: Offset(cx + 2, h * 0.22), radius: 18));
+    canvas.drawCircle(Offset(cx + 2, h * 0.22), 18, headPaint);
+    // visor / mask
+    final visorPaint = Paint()
+      ..color = color.withValues(alpha: 0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx - 7, h * 0.16, 20, 9),
+        const Radius.circular(5),
+      ),
+      visorPaint,
+    );
+    // visor glow slit
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(cx - 5, h * 0.175, 16, 4),
+        const Radius.circular(3),
+      ),
+      Paint()..color = color,
+    );
+
+    if (!facingRight) canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_FighterPainter old) =>
+      old.color != color || old.facingRight != facingRight;
+}
+
+// ── Animated lightning bolt ────────────────────────────────────────────────
+
+class _LightningPainter extends CustomPainter {
+  final double progress;
+
+  _LightningPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // animated glow intensity
+    final glow = (0.5 + 0.5 * math.sin(progress * 2 * math.pi));
+    final boltColor = Color.lerp(
+      AppColors.neonGold,
+      Colors.white,
+      glow * 0.5,
+    )!;
+
+    final glowPaint = Paint()
+      ..color = boltColor.withValues(alpha: 0.4 * glow)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+
+    final boltPaint = Paint()
+      ..color = boltColor
+      ..strokeWidth = 3.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+
+    // lightning zigzag path
+    final path = Path()
+      ..moveTo(w * 0.58, 0)
+      ..lineTo(w * 0.32, h * 0.44)
+      ..lineTo(w * 0.52, h * 0.44)
+      ..lineTo(w * 0.26, h)
+      ..lineTo(w * 0.55, h * 0.58)
+      ..lineTo(w * 0.38, h * 0.58)
+      ..close();
+
+    canvas.drawPath(path, glowPaint);
+    canvas.drawPath(path, boltPaint);
+
+    // inner white core
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.7 * glow)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_LightningPainter old) => old.progress != progress;
+}
+
+// ── Arena background — sparks + orbit rings ────────────────────────────────
+
+class _ArenaBgPainter extends CustomPainter {
+  final double progress;
+
+  _ArenaBgPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final cx = w / 2;
+    final cy = h / 2;
+
+    // Orbiting rings around VS centre
+    for (var r = 0; r < 3; r++) {
+      final radius = 38.0 + r * 26;
+      final alpha = (0.06 - r * 0.015).clamp(0.0, 1.0);
+      canvas.drawCircle(
+        Offset(cx, cy - 10),
+        radius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1
+          ..color = AppColors.neonPurple.withValues(alpha: alpha),
+      );
+    }
+
+    // Rotating dot on outermost ring
+    final angle = progress * 2 * math.pi;
+    final dotX = cx + 90 * math.cos(angle);
+    final dotY = (cy - 10) + 90 * math.sin(angle);
+    canvas.drawCircle(
+      Offset(dotX, dotY),
+      3,
+      Paint()..color = AppColors.neonCyan.withValues(alpha: 0.5),
+    );
+
+    // Sparks (small random static stars)
+    final rng = math.Random(42);
+    for (var i = 0; i < 18; i++) {
+      final sx = rng.nextDouble() * w;
+      final sy = rng.nextDouble() * h;
+      final twinkle = (math.sin(progress * 2 * math.pi + i * 1.3) + 1) / 2;
+      final sparkColor = i % 2 == 0 ? AppColors.neonGold : AppColors.neonCyan;
+      canvas.drawCircle(
+        Offset(sx, sy),
+        1.2 + twinkle * 1.5,
+        Paint()..color = sparkColor.withValues(alpha: 0.15 + twinkle * 0.3),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ArenaBgPainter old) => old.progress != progress;
+}
