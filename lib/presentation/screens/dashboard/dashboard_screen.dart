@@ -149,35 +149,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildHeader(user, userProvider),
                       const SizedBox(height: 16),
 
-                      // 2. Streak Card — daily motivation সবার আগে
+                      // 2. Streak Card
                       _buildStreakCard(user, userProvider),
                       const SizedBox(height: 16),
 
-                      // 3. Battle Arena Card — exciting hook
+                      // 3. Battle Arena Card
                       const _BattleArenaCard(),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 16),
 
                       // 4. Daily Quiz Hero Card
-                      _buildSectionHeader(
-                        eyebrow: S.dashDailyQuiz.toUpperCase(),
-                        title: S.dashDailyQuiz,
-                      ),
-                      const SizedBox(height: 12),
                       _buildHeroCard(heroAsset, userProvider),
                       const SizedBox(height: 14),
 
-                      // 5. Stat Strip — personal performance
+                      // 5. Stat Strip
                       _buildStatStrip(user, userProvider),
                       const SizedBox(height: 22),
 
                       // 6. Daily Quiz Champion Card
-                      _buildSectionHeader(
-                        eyebrow: S.dashDailyChampion,
-                        title: S.dashDailyChampionTitle,
-                      ),
-                      const SizedBox(height: 12),
                       _buildChampionCard(userProvider),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 22),
 
                       // 7. Daily Quiz Leaderboard
                       _buildSectionHeader(
@@ -188,9 +178,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 12),
                       _buildLeaderboardPreview(userProvider),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 22),
 
-                      // 8. Quick Actions — explore at the bottom
+                      // 8. Quick Actions
                       _buildSectionHeader(
                         eyebrow: S.dashExploreMore,
                         title: S.dashMoreOptions,
