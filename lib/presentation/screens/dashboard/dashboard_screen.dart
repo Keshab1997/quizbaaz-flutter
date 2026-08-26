@@ -1663,7 +1663,7 @@ class _BattleArenaCardState extends State<_BattleArenaCard>
                     builder: (_, __) => Positioned(
                       left: 16,
                       top: 16 + _floatAnim.value,
-                      child: _Fighter3D(
+                      child: const _Fighter3D(
                         color: AppColors.neonCyan,
                         label: 'YOU',
                         facingRight: true,
@@ -1677,7 +1677,7 @@ class _BattleArenaCardState extends State<_BattleArenaCard>
                     builder: (_, __) => Positioned(
                       right: 16,
                       top: 16 - _floatAnim.value,
-                      child: _Fighter3D(
+                      child: const _Fighter3D(
                         color: AppColors.neonPink,
                         label: 'BOT',
                         facingRight: false,
