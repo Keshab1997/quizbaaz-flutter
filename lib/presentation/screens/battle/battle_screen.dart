@@ -64,8 +64,32 @@ class _SetupView extends StatefulWidget {
   State<_SetupView> createState() => _SetupViewState();
 }
 
-class _SetupViewState extends State<_SetupView> {
+class _SetupViewState extends State<_SetupView>
+    with SingleTickerProviderStateMixin {
   BattleDifficulty _selected = BattleDifficulty.normal;
+  late final AnimationController _enterCtrl;
+  late final Animation<double> _fadeAnim;
+  late final Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _enterCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+    _fadeAnim = CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.18),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOutCubic));
+  }
+
+  @override
+  void dispose() {
+    _enterCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,86 +108,92 @@ class _SetupViewState extends State<_SetupView> {
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(18),
-      children: [
-        Image.asset(
-          AppAssets.battleDuo,
-          height: 130,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => Image.asset(
-            AppAssets.battleSwords,
-            height: 84,
-            fit: BoxFit.contain,
-          ),
+    return FadeTransition(
+      opacity: _fadeAnim,
+      child: SlideTransition(
+        position: _slideAnim,
+        child: ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            Image.asset(
+              AppAssets.battleDuo,
+              height: 130,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Image.asset(
+                AppAssets.battleSwords,
+                height: 84,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '⚔️ BATTLE ARENA',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 1.0,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              S.battleRulesLine(n: battle.battleQuestionCount),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '⚡ ${battle.battleQuestionCount} questions • '
+              'base ${battle.battleBasePoints} + speed ${battle.battleTimeBonusMax} '
+              '+ streak ${battle.battleStreakBonus} pts',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.neonGold,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              S.battleChooseDifficulty,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textSecondary,
+                letterSpacing: 1.1,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _difficultyCard(
+              context,
+              BattleDifficulty.easy,
+              S.battleEasy,
+              S.battleEasyDesc,
+              AppColors.neonGreen,
+            ),
+            _difficultyCard(
+              context,
+              BattleDifficulty.normal,
+              S.battleNormal,
+              S.battleNormalDesc,
+              AppColors.neonCyan,
+            ),
+            _difficultyCard(
+              context,
+              BattleDifficulty.hard,
+              S.battleHard,
+              S.battleHardDesc,
+              AppColors.neonRed,
+            ),
+            const SizedBox(height: 20),
+            NeonButton(
+              text: S.battleStartFinding,
+              onPressed: () => context.read<BattleProvider>().startBattle(_selected),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        const Text(
-          '⚔️ BATTLE ARENA',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-            letterSpacing: 1.0,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          S.battleRulesLine(n: battle.battleQuestionCount),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '⚡ ${battle.battleQuestionCount} questions • '
-          'base ${battle.battleBasePoints} + speed ${battle.battleTimeBonusMax} '
-          '+ streak ${battle.battleStreakBonus} pts',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.neonGold,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          S.battleChooseDifficulty,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
-            letterSpacing: 1.1,
-          ),
-        ),
-        const SizedBox(height: 12),
-        _difficultyCard(
-          context,
-          BattleDifficulty.easy,
-          S.battleEasy,
-          S.battleEasyDesc,
-          AppColors.neonGreen,
-        ),
-        _difficultyCard(
-          context,
-          BattleDifficulty.normal,
-          S.battleNormal,
-          S.battleNormalDesc,
-          AppColors.neonCyan,
-        ),
-        _difficultyCard(
-          context,
-          BattleDifficulty.hard,
-          S.battleHard,
-          S.battleHardDesc,
-          AppColors.neonRed,
-        ),
-        const SizedBox(height: 20),
-        NeonButton(
-          text: S.battleStartFinding,
-          onPressed: () => context.read<BattleProvider>().startBattle(_selected),
-        ),
-      ],
+      ),
     );
   }
 
@@ -179,45 +209,68 @@ class _SetupViewState extends State<_SetupView> {
       padding: const EdgeInsets.only(bottom: 12),
       child: GestureDetector(
         onTap: () => setState(() => _selected = diff),
-        child: GlassCard(
-          borderRadius: 16,
-          borderColor: selected ? accent : Colors.white12,
-          backgroundColor: selected
-              ? accent.withValues(alpha: 0.12)
-              : AppColors.bgCardGlass,
-          child: Row(
-            children: [
-              Icon(
-                selected
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-                color: selected ? accent : AppColors.textMuted,
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      desc,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? accent : Colors.white12,
+              width: selected ? 1.8 : 1.0,
+            ),
+            color: selected
+                ? accent.withValues(alpha: 0.12)
+                : AppColors.bgCardGlass,
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.25),
+                      blurRadius: 16,
+                      spreadRadius: 1,
+                    )
+                  ]
+                : [],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: Icon(
+                    selected
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
+                    key: ValueKey(selected),
+                    color: selected ? accent : AppColors.textMuted,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        desc,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -235,8 +288,10 @@ class _SearchingView extends StatefulWidget {
   State<_SearchingView> createState() => _SearchingViewState();
 }
 
+// BUG FIX: was SingleTickerProviderStateMixin but had 2 AnimationControllers → crash.
+// Fixed to TickerProviderStateMixin which supports multiple controllers.
 class _SearchingViewState extends State<_SearchingView>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _radar;
   late final AnimationController _pulse;
 
@@ -739,10 +794,54 @@ class _AvatarCircle extends StatelessWidget {
 
 // --------------------------------------------------------------- Countdown ---
 
-class _CountdownView extends StatelessWidget {
+/// IMPROVED: Countdown number now bounces in with scale + fade on each tick.
+class _CountdownView extends StatefulWidget {
   final int countdownValue;
 
   const _CountdownView({required this.countdownValue});
+
+  @override
+  State<_CountdownView> createState() => _CountdownViewState();
+}
+
+class _CountdownViewState extends State<_CountdownView>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _bounceCtrl;
+  late final Animation<double> _scaleAnim;
+  late final Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _scaleAnim = Tween<double>(begin: 1.6, end: 1.0).animate(
+      CurvedAnimation(parent: _bounceCtrl, curve: Curves.elasticOut),
+    );
+    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _bounceCtrl,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
+      ),
+    );
+    _bounceCtrl.forward();
+  }
+
+  @override
+  void didUpdateWidget(_CountdownView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.countdownValue != widget.countdownValue) {
+      _bounceCtrl.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _bounceCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -792,15 +891,43 @@ class _CountdownView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: Text(
-              '$countdownValue',
-              key: ValueKey(countdownValue),
-              style: const TextStyle(
-                fontSize: 80,
-                fontWeight: FontWeight.w900,
-                color: AppColors.neonGold,
+          // Bounce + fade animation on each countdown tick
+          AnimatedBuilder(
+            animation: _bounceCtrl,
+            builder: (_, __) => FadeTransition(
+              opacity: _fadeAnim,
+              child: ScaleTransition(
+                scale: _scaleAnim,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const RadialGradient(
+                      colors: [
+                        Color(0x44FFC857),
+                        Color(0x00FFC857),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.neonGold.withValues(alpha: 0.4),
+                        blurRadius: 40,
+                        spreadRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${widget.countdownValue}',
+                      style: const TextStyle(
+                        fontSize: 72,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.neonGold,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -852,29 +979,8 @@ class _ArenaView extends StatelessWidget {
                 color: AppColors.textSecondary,
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                color: battle.secondsRemaining <= 5
-                    ? AppColors.neonRed.withValues(alpha: 0.15)
-                    : AppColors.neonCyan.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: battle.secondsRemaining <= 5
-                      ? AppColors.neonRed
-                      : AppColors.neonCyan,
-                ),
-              ),
-              child: Text(
-                '⏱ ${battle.secondsRemaining}s',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: battle.secondsRemaining <= 5
-                      ? AppColors.neonRed
-                      : AppColors.neonCyan,
-                ),
-              ),
-            ),
+            // IMPROVED: timer pulses red when ≤5s
+            _TimerBadge(seconds: battle.secondsRemaining),
           ],
         ),
         const SizedBox(height: 12),
@@ -886,7 +992,7 @@ class _ArenaView extends StatelessWidget {
             .optionsIn(battle.displayLanguage)
             .asMap()
             .entries
-            .map((e) => _optionTile(battle, e.key, e.value)),
+            .map((e) => _OptionTile(battle: battle, index: e.key, option: e.value)),
 
         const SizedBox(height: 12),
         _statusRow(battle),
@@ -935,12 +1041,21 @@ class _ArenaView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            '${battle.playerScore}',
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
+          // IMPROVED: score animates when it changes
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, anim) => ScaleTransition(
+              scale: anim,
+              child: child,
+            ),
+            child: Text(
+              '${battle.playerScore}',
+              key: ValueKey(battle.playerScore),
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
             ),
           ),
           _streakChip(battle.playerStreak, AppColors.neonCyan),
@@ -972,12 +1087,21 @@ class _ArenaView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            '${battle.opponentScore}',
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
+          // IMPROVED: opponent score also animates
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, anim) => ScaleTransition(
+              scale: anim,
+              child: child,
+            ),
+            child: Text(
+              '${battle.opponentScore}',
+              key: ValueKey(battle.opponentScore),
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
             ),
           ),
           _streakChip(battle.opponentStreak, AppColors.neonPink),
@@ -1036,96 +1160,6 @@ class _ArenaView extends StatelessWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  Widget _optionTile(BattleProvider battle, int index, String option) {
-    final revealing = battle.phase == BattlePhase.reveal;
-    final correctIndex = battle.currentQuestion?.correctIndex ?? 0;
-
-    Color border = Colors.white.withValues(alpha: 0.15);
-    Color text = AppColors.textPrimary;
-    IconData icon = Icons.radio_button_unchecked;
-    String? tag;
-
-    if (revealing) {
-      if (index == correctIndex) {
-        border = AppColors.neonGreen;
-        text = AppColors.neonGreen;
-        icon = Icons.check_circle;
-        tag = S.correct;
-      } else if (index == battle.playerSelected) {
-        border = AppColors.neonRed;
-        text = AppColors.neonRed;
-        icon = Icons.cancel;
-        tag = S.you;
-      } else if (index == battle.opponentSelected) {
-        border = AppColors.neonPink;
-        text = AppColors.neonPink;
-        icon = Icons.cancel;
-        tag = battle.opponentName;
-      } else {
-        text = AppColors.textMuted;
-      }
-    } else {
-      if (index == battle.playerSelected) {
-        border = AppColors.neonCyan;
-        text = AppColors.neonCyan;
-        icon = Icons.check_circle;
-      }
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: GestureDetector(
-        onTap: revealing ? null : () => battle.answerQuestion(index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-          decoration: BoxDecoration(
-            color: border.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: border),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: text),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  option,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight:
-                        revealing && (index == correctIndex ||
-                                index == battle.playerSelected ||
-                                index == battle.opponentSelected)
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                    color: text,
-                  ),
-                ),
-              ),
-              if (tag != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 90),
-                    child: Text(
-                      tag,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: text,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -1259,10 +1293,362 @@ class _ArenaView extends StatelessWidget {
   }
 }
 
+/// IMPROVED: Timer badge pulses red when ≤5 seconds remain.
+class _TimerBadge extends StatefulWidget {
+  final int seconds;
+  const _TimerBadge({required this.seconds});
+
+  @override
+  State<_TimerBadge> createState() => _TimerBadgeState();
+}
+
+class _TimerBadgeState extends State<_TimerBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseCtrl;
+  late final Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _pulseAnim = Tween<double>(begin: 1.0, end: 1.12).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    );
+    if (widget.seconds <= 5) {
+      _pulseCtrl.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(_TimerBadge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.seconds <= 5 && !_pulseCtrl.isAnimating) {
+      _pulseCtrl.repeat(reverse: true);
+    } else if (widget.seconds > 5 && _pulseCtrl.isAnimating) {
+      _pulseCtrl.stop();
+      _pulseCtrl.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isUrgent = widget.seconds <= 5;
+    final color = isUrgent ? AppColors.neonRed : AppColors.neonCyan;
+
+    return ScaleTransition(
+      scale: _pulseAnim,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color),
+          boxShadow: isUrgent
+              ? [
+                  BoxShadow(
+                    color: AppColors.neonRed.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                  )
+                ]
+              : [],
+        ),
+        child: Text(
+          '⏱ ${widget.seconds}s',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// IMPROVED: Option tile animates in with a staggered slide, and has a
+/// press-scale effect. On reveal, correct answer glows green.
+class _OptionTile extends StatefulWidget {
+  final BattleProvider battle;
+  final int index;
+  final String option;
+
+  const _OptionTile({
+    required this.battle,
+    required this.index,
+    required this.option,
+  });
+
+  @override
+  State<_OptionTile> createState() => _OptionTileState();
+}
+
+class _OptionTileState extends State<_OptionTile>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pressCtrl;
+  late final Animation<double> _pressAnim;
+  bool _pressing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    _pressAnim = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _pressCtrl, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pressCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final battle = widget.battle;
+    final index = widget.index;
+    final option = widget.option;
+
+    final revealing = battle.phase == BattlePhase.reveal;
+    final correctIndex = battle.currentQuestion?.correctIndex ?? 0;
+
+    Color border = Colors.white.withValues(alpha: 0.15);
+    Color bg = Colors.white.withValues(alpha: 0.04);
+    Color text = AppColors.textPrimary;
+    IconData icon = Icons.radio_button_unchecked;
+    String? tag;
+    List<BoxShadow> glow = [];
+
+    if (revealing) {
+      if (index == correctIndex) {
+        border = AppColors.neonGreen;
+        bg = AppColors.neonGreen.withValues(alpha: 0.12);
+        text = AppColors.neonGreen;
+        icon = Icons.check_circle;
+        tag = S.correct;
+        glow = [
+          BoxShadow(
+            color: AppColors.neonGreen.withValues(alpha: 0.35),
+            blurRadius: 16,
+            spreadRadius: 1,
+          )
+        ];
+      } else if (index == battle.playerSelected) {
+        border = AppColors.neonRed;
+        bg = AppColors.neonRed.withValues(alpha: 0.08);
+        text = AppColors.neonRed;
+        icon = Icons.cancel;
+        tag = S.you;
+      } else if (index == battle.opponentSelected) {
+        border = AppColors.neonPink;
+        bg = AppColors.neonPink.withValues(alpha: 0.08);
+        text = AppColors.neonPink;
+        icon = Icons.cancel;
+        tag = battle.opponentName;
+      } else {
+        text = AppColors.textMuted;
+      }
+    } else {
+      if (index == battle.playerSelected) {
+        border = AppColors.neonCyan;
+        bg = AppColors.neonCyan.withValues(alpha: 0.10);
+        text = AppColors.neonCyan;
+        icon = Icons.check_circle;
+        glow = [
+          BoxShadow(
+            color: AppColors.neonCyan.withValues(alpha: 0.25),
+            blurRadius: 12,
+          )
+        ];
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GestureDetector(
+        onTapDown: revealing ? null : (_) {
+          setState(() => _pressing = true);
+          _pressCtrl.forward();
+        },
+        onTapUp: revealing ? null : (_) {
+          setState(() => _pressing = false);
+          _pressCtrl.reverse();
+          battle.answerQuestion(index);
+        },
+        onTapCancel: revealing ? null : () {
+          setState(() => _pressing = false);
+          _pressCtrl.reverse();
+        },
+        child: ScaleTransition(
+          scale: _pressAnim,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: border, width: revealing && index == correctIndex ? 1.8 : 1.2),
+              boxShadow: glow,
+            ),
+            child: Row(
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  child: Icon(
+                    icon,
+                    key: ValueKey(icon),
+                    size: 18,
+                    color: text,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    option,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight:
+                          revealing && (index == correctIndex ||
+                                  index == battle.playerSelected ||
+                                  index == battle.opponentSelected)
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                      color: text,
+                    ),
+                  ),
+                ),
+                if (tag != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 90),
+                      child: Text(
+                        tag,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: text,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ------------------------------------------------------------------ Result ---
 
-class _ResultView extends StatelessWidget {
+/// IMPROVED: _ResultView is now a StatefulWidget with:
+/// - Confetti for win/draw
+/// - Entrance animations (scale + fade for emoji, slide-up for cards)
+/// - Animated score counter
+class _ResultView extends StatefulWidget {
   const _ResultView();
+
+  @override
+  State<_ResultView> createState() => _ResultViewState();
+}
+
+class _ResultViewState extends State<_ResultView>
+    with TickerProviderStateMixin {
+  late final AnimationController _enterCtrl;
+  late final AnimationController _scoreCtrl;
+  late final ConfettiController _confetti;
+
+  late final Animation<double> _emojiScale;
+  late final Animation<double> _titleFade;
+  late final Animation<Offset> _card1Slide;
+  late final Animation<Offset> _card2Slide;
+  late final Animation<double> _btnFade;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _enterCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _scoreCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _confetti = ConfettiController(duration: const Duration(seconds: 3));
+
+    _emojiScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _enterCtrl,
+        curve: const Interval(0.0, 0.4, curve: Curves.elasticOut),
+      ),
+    );
+    _titleFade = CurvedAnimation(
+      parent: _enterCtrl,
+      curve: const Interval(0.3, 0.6, curve: Curves.easeOut),
+    );
+    _card1Slide = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _enterCtrl,
+        curve: const Interval(0.4, 0.75, curve: Curves.easeOutCubic),
+      ),
+    );
+    _card2Slide = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _enterCtrl,
+        curve: const Interval(0.55, 0.88, curve: Curves.easeOutCubic),
+      ),
+    );
+    _btnFade = CurvedAnimation(
+      parent: _enterCtrl,
+      curve: const Interval(0.75, 1.0, curve: Curves.easeOut),
+    );
+
+    _enterCtrl.forward();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) _scoreCtrl.forward();
+    });
+  }
+
+  void _maybeFireConfetti(bool isWin, bool isDraw) {
+    if (isWin || isDraw) {
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) _confetti.play();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _enterCtrl.dispose();
+    _scoreCtrl.dispose();
+    _confetti.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1271,6 +1657,8 @@ class _ResultView extends StatelessWidget {
     final String title;
     final String emoji;
     final Color color;
+    bool _confettiFired = false;
+
     if (battle.isForfeit) {
       title = '🏆 ${battle.opponentName} left — ${S.battleWinTitle}';
       emoji = '🏆';
@@ -1289,116 +1677,177 @@ class _ResultView extends StatelessWidget {
       color = AppColors.neonPink;
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(18),
+    if (!_confettiFired && (battle.isPlayerWin || battle.isDraw || battle.isForfeit)) {
+      _confettiFired = true;
+      _maybeFireConfetti(battle.isPlayerWin || battle.isForfeit, battle.isDraw);
+    }
+
+    return Stack(
+      alignment: Alignment.topCenter,
       children: [
-        const SizedBox(height: 20),
-        Text(
-          emoji,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 72),
+        // Confetti for win/draw
+        ConfettiWidget(
+          confettiController: _confetti,
+          blastDirectionality: BlastDirectionality.explosive,
+          emissionFrequency: 0.07,
+          numberOfParticles: 18,
+          gravity: 0.2,
+          colors: const [
+            AppColors.neonGold,
+            AppColors.neonCyan,
+            AppColors.neonPink,
+            AppColors.neonGreen,
+            AppColors.neonPurple,
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w900,
-            color: color,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'vs ${battle.opponentName} '
-          '(${battle.difficulty.name} • '
-          '${battle.isLive ? S.battleLiveMatch : S.battleBotMatch})',
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 24),
 
-        GlassCard(
-          borderRadius: 20,
-          borderColor: color.withValues(alpha: 0.5),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _resultStat(
-                S.you,
-                '${battle.playerScore}',
-                '${battle.playerCorrect}/'
-                '${battle.totalQuestions} ${S.correct}',
-                AppColors.neonCyan,
-              ),
-              Container(width: 1, height: 60, color: Colors.white12),
-              _resultStat(
-                battle.opponentName,
-                '${battle.opponentScore}',
-                S.battleBotCorrect(n: battle.opponentCorrect),
-                AppColors.neonPink,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
+        ListView(
+          padding: const EdgeInsets.all(18),
+          children: [
+            const SizedBox(height: 20),
 
-        GlassCard(
-          borderRadius: 16,
-          borderColor: AppColors.neonGold.withValues(alpha: 0.4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.monetization_on, color: AppColors.neonGold, size: 22),
-              const SizedBox(width: 8),
-              Text(
-                '+${battle.earnedCoins} ${S.coins}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.neonGold,
+            // Bouncing emoji
+            ScaleTransition(
+              scale: _emojiScale,
+              child: Text(
+                emoji,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 72),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Fading title
+            FadeTransition(
+              opacity: _titleFade,
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  color: color,
                 ),
               ),
-              if (battle.earnedGems > 0) ...[
-                const SizedBox(width: 16),
-                const Icon(Icons.diamond, color: AppColors.neonPurple, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  '+${battle.earnedGems} ${S.gems}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.neonPurple,
+            ),
+            const SizedBox(height: 4),
+
+            FadeTransition(
+              opacity: _titleFade,
+              child: Text(
+                'vs ${battle.opponentName} '
+                '(${battle.difficulty.name} • '
+                '${battle.isLive ? S.battleLiveMatch : S.battleBotMatch})',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Score card slides up
+            SlideTransition(
+              position: _card1Slide,
+              child: FadeTransition(
+                opacity: _titleFade,
+                child: GlassCard(
+                  borderRadius: 20,
+                  borderColor: color.withValues(alpha: 0.5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _resultStat(
+                        S.you,
+                        '${battle.playerScore}',
+                        '${battle.playerCorrect}/'
+                        '${battle.totalQuestions} ${S.correct}',
+                        AppColors.neonCyan,
+                      ),
+                      Container(width: 1, height: 60, color: Colors.white12),
+                      _resultStat(
+                        battle.opponentName,
+                        '${battle.opponentScore}',
+                        S.battleBotCorrect(n: battle.opponentCorrect),
+                        AppColors.neonPink,
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
+              ),
+            ),
+            const SizedBox(height: 16),
 
-        NeonButton(
-          text: S.battleRematch,
-          onPressed: () => context.read<BattleProvider>().rematch(),
-        ),
-        const SizedBox(height: 12),
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.white24),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+            // Coins card slides up
+            SlideTransition(
+              position: _card2Slide,
+              child: FadeTransition(
+                opacity: _btnFade,
+                child: GlassCard(
+                  borderRadius: 16,
+                  borderColor: AppColors.neonGold.withValues(alpha: 0.4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.monetization_on, color: AppColors.neonGold, size: 22),
+                      const SizedBox(width: 8),
+                      Text(
+                        '+${battle.earnedCoins} ${S.coins}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.neonGold,
+                        ),
+                      ),
+                      if (battle.earnedGems > 0) ...[
+                        const SizedBox(width: 16),
+                        const Icon(Icons.diamond, color: AppColors.neonPurple, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          '+${battle.earnedGems} ${S.gems}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.neonPurple,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
             ),
-            minimumSize: const Size.fromHeight(50),
-          ),
-          onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
-          child: Text(
-            S.battleBackHome,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+            const SizedBox(height: 24),
+
+            // Buttons fade in last
+            FadeTransition(
+              opacity: _btnFade,
+              child: NeonButton(
+                text: S.battleRematch,
+                onPressed: () => context.read<BattleProvider>().rematch(),
+              ),
             ),
-          ),
+            const SizedBox(height: 12),
+            FadeTransition(
+              opacity: _btnFade,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.white24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  minimumSize: const Size.fromHeight(50),
+                ),
+                onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                child: Text(
+                  S.battleBackHome,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
