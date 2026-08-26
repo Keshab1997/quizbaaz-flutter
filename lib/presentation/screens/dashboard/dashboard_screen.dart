@@ -1632,7 +1632,7 @@ class _BattleArenaCardState extends State<_BattleArenaCard>
             MaterialPageRoute(builder: (_) => const BattleScreen()),
           ),
           child: Container(
-            height: 178,
+            height: 200,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
               gradient: const LinearGradient(
@@ -1666,35 +1666,37 @@ class _BattleArenaCardState extends State<_BattleArenaCard>
                   AnimatedBuilder(
                     animation: _flashAnim,
                     builder: (_, __) => CustomPaint(
-                      size: const Size(double.infinity, 178),
+                      size: const Size(double.infinity, 200),
                       painter: _ArenaBgPainter(progress: _flashAnim.value),
                     ),
                   ),
 
-                  // ── Left fighter (cyan) ──
+                  // ── Left fighter (blue) — floats up/down ──
                   AnimatedBuilder(
                     animation: _floatAnim,
                     builder: (_, __) => Positioned(
-                      left: 16,
-                      top: 16 + _floatAnim.value,
-                      child: const _Fighter3D(
-                        color: AppColors.neonCyan,
+                      left: 0,
+                      bottom: 28 + _floatAnim.value,
+                      child: _FighterImage(
+                        asset: AppAssets.battleFighterBlue,
+                        glowColor: AppColors.neonCyan,
                         label: 'YOU',
-                        facingRight: true,
+                        flip: false,
                       ),
                     ),
                   ),
 
-                  // ── Right fighter (pink), floats opposite phase ──
+                  // ── Right fighter (pink) — floats opposite phase ──
                   AnimatedBuilder(
                     animation: _floatAnim,
                     builder: (_, __) => Positioned(
-                      right: 16,
-                      top: 16 - _floatAnim.value,
-                      child: const _Fighter3D(
-                        color: AppColors.neonPink,
+                      right: 0,
+                      bottom: 28 - _floatAnim.value,
+                      child: _FighterImage(
+                        asset: AppAssets.battleFighterPink,
+                        glowColor: AppColors.neonPink,
                         label: 'BOT',
-                        facingRight: false,
+                        flip: true,
                       ),
                     ),
                   ),
@@ -1849,17 +1851,19 @@ class _BattleArenaCardState extends State<_BattleArenaCard>
   }
 }
 
-// ── 3D fighter illustration (pure CustomPaint) ─────────────────────────────
+// ── Real 3D fighter image with glow + label ────────────────────────────────
 
-class _Fighter3D extends StatelessWidget {
-  final Color color;
+class _FighterImage extends StatelessWidget {
+  final String asset;
+  final Color glowColor;
   final String label;
-  final bool facingRight;
+  final bool flip;
 
-  const _Fighter3D({
-    required this.color,
+  const _FighterImage({
+    required this.asset,
+    required this.glowColor,
     required this.label,
-    required this.facingRight,
+    required this.flip,
   });
 
   @override
@@ -1867,11 +1871,36 @@ class _Fighter3D extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          width: 88,
-          height: 110,
-          child: CustomPaint(
-            painter: _FighterPainter(color: color, facingRight: facingRight),
+        // glow halo behind image
+        Container(
+          width: 110,
+          height: 118,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: glowColor.withValues(alpha: 0.45),
+                blurRadius: 32,
+                spreadRadius: 8,
+              ),
+            ],
+          ),
+          child: Transform(
+            alignment: Alignment.center,
+            transform: flip
+                ? (Matrix4.identity()..scale(-1.0, 1.0))
+                : Matrix4.identity(),
+            child: Image.asset(
+              asset,
+              width: 110,
+              height: 118,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.person_rounded,
+                color: glowColor,
+                size: 60,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 4),
@@ -1879,205 +1908,22 @@ class _Fighter3D extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            color: color.withValues(alpha: 0.18),
-            border: Border.all(color: color.withValues(alpha: 0.5)),
+            color: glowColor.withValues(alpha: 0.18),
+            border: Border.all(color: glowColor.withValues(alpha: 0.6)),
           ),
           child: Text(
             label,
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w900,
-              color: color,
-              letterSpacing: 1.2,
+              color: glowColor,
+              letterSpacing: 1.4,
             ),
           ),
         ),
       ],
     );
   }
-}
-
-class _FighterPainter extends CustomPainter {
-  final Color color;
-  final bool facingRight;
-
-  _FighterPainter({required this.color, required this.facingRight});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final cx = w / 2;
-
-    // flip canvas for left-facing fighter
-    if (!facingRight) {
-      canvas.save();
-      canvas.translate(w, 0);
-      canvas.scale(-1, 1);
-    }
-
-    final glowPaint = Paint()
-      ..color = color.withValues(alpha: 0.18)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(cx, h * 0.55), width: 64, height: 80),
-      glowPaint,
-    );
-
-    // ── Body shadow (3D depth) ──
-    final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.35)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - 14, h * 0.38 + 3, 28, 52),
-        const Radius.circular(10),
-      ),
-      shadowPaint,
-    );
-
-    // ── Legs ──
-    final legPaint = Paint()
-      ..shader = LinearGradient(
-        colors: [color.withValues(alpha: 0.9), color.withValues(alpha: 0.5)],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ).createShader(Rect.fromLTWH(cx - 14, h * 0.7, 28, h * 0.3));
-    // left leg
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - 14, h * 0.7, 11, h * 0.28),
-        const Radius.circular(6),
-      ),
-      legPaint,
-    );
-    // right leg
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx + 3, h * 0.72, 11, h * 0.26),
-        const Radius.circular(6),
-      ),
-      legPaint,
-    );
-    // boots
-    final bootPaint = Paint()..color = color.withValues(alpha: 0.7);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - 16, h * 0.93, 14, 8),
-        const Radius.circular(4),
-      ),
-      bootPaint,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx + 1, h * 0.93, 14, 8),
-        const Radius.circular(4),
-      ),
-      bootPaint,
-    );
-
-    // ── Torso ──
-    final bodyPaint = Paint()
-      ..shader = LinearGradient(
-        colors: [
-          color,
-          color.withValues(alpha: 0.7),
-          color.withValues(alpha: 0.5),
-        ],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(Rect.fromLTWH(cx - 15, h * 0.36, 30, 36));
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - 15, h * 0.36, 30, 36),
-        const Radius.circular(10),
-      ),
-      bodyPaint,
-    );
-    // chest highlight
-    final highlightPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.25)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - 8, h * 0.38, 10, 16),
-        const Radius.circular(5),
-      ),
-      highlightPaint,
-    );
-
-    // ── Back arm (punch-ready, behind body) ──
-    final armPaint = Paint()
-      ..color = color.withValues(alpha: 0.6)
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 9
-      ..style = PaintingStyle.stroke;
-    canvas.drawLine(
-      Offset(cx - 10, h * 0.42),
-      Offset(cx - 26, h * 0.58),
-      armPaint,
-    );
-
-    // ── Front arm (extended punch) ──
-    final fistPaint = Paint()
-      ..color = color
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 10
-      ..style = PaintingStyle.stroke;
-    canvas.drawLine(
-      Offset(cx + 10, h * 0.40),
-      Offset(cx + 32, h * 0.34),
-      fistPaint,
-    );
-    // fist glow
-    final fistGlow = Paint()
-      ..color = color.withValues(alpha: 0.8)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-    canvas.drawCircle(Offset(cx + 32, h * 0.34), 10, fistGlow);
-    canvas.drawCircle(
-      Offset(cx + 32, h * 0.34),
-      8,
-      Paint()..color = color,
-    );
-
-    // ── Head ──
-    final headGlow = Paint()
-      ..color = color.withValues(alpha: 0.3)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawCircle(Offset(cx + 2, h * 0.22), 20, headGlow);
-    // head base
-    final headPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [Colors.white.withValues(alpha: 0.9), color],
-        center: const Alignment(-0.3, -0.3),
-      ).createShader(Rect.fromCircle(center: Offset(cx + 2, h * 0.22), radius: 18));
-    canvas.drawCircle(Offset(cx + 2, h * 0.22), 18, headPaint);
-    // visor / mask
-    final visorPaint = Paint()
-      ..color = color.withValues(alpha: 0.35)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - 7, h * 0.16, 20, 9),
-        const Radius.circular(5),
-      ),
-      visorPaint,
-    );
-    // visor glow slit
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - 5, h * 0.175, 16, 4),
-        const Radius.circular(3),
-      ),
-      Paint()..color = color,
-    );
-
-    if (!facingRight) canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(_FighterPainter old) =>
-      old.color != color || old.facingRight != facingRight;
 }
 
 // ── Animated lightning bolt ────────────────────────────────────────────────

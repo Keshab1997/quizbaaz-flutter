@@ -5,6 +5,8 @@ class AppAssets {
   static const String championBoy = 'assets/images/characters/quizbaaz_champion.png';
   static const String quizChampion = 'assets/images/characters/quizbaaz_quiz_guide.png';
   static const String battleDuo = 'assets/images/characters/quizbaaz_battle_duo.png';
+  static const String battleFighterBlue = 'assets/images/characters/battle_fighter_blue.png';
+  static const String battleFighterPink = 'assets/images/characters/battle_fighter_pink.png';
   static const String rewardGirl = 'assets/images/characters/quizbaaz_reward_girl.png';
 
   // Default profile avatars.
