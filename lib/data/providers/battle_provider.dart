@@ -684,10 +684,6 @@ class BattleProvider extends ChangeNotifier {
     }
     _opponentAnswered = true;
 
-    final remaining = max(
-      0,
-      ((_questionDeadlineMs - now) / 1000).round(),
-    );
     // Bot answered first only if player hasn't answered yet
     final botAnsweredFirst = !_playerAnswered;
     if (_opponentSelected == question.correctIndex) {
@@ -719,10 +715,6 @@ class BattleProvider extends ChangeNotifier {
     final now = DateTime.now().millisecondsSinceEpoch;
     final question = currentQuestion;
     final right = question != null && index == question.correctIndex;
-    final remaining = max(
-      0,
-      ((_questionDeadlineMs - now) / 1000).round(),
-    );
 
     // Player answered first if opponent hasn't answered yet
     final playerAnsweredFirst = !opponentAnswered;
