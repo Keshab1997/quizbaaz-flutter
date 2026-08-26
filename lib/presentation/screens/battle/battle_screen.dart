@@ -1395,7 +1395,6 @@ class _OptionTileState extends State<_OptionTile>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pressCtrl;
   late final Animation<double> _pressAnim;
-  bool _pressing = false;
 
   @override
   void initState() {
@@ -1479,16 +1478,13 @@ class _OptionTileState extends State<_OptionTile>
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
         onTapDown: revealing ? null : (_) {
-          setState(() => _pressing = true);
           _pressCtrl.forward();
         },
         onTapUp: revealing ? null : (_) {
-          setState(() => _pressing = false);
           _pressCtrl.reverse();
           battle.answerQuestion(index);
         },
         onTapCancel: revealing ? null : () {
-          setState(() => _pressing = false);
           _pressCtrl.reverse();
         },
         child: ScaleTransition(
@@ -1657,7 +1653,7 @@ class _ResultViewState extends State<_ResultView>
     final String title;
     final String emoji;
     final Color color;
-    bool _confettiFired = false;
+    bool confettiFired = false;
 
     if (battle.isForfeit) {
       title = '🏆 ${battle.opponentName} left — ${S.battleWinTitle}';
@@ -1677,8 +1673,8 @@ class _ResultViewState extends State<_ResultView>
       color = AppColors.neonPink;
     }
 
-    if (!_confettiFired && (battle.isPlayerWin || battle.isDraw || battle.isForfeit)) {
-      _confettiFired = true;
+    if (!confettiFired && (battle.isPlayerWin || battle.isDraw || battle.isForfeit)) {
+      confettiFired = true;
       _maybeFireConfetti(battle.isPlayerWin || battle.isForfeit, battle.isDraw);
     }
 

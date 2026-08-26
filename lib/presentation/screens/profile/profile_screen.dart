@@ -316,8 +316,8 @@ class ProfileScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         const Divider(color: Colors.white12),
                         const SizedBox(height: 14),
-                        Text('🏆 Shop Badges',
-                            style: const TextStyle(
+                        const Text('🏆 Shop Badges',
+                            style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.neonGold)),
