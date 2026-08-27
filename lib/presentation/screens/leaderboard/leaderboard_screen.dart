@@ -1,7 +1,5 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../data/providers/user_provider.dart';
@@ -123,6 +121,42 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         clipBehavior: Clip.antiAlias,
         decoration: const BoxDecoration(shape: BoxShape.circle),
         child: image,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final userProvider = context.watch<UserProvider>();
+    final leaderboard = userProvider.leaderboard;
+    final champions = userProvider.champions;
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: Text(
+          S.lbTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: AppColors.neonGold,
+          indicatorWeight: 3,
+          labelColor: AppColors.neonGold,
+          unselectedLabelColor: AppColors.textSecondary,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          tabs: const [
+            Tab(text: "TODAY'S LIVE RANK"),
+            Tab(text: "YESTERDAY'S WINNERS 🎁"),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildTodayLeaderboardTab(leaderboard, userProvider),
+          _buildYesterdayWinnersTab(champions),
+        ],
       ),
     );
   }
