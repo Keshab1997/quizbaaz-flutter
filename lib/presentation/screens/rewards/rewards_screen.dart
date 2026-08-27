@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
-import '../../../data/models/gift_claim.dart';
 import '../../../data/models/quiz_result_history.dart';
-import '../../../data/providers/rewards_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../widgets/glass_card.dart';
-import '../../widgets/neon_button.dart';
 import '../../../l10n/app_strings.dart';
 
 class RewardsScreen extends StatefulWidget {
@@ -42,9 +38,6 @@ class _RewardsScreenState extends State<RewardsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final rewards = context.watch<RewardsProvider>();
-    final gifts = rewards.gifts;
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -91,17 +84,40 @@ class _RewardsScreenState extends State<RewardsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           // 🏆 Daily Quiz Winnings Section
-          const Row(
+          Row(
             children: [
-              Icon(Icons.stars_rounded, color: AppColors.neonGold, size: 18),
-              SizedBox(width: 6),
-              Text(
-                'DAILY QUIZ WINNINGS',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
+              const Icon(Icons.emoji_events_rounded, color: AppColors.neonGold, size: 22),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  '🏆 DAILY QUIZ WINNINGS',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 1.0,
+                  ),
+                ),
               ),
+              if (!_loadingHistory)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.neonGold.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_dailyQuizHistory.length} quizzes',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.neonGold,
+                    ),
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 4),
@@ -109,46 +125,155 @@ class _RewardsScreenState extends State<RewardsScreen> {
             'Coins, gems & shop items earned from daily quiz performances:',
             style: TextStyle(fontSize: 11, color: AppColors.textMuted),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           if (_loadingHistory)
             const Padding(
-              padding: EdgeInsets.all(20),
-              child: Center(child: CircularProgressIndicator(color: AppColors.neonGold)),
+              padding: EdgeInsets.all(40),
+              child: Center(
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(color: AppColors.neonGold),
+                    SizedBox(height: 16),
+                    Text(
+                      'Loading your winnings...',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
             )
           else if (_dailyQuizHistory.isEmpty)
-            const GlassCard(
-              borderRadius: 16,
-              padding: EdgeInsets.all(16),
-              child: Row(
+            GlassCard(
+              borderRadius: 18,
+              padding: const EdgeInsets.all(24),
+              borderColor: AppColors.neonGold.withValues(alpha: 0.2),
+              child: Column(
                 children: [
-                  Icon(Icons.bolt_rounded, color: AppColors.neonGold, size: 24),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Play today\'s Daily Live Quiz to win coins, gems & shop prizes!',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.neonGold.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.bolt_rounded,
+                      color: AppColors.neonGold,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No winnings yet!',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Play today\'s Daily Live Quiz to win\ncoins, gems & shop prizes!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.fireGradient,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+                        SizedBox(width: 6),
+                        Text(
+                          'START QUIZ',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             )
-          else
-            ..._dailyQuizHistory.take(5).map((history) => Padding(
+          else ...[
+            // Summary Card
+            GlassCard(
+              borderRadius: 16,
+              padding: const EdgeInsets.all(16),
+              borderColor: AppColors.neonGold.withValues(alpha: 0.3),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _StatItem(
+                      icon: Icons.emoji_events_rounded,
+                      value: '${_dailyQuizHistory.length}',
+                      label: 'Quizzes',
+                      color: AppColors.neonGold,
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: Colors.white12,
+                  ),
+                  Expanded(
+                    child: _StatItem(
+                      icon: Icons.monetization_on_rounded,
+                      value: '${_dailyQuizHistory.fold(0, (sum, h) => sum + h.coinsEarned)}',
+                      label: 'Coins',
+                      color: AppColors.neonOrange,
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: Colors.white12,
+                  ),
+                  Expanded(
+                    child: _StatItem(
+                      icon: Icons.diamond_rounded,
+                      value: '${_dailyQuizHistory.fold(0, (sum, h) => sum + h.gemsEarned)}',
+                      label: 'Gems',
+                      color: AppColors.neonPurple,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // History List
+            ..._dailyQuizHistory.take(10).map((history) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: GlassCard(
                     borderRadius: 16,
                     padding: const EdgeInsets.all(14),
-                    borderColor: AppColors.neonGold.withValues(alpha: 0.3),
+                    borderColor: AppColors.neonGold.withValues(alpha: 0.25),
                     child: Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: AppColors.neonGold.withValues(alpha: 0.15),
+                            gradient: AppColors.goldGradient,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.emoji_events_rounded, color: AppColors.neonGold, size: 22),
+                          child: const Icon(
+                            Icons.emoji_events_rounded,
+                            color: Color(0xFF7C4DFF),
+                            size: 22,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -157,14 +282,31 @@ class _RewardsScreenState extends State<RewardsScreen> {
                             children: [
                               Text(
                                 history.displayTitle.isNotEmpty ? history.displayTitle : 'Daily Live Quiz',
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
                               ),
-                              const SizedBox(height: 3),
+                              const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  Text(
-                                    '${history.score} pts • ${history.accuracy.toStringAsFixed(0)}% Accuracy',
-                                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  _MiniStat(
+                                    icon: Icons.stars_rounded,
+                                    value: '${history.score}',
+                                    color: AppColors.neonGold,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _MiniStat(
+                                    icon: Icons.speed_rounded,
+                                    value: '${history.accuracy.toStringAsFixed(0)}%',
+                                    color: AppColors.neonCyan,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _MiniStat(
+                                    icon: Icons.bolt_rounded,
+                                    value: '${history.timeSeconds.toStringAsFixed(0)}s',
+                                    color: AppColors.neonPurple,
                                   ),
                                 ],
                               ),
@@ -174,564 +316,119 @@ class _RewardsScreenState extends State<RewardsScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
-                              '+${history.coinsEarned} 💰',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.neonGold),
-                            ),
-                            if (history.gemsEarned > 0)
-                              Text(
-                                '+${history.gemsEarned} 💎',
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.neonPurple),
+                            if (history.coinsEarned > 0)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.neonOrange.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '+${history.coinsEarned}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.neonOrange,
+                                  ),
+                                ),
                               ),
+                            if (history.gemsEarned > 0) ...[
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.neonPurple.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '+${history.gemsEarned}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.neonPurple,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ],
                     ),
                   ),
                 )),
-
-          const SizedBox(height: 24),
-
-          // 🎁 Claimable Gifts Section
-          Text(
-            S.rewardsYourGifts,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.1),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            S.rewardsTapPrize,
-            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-          ),
-          const SizedBox(height: 12),
-
-          if (gifts.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: Text(
-                  S.rewardsNone,
-                  style: const TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-            )
-          else
-            ...gifts.map(
-              (gift) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _GiftCard(gift: gift),
-              ),
-            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _GiftCard extends StatelessWidget {
-  final GiftClaim gift;
+class _StatItem extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
 
-  const _GiftCard({required this.gift});
+  const _StatItem({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final (String label, Color color) = _statusInfo(gift.status);
-
-    return GlassCard(
-      borderRadius: 18,
-      onTap: () => _showClaimSheet(context),
-      child: Row(
-        children: [
-          Image.asset(gift.icon, width: 48, height: 48),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  gift.title,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: color.withValues(alpha: 0.5)),
-                      ),
-                      child: Text(
-                        label,
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      gift.date,
-                      style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            gift.isClaimed ? Icons.chevron_right : Icons.arrow_forward,
-            size: 20,
-            color: gift.isClaimed ? AppColors.textMuted : AppColors.neonGold,
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showClaimSheet(BuildContext context) {
-    if (gift.isPhysical) {
-      if (gift.isClaimed) {
-        _showDeliverySheet(context);
-      } else {
-        _showAddressForm(context);
-      }
-    } else {
-      _showDigitalSheet(context);
-    }
-  }
-
-  void _showAddressForm(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _AddressFormSheet(gift: gift),
-    );
-  }
-
-  void _showDigitalSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _DigitalClaimSheet(gift: gift),
-    );
-  }
-
-  void _showDeliverySheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _DeliverySheet(gift: gift),
-    );
-  }
-}
-
-// ------------------------------------------------------------ Status helpers
-
-(String, Color) _statusInfo(ClaimStatus status) {
-  switch (status) {
-    case ClaimStatus.unclaimed:
-      return (S.rewardsClaimNow, AppColors.neonGold);
-    case ClaimStatus.processing:
-      return (S.rewardsProcessingCaps, AppColors.neonCyan);
-    case ClaimStatus.shipped:
-      return (S.rewardsShippedCaps, AppColors.neonPurple);
-    case ClaimStatus.delivered:
-      return (S.rewardsDeliveredCaps, AppColors.neonGreen);
-  }
-}
-
-// ------------------------------------------------------- Physical claim form
-
-class _AddressFormSheet extends StatefulWidget {
-  final GiftClaim gift;
-
-  const _AddressFormSheet({required this.gift});
-
-  @override
-  State<_AddressFormSheet> createState() => _AddressFormSheetState();
-}
-
-class _AddressFormSheetState extends State<_AddressFormSheet> {
-  final _formKey = GlobalKey<FormState>();
-  final _name = TextEditingController();
-  final _phone = TextEditingController();
-  final _address = TextEditingController();
-  final _pincode = TextEditingController();
-  bool _submitting = false;
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _phone.dispose();
-    _address.dispose();
-    _pincode.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _submitting = true);
-
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-
-    context.read<RewardsProvider>().claimPhysicalGift(
-          widget.gift.id,
-          name: _name.text.trim(),
-          phone: _phone.text.trim(),
-          address: _address.text.trim(),
-          pincode: _pincode.text.trim(),
-        );
-
-    navigator.pop();
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('🎁 Gift claimed! We\'ll deliver it to your address.'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _SheetScaffold(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sheetTitle(S.rewardsDeliveryAddress, widget.gift.title),
-          const SizedBox(height: 16),
-          Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                _buildField(
-                  controller: _name,
-                  label: S.profileFullName,
-                  icon: Icons.person,
-                  validator: (v) => (v == null || v.trim().isEmpty) ? S.rewardsErrName : null,
-                ),
-                _buildField(
-                  controller: _phone,
-                  label: S.rewardsPhone,
-                  icon: Icons.phone,
-                  keyboardType: TextInputType.phone,
-                  validator: (v) => (v == null || v.trim().length < 10) ? S.rewardsErrPhone : null,
-                ),
-                _buildField(
-                  controller: _address,
-                  label: S.rewardsAddress,
-                  icon: Icons.home,
-                  maxLines: 2,
-                  validator: (v) => (v == null || v.trim().length < 8) ? S.rewardsErrAddress : null,
-                ),
-                _buildField(
-                  controller: _pincode,
-                  label: S.rewardsPin,
-                  icon: Icons.local_post_office,
-                  keyboardType: TextInputType.number,
-                  validator: (v) => (v == null || v.trim().length < 6) ? S.rewardsErrPin : null,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          NeonButton(
-            text: S.rewardsSubmitClaim,
-            onPressed: _submitting ? () {} : _submit,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType? keyboardType,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        validator: validator,
-        style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-          prefixIcon: Icon(icon, color: AppColors.neonCyan, size: 20),
-          filled: true,
-          fillColor: Colors.white.withValues(alpha: 0.05),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.white24),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.neonCyan),
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 22),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: color,
           ),
         ),
-      ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.textMuted,
+          ),
+        ),
+      ],
     );
   }
 }
 
-// ------------------------------------------------------------ Digital claim
+class _MiniStat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final Color color;
 
-class _DigitalClaimSheet extends StatelessWidget {
-  final GiftClaim gift;
-
-  const _DigitalClaimSheet({required this.gift});
-
-  @override
-  Widget build(BuildContext context) {
-    final code = gift.digitalCode ?? '—';
-
-    return _SheetScaffold(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sheetTitle(S.rewardsDigital, gift.title),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.neonGold.withValues(alpha: 0.4)),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  S.rewardsRedeemCode,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.0),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  code,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.neonGold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  S.rewardsRedeemHint,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.neonCyan),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    minimumSize: const Size.fromHeight(48),
-                  ),
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: code));
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(S.rewardsCodeCopied)),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.copy, size: 18, color: AppColors.neonCyan),
-                  label: Text(S.rewardsCopyCode, style: const TextStyle(color: AppColors.neonCyan, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          NeonButton(
-            text: gift.isClaimed ? S.rewardsClaimed : S.rewardsRedeemMark,
-            onPressed: gift.isClaimed
-                ? () => Navigator.of(context).pop()
-                : () {
-                    context.read<RewardsProvider>().redeemDigitalGift(gift.id);
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(S.rewardsRedeemed),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ------------------------------------------------------------ Delivery info
-
-class _DeliverySheet extends StatelessWidget {
-  final GiftClaim gift;
-
-  const _DeliverySheet({required this.gift});
+  const _MiniStat({
+    required this.icon,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['Processing', S.rewardsShipped, S.rewardsDelivered];
-    final currentIndex = switch (gift.status) {
-      ClaimStatus.processing => 0,
-      ClaimStatus.shipped => 1,
-      ClaimStatus.delivered => 2,
-      ClaimStatus.unclaimed => 0,
-    };
-
-    return _SheetScaffold(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sheetTitle(S.rewardsDeliveryStatus, gift.title),
-          const SizedBox(height: 16),
-          // Timeline
-          Row(
-            children: List.generate(steps.length * 2 - 1, (i) {
-              if (i.isOdd) {
-                final stepIndex = i ~/ 2;
-                final active = stepIndex < currentIndex;
-                return Expanded(
-                  child: Container(
-                    height: 3,
-                    color: active ? AppColors.neonGreen : Colors.white12,
-                  ),
-                );
-              }
-              final stepIndex = i ~/ 2;
-              final active = stepIndex <= currentIndex;
-              return Column(
-                children: [
-                  Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: active ? AppColors.neonGreen : Colors.white10,
-                      border: Border.all(color: active ? AppColors.neonGreen : Colors.white24),
-                    ),
-                    child: Icon(
-                      stepIndex < currentIndex ? Icons.check : Icons.circle,
-                      size: 14,
-                      color: active ? Colors.white : AppColors.textMuted,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    steps[stepIndex],
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: active ? AppColors.neonGreen : AppColors.textMuted,
-                    ),
-                  ),
-                ],
-              );
-            }),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 14),
+        const SizedBox(width: 3),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: color,
           ),
-          const SizedBox(height: 20),
-          // Address summary
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  S.rewardsDeliveringTo,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary, letterSpacing: 1.0),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  gift.addressName ?? '—',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  gift.addressLine ?? '—',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'PIN: ${gift.addressPincode ?? '—'}  •  📞 ${gift.addressPhone ?? '—'}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ------------------------------------------------------------- Shared UI bits
-
-Widget _sheetTitle(String heading, String sub) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        heading,
-        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Colors.white),
-      ),
-      const SizedBox(height: 2),
-      Text(
-        sub,
-        style: const TextStyle(fontSize: 13, color: AppColors.neonGold),
-      ),
-    ],
-  );
-}
-
-class _SheetScaffold extends StatelessWidget {
-  final Widget child;
-
-  const _SheetScaffold({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.bgNavy,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: SingleChildScrollView(
-        child: child,
-      ),
+        ),
+      ],
     );
   }
 }
