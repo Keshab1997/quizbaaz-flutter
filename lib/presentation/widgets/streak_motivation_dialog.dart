@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_colors.dart';
-import '../../l10n/app_strings.dart';
+import '../widgets/glass_card.dart';
 
 /// Motivational dialog to encourage user to maintain their streak.
 class StreakMotivationDialog extends StatefulWidget {
@@ -84,13 +84,13 @@ class _StreakMotivationDialogState extends State<StreakMotivationDialog>
     } else if (streak < 3) {
       return 'Great start! Keep the fire burning 🔥';
     } else if (streak < 7) {
-      return 'You\'re on fire! ${widget.streakGoal - streak} more days to the goal! 🔥';
+      return 'You\'re on fire! ${streak} more days to the goal! 🔥';
     } else if (streak < 14) {
-      return 'Amazing consistency! ${streak} days strong! 🏆';
+      return 'Amazing consistency! $streak days strong! 🏆';
     } else if (streak < 30) {
       return 'Incredible! You\'re a streak master! 👑';
     } else {
-      return 'Legendary! ${streak} days - you\'re unstoppable! 🌟';
+      return 'Legendary! $streak days - you\'re unstoppable! 🌟';
     }
   }
 

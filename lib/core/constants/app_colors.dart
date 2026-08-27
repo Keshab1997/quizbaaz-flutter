@@ -16,6 +16,7 @@ class AppColors {
   static const Color neonGold = Color(0xFFFFC857);
   static const Color neonGreen = Color(0xFF35D39A);
   static const Color neonRed = Color(0xFFFF6B7A);
+  static const Color neonOrange = Color(0xFFFF9B3D);
 
   // Intentional gradients used throughout the app.
   static const LinearGradient primaryGradient = LinearGradient(
