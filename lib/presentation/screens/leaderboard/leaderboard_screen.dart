@@ -106,7 +106,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             ? Border.all(color: borderColor, width: borderColor == AppColors.neonGold ? 3 : 2)
             : null,
         gradient: borderColor == AppColors.neonGold
-            ? LinearGradient(colors: [AppColors.neonGold, AppColors.neonOrange])
+            ? const LinearGradient(colors: [AppColors.neonGold, AppColors.neonOrange])
             : null,
         boxShadow: borderColor != null
             ? [
@@ -255,7 +255,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: AppColors.goldGradient,
               shape: BoxShape.circle,
             ),
@@ -275,7 +275,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     letterSpacing: 1.0,
                   ),
                 ),
-                Text(
+                const Text(
                   'Top players competing right now! 🏆',
                   style: TextStyle(
                     fontSize: 11,
@@ -323,7 +323,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       color: AppColors.neonGold,
                     ),
                   ),
-                  Text(
+                  const Text(
                     'Play today\'s Daily Quiz to join the leaderboard! 🎯',
                     style: TextStyle(
                       fontSize: 11,
@@ -1013,7 +1013,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 if (isFirst)
                   Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       gradient: AppColors.goldGradient,
                       shape: BoxShape.circle,
                     ),
