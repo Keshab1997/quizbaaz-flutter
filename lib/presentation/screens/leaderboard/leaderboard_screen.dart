@@ -265,8 +265,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
+              children: const [
+                Text(
                   "TODAY'S LIVE RANKING",
                   style: TextStyle(
                     fontSize: 16,
@@ -275,7 +275,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     letterSpacing: 1.0,
                   ),
                 ),
-                const Text(
+                Text(
                   'Top players competing right now! 🏆',
                   style: TextStyle(
                     fontSize: 11,
@@ -314,8 +314,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
+                children: const [
+                  Text(
                     "JOIN THE RACE!",
                     style: TextStyle(
                       fontSize: 14,
@@ -323,7 +323,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       color: AppColors.neonGold,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Play today\'s Daily Quiz to join the leaderboard! 🎯',
                     style: TextStyle(
                       fontSize: 11,
