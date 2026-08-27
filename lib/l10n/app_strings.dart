@@ -125,6 +125,60 @@ class S {
   static String get dashMoreOptions => raw('dashMoreOptions');
   static String get dashDayStreak => raw('dashDayStreak');
   static String get dashStreakTitle => raw('dashStreakTitle');
+
+  // ---- streak dialogs
+  static String get streakMotivationTitle => raw('streakMotivationTitle');
+  static String streakMotivationDaysToGoal({required Object n}) => fill(
+        raw('streakMotivationDaysToGoal'),
+        {'n': n},
+      );
+  static String get streakMotivationGoalReached => raw('streakMotivationGoalReached');
+  static String get streakMotivationStart => raw('streakMotivationStart');
+  static String get streakMotivationBeginner => raw('streakMotivationBeginner');
+  static String streakMotivationBuilding({required Object n}) => fill(
+        raw('streakMotivationBuilding'),
+        {'n': n},
+      );
+  static String streakMotivationConsistent({required Object n}) => fill(
+        raw('streakMotivationConsistent'),
+        {'n': n},
+      );
+  static String get streakMotivationMaster => raw('streakMotivationMaster');
+  static String streakMotivationLegend({required Object n}) => fill(
+        raw('streakMotivationLegend'),
+        {'n': n},
+      );
+  static String get streakMotivationBtn => raw('streakMotivationBtn');
+  static String get streakMotivationBtnStart => raw('streakMotivationBtnStart');
+  static String get streakResetTitle => raw('streakResetTitle');
+  static String streakResetEncourage30({required Object n}) => fill(
+        raw('streakResetEncourage30'),
+        {'n': n},
+      );
+  static String streakResetEncourage14({required Object n}) => fill(
+        raw('streakResetEncourage14'),
+        {'n': n},
+      );
+  static String streakResetEncourage7({required Object n}) => fill(
+        raw('streakResetEncourage7'),
+        {'n': n},
+      );
+  static String streakResetEncourage3({required Object n}) => fill(
+        raw('streakResetEncourage3'),
+        {'n': n},
+      );
+  static String get streakResetEncourage0 => raw('streakResetEncourage0');
+  static String get streakShieldAvailable => raw('streakShieldAvailable');
+  static String streakShieldUse({required Object n}) => fill(
+        raw('streakShieldUse'),
+        {'n': n},
+      );
+  static String get streakShieldBtn => raw('streakShieldBtn');
+  static String get streakShieldProtect => raw('streakShieldProtect');
+  static String get streakShieldProtectDesc => raw('streakShieldProtectDesc');
+  static String get streakShieldGet => raw('streakShieldGet');
+  static String get streakResetBtn => raw('streakResetBtn');
+  static String get streakResetBtnShield => raw('streakResetBtnShield');
   static String get dashAccuracyShort => raw('dashAccuracyShort');
   static String get dashAdminPanel => raw('dashAdminPanel');
   static String get dashDailyQuiz => raw('dashDailyQuiz');

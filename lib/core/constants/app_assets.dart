@@ -73,6 +73,10 @@ class AppAssets {
 
   // Existing glossy action icons are still used by secondary screens.
   static const String streakFire = 'assets/icons/streak_fire_3d.png';
+  static const String streakFire3d = 'assets/icons/streak_fire_3d.png';
+  static const String streakShield3d = 'assets/icons/streak_shield_3d.png';
+  static const String streakCrown3d = 'assets/icons/streak_crown_3d.png';
+  static const String streakBroken3d = 'assets/icons/streak_broken_3d.png';
   static const String coinGem = 'assets/icons/coin_and_gem_3d.png';
   static const String chapterQuiz = 'assets/icons/chapter_quiz_3d.png';
   static const String practiceTarget = 'assets/icons/practice_target_3d.png';
