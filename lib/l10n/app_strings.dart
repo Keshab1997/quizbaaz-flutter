@@ -124,6 +124,7 @@ class S {
   static String get dashExploreMore => raw('dashExploreMore');
   static String get dashMoreOptions => raw('dashMoreOptions');
   static String get dashDayStreak => raw('dashDayStreak');
+  static String get dashStreakTitle => raw('dashStreakTitle');
   static String get dashAccuracyShort => raw('dashAccuracyShort');
   static String get dashAdminPanel => raw('dashAdminPanel');
   static String get dashDailyQuiz => raw('dashDailyQuiz');

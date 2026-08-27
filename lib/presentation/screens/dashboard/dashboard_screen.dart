@@ -12,6 +12,7 @@ import '../../../data/models/user_stats.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/rewards_provider.dart';
 import '../../../data/providers/user_provider.dart';
+import '../../../l10n/app_strings.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/name_effect_text.dart';
 import '../../widgets/neon_button.dart';
@@ -722,9 +723,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'YOUR DAILY STREAK',
-                      style: TextStyle(
+                    Text(
+                      S.dashStreakTitle,
+                      style: const TextStyle(
                         color: AppColors.neonGold,
                         fontSize: 10,
                         fontWeight: FontWeight.w900,

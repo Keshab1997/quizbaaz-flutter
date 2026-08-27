@@ -63,6 +63,7 @@ const Map<String, String> kStringsHi = {
   'dashExploreMore': 'और देखें',
   'dashMoreOptions': 'और विकल्प',
   'dashDayStreak': 'दिन की स्ट्रीक',
+  'dashStreakTitle': '🔥 आज क्विज़ खेलो, स्ट्रीक बचाओ',
   'dashAccuracyShort': 'सटीकता',
   'dashAdminPanel': 'एडमिन पैनल',
   'dashDailyQuiz': 'डेली क्विज़',

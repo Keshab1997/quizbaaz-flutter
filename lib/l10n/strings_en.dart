@@ -70,6 +70,7 @@ const Map<String, String> kStringsEn = {
   'dashExploreMore': 'EXPLORE',
   'dashMoreOptions': 'More Options',
   'dashDayStreak': 'day streak',
+  'dashStreakTitle': '🔥 PLAY TODAY TO KEEP STREAK',
   'dashAccuracyShort': 'accuracy',
   'dashAdminPanel': 'Admin Panel',
   'dashDailyQuiz': 'Daily Quiz',
