@@ -265,7 +265,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
                       children: [
                         Container(
                           padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             gradient: AppColors.goldGradient,
                             shape: BoxShape.circle,
                           ),
