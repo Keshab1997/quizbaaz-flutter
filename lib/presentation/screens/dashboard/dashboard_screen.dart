@@ -29,7 +29,6 @@ import '../../widgets/aura_avatar.dart';
 import '../../widgets/cached_avatar.dart';
 import '../../widgets/daily_winner_celebration_dialog.dart';
 import '../../widgets/streak_reset_dialog.dart';
-import '../../../l10n/app_strings.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
