@@ -84,7 +84,7 @@ class _StreakMotivationDialogState extends State<StreakMotivationDialog>
     } else if (streak < 3) {
       return 'Great start! Keep the fire burning 🔥';
     } else if (streak < 7) {
-      return 'You\'re on fire! ${streak} more days to the goal! 🔥';
+      return 'You\'re on fire! $streak more days to the goal! 🔥';
     } else if (streak < 14) {
       return 'Amazing consistency! $streak days strong! 🏆';
     } else if (streak < 30) {
