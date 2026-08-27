@@ -268,7 +268,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               children: [
                 const Text(
                   "TODAY'S LIVE RANKING",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                     color: AppColors.neonGold,
@@ -277,7 +277,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 ),
                 const Text(
                   'Top players competing right now! 🏆',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary,
                   ),
@@ -317,7 +317,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 children: [
                   const Text(
                     "JOIN THE RACE!",
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w900,
                       color: AppColors.neonGold,
@@ -325,7 +325,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   ),
                   const Text(
                     'Play today\'s Daily Quiz to join the leaderboard! 🎯',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 11,
                       color: AppColors.textSecondary,
                     ),
