@@ -63,7 +63,7 @@ const Map<String, String> kStringsBn = {
   'dashExploreMore': 'আরও দেখুন',
   'dashMoreOptions': 'আরও অপশন',
   'dashDayStreak': 'দিনের ধারা',
-  'dashStreakTitle': "🔥 আজকের কুইজ খেলো, স্ট্রিক বাঁচাও",
+  'dashStreakTitle': "🔥 দৈনিক কুইজ খেলো, স্ট্রিক বাঁচাও",
   'dashAccuracyShort': 'নির্ভুলতা',
   'dashAdminPanel': 'অ্যাডমিন প্যানেল',
   'dashDailyQuiz': 'দৈনিক কুইজ',
