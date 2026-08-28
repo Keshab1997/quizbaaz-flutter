@@ -363,9 +363,9 @@ class QuizProvider extends ChangeNotifier {
     final correctIndex = currentQuestion?.correctIndex ?? 0;
     if (index == correctIndex) {
       _correctCount++;
-      // Score calculation: 10 base points + time bonus
-      var bonus = _secondsRemaining * 2;
-      var points = 10 + bonus;
+      // Score calculation: fixed 10 points per correct answer.
+      // 1 correct = 10, 2 correct = 20, ... 10 correct = 100.
+      var points = 10;
 
       // Apply double points booster
       if (_doublePointsActive) {
