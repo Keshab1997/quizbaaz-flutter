@@ -262,11 +262,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             child: const Icon(Icons.emoji_events_rounded, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 12),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "TODAY'S LIVE RANKING",
                   style: TextStyle(
                     fontSize: 16,
@@ -275,7 +275,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     letterSpacing: 1.0,
                   ),
                 ),
-                const Text(
+                Text(
                   'Top players competing right now! 🏆',
                   style: TextStyle(
                     fontSize: 11,
@@ -304,18 +304,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildYourPositionCard(UserProvider userProvider) {
     if (!userProvider.hasPlayedDailyQuiz) {
-      return GlassCard(
+      return const GlassCard(
         borderRadius: 18,
         borderColor: Colors.white12,
         child: Row(
           children: [
-            const Icon(Icons.bolt_rounded, color: AppColors.neonGold, size: 32),
-            const SizedBox(width: 14),
+            Icon(Icons.bolt_rounded, color: AppColors.neonGold, size: 32),
+            SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "JOIN THE RACE!",
                     style: TextStyle(
                       fontSize: 14,
@@ -323,7 +323,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                       color: AppColors.neonGold,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Play today\'s Daily Quiz to join the leaderboard! 🎯',
                     style: TextStyle(
                       fontSize: 11,
