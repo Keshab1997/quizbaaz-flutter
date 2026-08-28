@@ -655,20 +655,33 @@ class UserProvider extends ChangeNotifier {
     await _saveQuizHistory(history);
 
     if (isDaily && !_user.isGuest) {
-      // Score Shield: prevents a bad score from being pushed to leaderboard
-      final scoreShielded = isDaily &&
-          !_user.isGuest &&
-          hasItem(ShopItemIds.scoreShield) &&
-          (score ?? 0) < _stats.bestDailyScore;
+      // Track today's personal best (score + the time it took), so the
+      // leaderboard entry always carries TODAY's time for tie-breaking —
+      // never yesterday's.
+      final dayKey = _todayKey();
+      final bestScoreKey = 'daily_best_score_$dayKey';
+      final bestTimeKey = 'daily_best_time_$dayKey';
+      final prevBest = HiveService.getMeta<int>(bestScoreKey) ?? 0;
+      final prevTime = HiveService.getMeta<double>(bestTimeKey) ?? 0;
+      final runScore = score ?? 0;
+      final isBetter = runScore > prevBest ||
+          (runScore == prevBest &&
+              runScore > 0 &&
+              (prevTime == 0 || timeSeconds < prevTime));
+
+      // Score Shield: prevents a bad score from being pushed to leaderboard.
+      final scoreShielded = hasItem(ShopItemIds.scoreShield) && runScore < prevBest;
       if (scoreShielded) {
         consumeItem(ShopItemIds.scoreShield);
       }
 
-      if (!scoreShielded) {
+      if (isBetter && !scoreShielded) {
+        await HiveService.setMeta(bestScoreKey, runScore);
+        await HiveService.setMeta(bestTimeKey, timeSeconds);
         await SyncService.pushLeaderboardEntry(
           user: _user,
-          score: _stats.bestDailyScore,
-          timeSeconds: _stats.bestDailyTimeSeconds,
+          score: runScore,
+          timeSeconds: timeSeconds,
         );
         await refreshRankings(force: true);
       }

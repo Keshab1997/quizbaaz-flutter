@@ -10,11 +10,10 @@
       ]
     },
     {
-      "//": "Daily leaderboard: today's entries, best score first, fastest wins ties.",
-      "collectionGroup": "leaderboard",
+      "//": "Daily leaderboard scores: best score first, fastest time wins ties (leaderboard/{date}/scores).",
+      "collectionGroup": "scores",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "quiz_date", "order": "ASCENDING" },
         { "fieldPath": "score", "order": "DESCENDING" },
         { "fieldPath": "time_seconds", "order": "ASCENDING" }
       ]

@@ -279,11 +279,36 @@ class SyncService {
       date ?? DateTime.now(),
       limit: limit,
     );
+
+    // Fresh rows when they arrived, otherwise fall back to the cache — the
+    // ordering below is enforced either way so ranks stay deterministic.
+    final source = rows.isNotEmpty
+        ? rows
+        : HiveService.cacheGetList(HiveService.cacheLeaderboard);
+    if (source.isEmpty) return const [];
+
+    // Tie-breaker: highest score wins; on EQUAL scores the FASTEST time wins.
+    // This mirrors the Firestore query (score DESC, time_seconds ASC) and
+    // keeps the offline cache consistent too.
+    source.sort((a, b) {
+      final sa = (a['score'] as num?)?.toInt() ?? 0;
+      final sb = (b['score'] as num?)?.toInt() ?? 0;
+      if (sa != sb) return sb.compareTo(sa);
+      final ta = (a['time_seconds'] as num?)?.toDouble() ?? double.infinity;
+      final tb = (b['time_seconds'] as num?)?.toDouble() ?? double.infinity;
+      return ta.compareTo(tb);
+    });
+
+    // Re-assign ranks so they always match the on-screen order.
+    for (var i = 0; i < source.length; i++) {
+      source[i]['rank'] = i + 1;
+    }
+
     if (rows.isNotEmpty) {
-      await HiveService.cachePut(HiveService.cacheLeaderboard, rows);
+      await HiveService.cachePut(HiveService.cacheLeaderboard, source);
       await HiveService.markPulled();
     }
-    return rows;
+    return source;
   }
 
   /// Downloads yesterday's champions into the Hive cache.
