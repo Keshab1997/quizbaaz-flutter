@@ -408,8 +408,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                   children: [
                     // Rank badge with glow
                     Container(
-                      width: 60,
-                      height: 60,
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: isTop3 ? AppColors.goldGradient : null,
@@ -419,8 +419,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                             ? [
                                 BoxShadow(
                                   color: AppColors.neonGold.withValues(alpha: 0.6),
-                                  blurRadius: 16,
-                                  spreadRadius: 2,
+                                  blurRadius: 12,
+                                  spreadRadius: 1,
                                 ),
                               ]
                             : null,
@@ -429,7 +429,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                         child: Text(
                           '#$rank',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 15,
                             fontWeight: FontWeight.w900,
                             color: isTop3 ? Colors.black : AppColors.neonCyan,
                           ),
@@ -481,16 +481,22 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                             children: [
                               Icon(
                                 isTop3 ? Icons.celebration_rounded : Icons.trending_up_rounded,
-                                size: 14,
+                                size: 12,
                                 color: isTop3 ? AppColors.neonGold : AppColors.neonGreen,
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                isTop3 ? 'Amazing! You\'re a champion!' : 'Keep going — you\'re doing great!',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: isTop3 ? AppColors.neonGold : AppColors.neonGreen,
-                                  fontWeight: FontWeight.w600,
+                              Flexible(
+                                child: Text(
+                                  isTop3
+                                      ? 'Amazing! You\'re a champion!'
+                                      : 'Keep going — you\'re doing great!',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isTop3 ? AppColors.neonGold : AppColors.neonGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
