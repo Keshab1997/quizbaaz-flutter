@@ -74,9 +74,18 @@ class UserProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
 
-  /// Yesterday's #1, or null when no champion has been published yet.
-  ChampionModel? get yesterdayTopChampion =>
-      _champions.isNotEmpty ? _champions.first : null;
+  /// Yesterday's #1 champion (matched by date), or null when no champion
+  /// has been published for yesterday yet.
+  ChampionModel? get yesterdayTopChampion {
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    final key = '${yesterday.year}-'
+        '${yesterday.month.toString().padLeft(2, '0')}-'
+        '${yesterday.day.toString().padLeft(2, '0')}';
+    for (final c in _champions) {
+      if (c.dateKey == key && c.rank == 1) return c;
+    }
+    return null;
+  }
 
   /// Only real admins (Firestore flag or the config allow-list) see the panel.
   bool get isAdmin => _user.isAdmin || _config.isAdmin(_user.userId);
@@ -417,12 +426,16 @@ class UserProvider extends ChangeNotifier {
     if (_user.username.isEmpty || _user.isGuest) return null;
 
     try {
-      // Pull yesterday's champions / leaderboard
-      final champions = await _rankings.refreshChampions(limit: 10);
+      // Pull yesterday's champions / leaderboard, then only look at the
+      // rows that actually belong to yesterday's winners.
+      final champions = await _rankings.refreshChampions(limit: 10, days: 1);
+      final yesterdayWinners =
+          champions.where((c) => c.dateKey == yesterdayKey).toList();
       var userRank = -1;
 
-      for (var i = 0; i < champions.length; i++) {
-        if (champions[i].username == _user.username || champions[i].userId == _user.userId) {
+      for (var i = 0; i < yesterdayWinners.length; i++) {
+        if (yesterdayWinners[i].username == _user.username ||
+            yesterdayWinners[i].userId == _user.userId) {
           userRank = i + 1;
           break;
         }

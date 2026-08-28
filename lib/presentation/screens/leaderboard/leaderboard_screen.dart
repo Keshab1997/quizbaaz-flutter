@@ -146,7 +146,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           tabs: const [
             Tab(text: 'LIVE TODAY'),
-            Tab(text: 'YESTERDAY 🎁'),
+            Tab(text: 'WINNERS 🏆'),
           ],
         ),
       ),
@@ -154,7 +154,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         controller: _tabController,
         children: [
           _buildTodayLeaderboardTab(leaderboard, userProvider),
-          _buildYesterdayWinnersTab(champions),
+          _buildWinnersHistoryTab(champions),
         ],
       ),
     );
@@ -730,129 +730,243 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   // YESTERDAY'S WINNERS TAB
   // ---------------------------------------------------------------------------
 
-  Widget _buildYesterdayWinnersTab(List<ChampionModel> champions) {
+  // ---------------------------------------------------------------------------
+  // DAILY WINNERS HISTORY (date + winner names)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildWinnersHistoryTab(List<ChampionModel> champions) {
     if (champions.isEmpty) {
       return ListView(
         padding: const EdgeInsets.all(24),
         children: [
           const SizedBox(height: 70),
           _buildEmptyState(
-            icon: Icons.card_giftcard_rounded,
+            icon: Icons.emoji_events_rounded,
             title: S.lbNoChampions,
-            message: "Yesterday's winners and their prizes show up here once the results are declared.",
+            message: 'Daily quiz winners and their prizes will show up here '
+                'day by day once the results are declared.',
           ),
         ],
       );
     }
 
+    // Group winners by their day (newest day first, ranks inside each day).
+    final byKey = <String, List<ChampionModel>>{};
+    for (final c in champions) {
+      final key = c.dateKey.isNotEmpty ? c.dateKey : '_recent_';
+      byKey.putIfAbsent(key, () => []).add(c);
+    }
+    final keys = byKey.keys.toList()
+      ..sort((a, b) => a == '_recent_'
+          ? 1
+          : b == '_recent_'
+              ? -1
+              : b.compareTo(a));
+
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
-      itemCount: champions.length,
+      itemCount: keys.length,
       itemBuilder: (context, index) {
-        final champ = champions[index];
-        final isFirst = champ.rank == 1;
+        final key = keys[index];
+        return _buildHistoryDayCard(key, byKey[key]!);
+      },
+    );
+  }
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: GlassCard(
-            borderRadius: 16,
-            borderColor: isFirst
-                ? AppColors.neonGold.withValues(alpha: 0.5)
-                : Colors.white12,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
+  Widget _buildHistoryDayCard(String key, List<ChampionModel> winners) {
+    final isYesterday = key == _dateKey(DateTime.now().subtract(const Duration(days: 1)));
+    final isToday = key == _dateKey(DateTime.now());
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassCard(
+        borderRadius: 16,
+        borderColor: isYesterday || isToday
+            ? AppColors.neonGold.withValues(alpha: 0.4)
+            : Colors.white12,
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ---- Date header ----
+            Row(
               children: [
                 Container(
-                  width: 38,
-                  height: 38,
-                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: isFirst ? AppColors.goldGradient : null,
-                    color: isFirst ? null : Colors.white10,
+                    color: AppColors.neonGold.withValues(alpha: 0.16),
                   ),
-                  child: isFirst
-                      ? const Text('👑', style: TextStyle(fontSize: 17))
-                      : Text(
-                          '#${champ.rank}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
+                  child: const Icon(Icons.calendar_month_rounded,
+                      size: 14, color: AppColors.neonGold),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        champ.name.isNotEmpty ? champ.name : champ.username,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
-                          color: isFirst ? AppColors.neonGold : Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      if (champ.giftName.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.neonPink.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(7),
-                            border: Border.all(
-                                color: AppColors.neonPink.withValues(alpha: 0.3)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.card_giftcard,
-                                  size: 11, color: AppColors.neonPink),
-                              const SizedBox(width: 3),
-                              Flexible(
-                                child: Text(
-                                  champ.giftName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.neonPink,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 3),
-                      Text(
-                        S.lbChampScore(score: champ.score, time: champ.timeSeconds),
-                        style:
-                            const TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
-                      ),
-                    ],
+                  child: Text(
+                    _formatDate(key),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.neonGold,
+                      letterSpacing: 0.4,
+                    ),
                   ),
                 ),
-                if (isFirst)
-                  Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: const BoxDecoration(
-                      gradient: AppColors.goldGradient,
-                      shape: BoxShape.circle,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${winners.length} winner${winners.length == 1 ? '' : 's'}',
+                    style: const TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // ---- Winners for this day ----
+            ...winners.take(5).map((c) => _buildWinnerRow(c)),
+            if (winners.length > 5)
+              Padding(
+                padding: const EdgeInsets.only(left: 34, top: 2),
+                child: Text(
+                  '+ ${winners.length - 5} more…',
+                  style: const TextStyle(
+                      fontSize: 10, color: AppColors.textMuted),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWinnerRow(ChampionModel champ) {
+    final isFirst = champ.rank == 1;
+    final rank = champ.rank > 0 ? champ.rank : 0;
+    const medals = {1: '🥇', 2: '🥈', 3: '🥉'};
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          // Rank / medal
+          SizedBox(
+            width: 26,
+            height: 26,
+            child: Center(
+              child: medals.containsKey(rank)
+                  ? Text(medals[rank]!, style: const TextStyle(fontSize: 14))
+                  : Text(
+                      rank > 0 ? '$rank' : '·',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                    child: const Icon(Icons.emoji_events_rounded,
-                        color: Colors.white, size: 17),
+            ),
+          ),
+          const SizedBox(width: 6),
+
+          _leaderboardAvatar(
+            champ.avatarPath.isNotEmpty ? champ.avatarPath : AppAssets.maleAvatar,
+            30,
+          ),
+          const SizedBox(width: 9),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  champ.name.isNotEmpty ? champ.name : champ.username,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: isFirst ? AppColors.neonGold : Colors.white,
+                  ),
+                ),
+                if (champ.giftName.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.card_giftcard,
+                            size: 10, color: AppColors.neonPink),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            champ.giftName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.neonPink,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
               ],
             ),
           ),
-        );
-      },
+
+          // Score
+          Text(
+            '${champ.score}',
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w900,
+              color: AppColors.neonGold,
+            ),
+          ),
+          const SizedBox(width: 3),
+          const Icon(Icons.stars_rounded, size: 12, color: AppColors.neonGold),
+        ],
+      ),
     );
   }
+
+  /// Formats a `yyyy-MM-dd` key into a friendly label
+  /// (e.g. "Yesterday • 27 Aug" or "15 Aug, 2026").
+  String _formatDate(String key) {
+    final parts = key.split('-');
+    if (parts.length != 3) return 'Recent';
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+    if (year == null || month == null || day == null) return key;
+
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    final label = '${months[month - 1]} $day';
+    final now = DateTime.now();
+    if (key == _dateKey(now)) return 'Today • $label';
+    if (key == _dateKey(now.subtract(const Duration(days: 1)))) {
+      return 'Yesterday • $label';
+    }
+    return '$label, $year';
+  }
+
+  String _dateKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 }
 
 // Confetti particle class (static, subtle)

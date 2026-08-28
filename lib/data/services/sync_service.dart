@@ -287,17 +287,52 @@ class SyncService {
   }
 
   /// Downloads yesterday's champions into the Hive cache.
+  /// Pulls the daily winner history for the last [days] completed days
+  /// (1 = yesterday only, 7 = a full week). Every row is tagged with its
+  /// `date_key` (yyyy-MM-dd) so the UI can group winners by day.
+  ///
+  /// Newer days are fetched first and always win over older cached entries,
+  /// so the cache naturally accumulates a growing winner history.
   static Future<List<Map<String, dynamic>>> pullChampions({
     DateTime? date,
     int limit = 10,
+    int days = 7,
   }) async {
-    final when = date ?? DateTime.now().subtract(const Duration(days: 1));
-    final rows = await FirestoreService.getChampions(when, limit: limit);
-    if (rows.isNotEmpty) {
-      await HiveService.cachePut(HiveService.cacheChampions, rows);
-      await HiveService.markPulled();
+    final today = date ?? DateTime.now();
+
+    // Seed with whatever history is already cached, then overlay fresh days.
+    final byKey = <String, List<Map<String, dynamic>>>{};
+    for (final cached in HiveService.cacheGetList(HiveService.cacheChampions)) {
+      final key = (cached['date_key'] ?? cached['date'] ?? '') as String;
+      if (key.isNotEmpty) byKey.putIfAbsent(key, () => []).add(cached);
     }
-    return rows;
+
+    var fetchedAny = false;
+    for (var i = 1; i <= days; i++) {
+      final when = today.subtract(Duration(days: i));
+      final key = FirestoreService.dateKey(when);
+      final rows = await FirestoreService.getChampions(when, limit: limit);
+      if (rows.isNotEmpty) {
+        byKey[key] = rows.map((r) => {...r, 'date_key': key}).toList();
+        fetchedAny = true;
+      }
+    }
+
+    if (!fetchedAny) {
+      // Nothing new from Firestore — fall back to the cached history.
+      return HiveService.cacheGetList(HiveService.cacheChampions);
+    }
+
+    // Newest day first, winners ordered by rank within each day.
+    final keys = byKey.keys.toList()..sort((a, b) => b.compareTo(a));
+    final merged = <Map<String, dynamic>>[];
+    for (final k in keys) {
+      merged.addAll(byKey[k]!);
+    }
+
+    await HiveService.cachePut(HiveService.cacheChampions, merged);
+    await HiveService.markPulled();
+    return merged;
   }
 
   /// Loads remote config, caching it in Hive. Returns null when unchanged
