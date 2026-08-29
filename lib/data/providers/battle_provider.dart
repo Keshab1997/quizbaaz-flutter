@@ -34,21 +34,34 @@ class BattleOpponent {
 /// Points a single question just paid out, for the reveal summary.
 class BattleRoundPoints {
   final int base;         // +10 for correct answer
-  final int speedBonus;   // +5 if answered before opponent
-  final int streakBonus;  // +2 × streak count
+  final int speedBonus;   // up to +10 — time-scaled (instant answer = full)
+  final int firstBonus;   // +3 if locked in before the opponent
+  final int streakBonus;  // +2 × streak count (capped)
+  final int msTaken;      // how long this side took to answer (0 = unknown)
 
   const BattleRoundPoints({
     required this.base,
     required this.speedBonus,
     required this.streakBonus,
+    this.firstBonus = 0,
+    this.msTaken = 0,
   });
 
-  int get total => base + speedBonus + streakBonus;
+  int get total => base + speedBonus + firstBonus + streakBonus;
 
   // backward-compat alias used in live room write/read
   int get timeBonus => speedBonus;
 
   static const zero = BattleRoundPoints(base: 0, speedBonus: 0, streakBonus: 0);
+
+  /// Same points but stamped with the time taken — used for the reveal view.
+  BattleRoundPoints withMs(int ms) => BattleRoundPoints(
+        base: base,
+        speedBonus: speedBonus,
+        firstBonus: firstBonus,
+        streakBonus: streakBonus,
+        msTaken: ms,
+      );
 }
 
 /// Drives a 1-vs-1 battle — live room or bot.
@@ -70,8 +83,12 @@ class BattleRoundPoints {
 /// * **Bot matches** reuse the same phase machine locally, with the bot's
 ///   difficulty-driven accuracy and think-delay feeding the same scoring
 ///   formula, so the scoreboard is always symmetric.
-/// * **Scoring** per correct answer: `base + speed bonus + streak bonus`
-///   (config-driven; default max = 100 + 100 + 25 per question).
+/// * **Scoring** per correct answer (Kahoot-style, symmetric for both sides):
+///   `base (10) + speed bonus (up to 10, scaled by time remaining)
+///   + first bonus (3, locked in before the opponent)
+///   + streak bonus (2 × streak, capped)`.
+///   An equal-score tie is broken by total answer time — the faster brain
+///   wins, mirroring the leaderboard's tie-break rule.
 class BattleProvider extends ChangeNotifier {
   BattleProvider(this._userProvider);
 
@@ -121,6 +138,11 @@ class BattleProvider extends ChangeNotifier {
   int _questionDurationSec = 15;
   int _revealUntilMs = 0;
   int _botAnswerAtMs = 0;
+
+  // Total ms each side has spent answering (all questions, incl. timeouts).
+  // Used for the equal-score tie-break: the faster side wins.
+  int _playerTotalMs = 0;
+  int _botTotalMs = 0;
 
   int _searchStartMs = 0;
   int _searchDurationMs = 0;
@@ -210,8 +232,41 @@ class BattleProvider extends ChangeNotifier {
   BattleRoundPoints get lastRoundOpponent => _lastRoundOpponent;
   int get lastRoundOpponentPts => _lastRoundOpponent.total;
 
-  bool get isPlayerWin => playerScore > opponentScore;
-  bool get isDraw => playerScore == opponentScore;
+  /// Total ms this player has spent answering across the whole match.
+  int get playerTotalMs => _playerTotalMs;
+
+  /// Total ms the opponent has spent answering (live: summed from the room's
+  /// answer records; bot: the bot's accumulated think time).
+  int get opponentTotalMs {
+    if (isLive) {
+      final opponent = _room?.opponentOf(_side);
+      if (opponent == null) return 0;
+      var sum = 0;
+      for (final answer in opponent.answers.values) {
+        sum += answer.msTaken;
+      }
+      return sum;
+    }
+    return _botTotalMs;
+  }
+
+  /// Breaks an equal-score tie: the side that answered faster overall wins
+  /// (mirrors the leaderboard's "equal scores ranked by fastest time").
+  /// Returns null when there is no tie to break or no reliable timing data
+  /// (legacy rooms / forfeits) — then it stays a true draw.
+  String? _tieBreakSide() {
+    if (playerScore != opponentScore) return null;
+    final myMs = _playerTotalMs;
+    final oppMs = opponentTotalMs;
+    if (myMs <= 0 || oppMs <= 0) return null;
+    if (myMs == oppMs) return null;
+    return myMs < oppMs ? _side : (_side == 'a' ? 'b' : 'a');
+  }
+
+  bool get isPlayerWin =>
+      playerScore > opponentScore || _tieBreakSide() == _side;
+
+  bool get isDraw => playerScore == opponentScore && _tieBreakSide() == null;
 
   /// Seconds left in the matchmaking window (for the searching view).
   int get searchSecondsRemaining {
@@ -226,8 +281,15 @@ class BattleProvider extends ChangeNotifier {
   String get revealMessage {
     if (_forfeitWin) return '🏆 $opponentName forfeited — you win!';
     if (playerTimedOut) return '⏰ You ran out of time!';
-    if (opponentTimedOut) return '🤖 $opponentName ran out of time!';
-    if (isPlayerCorrect && isOpponentCorrect) return '⚡ Both got it right!';
+    if (opponentTimedOut) return '⌛ $opponentName ran out of time!';
+    if (isPlayerCorrect && isOpponentCorrect) {
+      // Who was faster? That decides who "took" the round on points.
+      final mine = _lastRoundPlayer.total;
+      final theirs = _lastRoundOpponent.total;
+      if (mine > theirs) return '🔥 You took this round!';
+      if (theirs > mine) return '💥 $opponentName took this round!';
+      return '⚡ Both got it right!';
+    }
     if (isPlayerCorrect) return '🔥 You took this round!';
     if (isOpponentCorrect) return '🤖 $opponentName took this round!';
     return '😅 Nobody got it!';
@@ -260,7 +322,9 @@ class BattleProvider extends ChangeNotifier {
   int get battleQuestionCount => _userProvider.config.battleQuestionCount;
   int get battleBasePoints => _userProvider.config.battleBasePoints;
   int get battleSpeedBonus => _userProvider.config.battleSpeedBonus;
+  int get battleFirstBonus => _userProvider.config.battleFirstBonus;
   int get battleStreakBonus => _userProvider.config.battleStreakBonus;
+  int get battleMaxStreakBonus => _userProvider.config.battleMaxStreakBonus;
 
   /// Total matchmaking window in whole seconds (for the searching progress bar).
   int get searchSecondsTotal => (_searchDurationMs / 1000).ceil();
@@ -295,6 +359,7 @@ class BattleProvider extends ChangeNotifier {
     _playerAnswered = false;
     _playerTimedOut = false;
     _lastRoundPlayer = BattleRoundPoints.zero;
+    _playerTotalMs = 0;
 
     _opponentScore = 0;
     _opponentCorrect = 0;
@@ -302,6 +367,7 @@ class BattleProvider extends ChangeNotifier {
     _opponentSelected = null;
     _opponentAnswered = false;
     _lastRoundOpponent = BattleRoundPoints.zero;
+    _botTotalMs = 0;
 
     _earnedCoins = 0;
     _earnedGems = 0;
@@ -684,6 +750,13 @@ class BattleProvider extends ChangeNotifier {
     }
     _opponentAnswered = true;
 
+    // The bot's think time feeds the same time-scaled speed formula, so the
+    // scoreboard stays symmetric between bot and live matches.
+    final durationMs = _questionDurationSec * 1000;
+    final remainingMs = (_questionDeadlineMs - now).clamp(0, durationMs);
+    final msTaken = durationMs - remainingMs;
+    _botTotalMs += msTaken;
+
     // Bot answered first only if player hasn't answered yet
     final botAnsweredFirst = !_playerAnswered;
     if (_opponentSelected == question.correctIndex) {
@@ -691,12 +764,13 @@ class BattleProvider extends ChangeNotifier {
         correct: true,
         answeredFirst: botAnsweredFirst,
         streak: _opponentStreak,
-      );
+        remainingMs: remainingMs,
+      ).withMs(msTaken);
       _opponentStreak += 1;
       _opponentCorrect += 1;
       _opponentScore += _lastRoundOpponent.total;
     } else {
-      _lastRoundOpponent = BattleRoundPoints.zero;
+      _lastRoundOpponent = BattleRoundPoints.zero.withMs(msTaken);
       _opponentStreak = 0;
     }
     notifyListeners();
@@ -716,6 +790,11 @@ class BattleProvider extends ChangeNotifier {
     final question = currentQuestion;
     final right = question != null && index == question.correctIndex;
 
+    final durationMs = _questionDurationSec * 1000;
+    final remainingMs = (_questionDeadlineMs - now).clamp(0, durationMs);
+    final msTaken = durationMs - remainingMs;
+    _playerTotalMs += msTaken;
+
     // Player answered first if opponent hasn't answered yet
     final playerAnsweredFirst = !opponentAnswered;
     if (right) {
@@ -723,17 +802,23 @@ class BattleProvider extends ChangeNotifier {
         correct: true,
         answeredFirst: playerAnsweredFirst,
         streak: _playerStreak,
-      );
+        remainingMs: remainingMs,
+      ).withMs(msTaken);
       _playerStreak += 1;
       _playerCorrect += 1;
       _playerScore += _lastRoundPlayer.total;
     } else {
-      _lastRoundPlayer = BattleRoundPoints.zero;
+      _lastRoundPlayer = BattleRoundPoints.zero.withMs(msTaken);
       _playerStreak = 0;
     }
 
+    // Bot match: once the player has locked in, the bot resolves within a
+    // heartbeat instead of finishing its full "think" delay — the player
+    // should never stare at "thinking…" for six seconds after answering.
+    _compressBotAnswer(now);
+
     if (isLive) {
-      _writeMyAnswer(selected: index, right: right, remaining: 0);
+      _writeMyAnswer(selected: index, right: right, msTaken: msTaken);
     }
     notifyListeners();
     _maybeReveal(now);
@@ -744,14 +829,32 @@ class BattleProvider extends ChangeNotifier {
     _playerAnswered = true;
     _playerTimedOut = true;
     _playerSelected = null;
-    _lastRoundPlayer = BattleRoundPoints.zero;
+
+    final durationMs = _questionDurationSec * 1000;
+    _lastRoundPlayer = BattleRoundPoints.zero.withMs(durationMs);
+    _playerTotalMs += durationMs;
 
     final now = DateTime.now().millisecondsSinceEpoch;
+    _compressBotAnswer(now);
+
     if (isLive) {
-      _writeMyAnswer(selected: -1, right: false, remaining: 0);
+      _writeMyAnswer(selected: -1, right: false, msTaken: durationMs);
     }
     notifyListeners();
     _maybeReveal(now);
+  }
+
+  /// Bot matches only: pull the bot's pending answer closer so the round
+  /// resolves quickly once the player is done waiting.
+  void _compressBotAnswer(int now) {
+    if (isLive || _opponentAnswered) return;
+    final maxWaitMs = 600 + _rng.nextInt(1200); // 0.6–1.8 s
+    var compressedAt = now + maxWaitMs;
+    // Never let the compressed answer drift past the question window.
+    if (compressedAt > _questionDeadlineMs) compressedAt = _questionDeadlineMs;
+    if (compressedAt < _botAnswerAtMs) {
+      _botAnswerAtMs = compressedAt;
+    }
   }
 
   void _maybeReveal(int now) {
@@ -771,9 +874,14 @@ class BattleProvider extends ChangeNotifier {
       final answer = _room?.opponentOf(_side)?.answerFor(_currentIndex);
       if (answer != null) {
         _lastRoundOpponent = BattleRoundPoints(
-          base: answer.points - answer.timeBonus - answer.streakBonus,
+          base: answer.points -
+              answer.timeBonus -
+              answer.firstBonus -
+              answer.streakBonus,
           speedBonus: answer.timeBonus,
+          firstBonus: answer.firstBonus,
           streakBonus: answer.streakBonus,
+          msTaken: answer.msTaken,
         );
       }
     }
@@ -798,24 +906,31 @@ class BattleProvider extends ChangeNotifier {
     }
   }
 
-  /// New scoring: base=10, speed=+5 if before opponent, streak=+2×streak.
+  /// Scoring: base=10, speed=up to +10 scaled by time remaining,
+  /// first=+3 before the opponent, streak=+2×streak (capped).
   BattleRoundPoints _computePoints({
     required bool correct,
     required bool answeredFirst, // true = this side answered before the other
     required int streak,
+    required int remainingMs, // ms left on the clock when this side answered
   }) {
     final cfg = _userProvider.config;
     final parts = BattleScoring.compute(
       correct: correct,
+      remainingMs: remainingMs,
+      questionDurationMs: _questionDurationSec * 1000,
       answeredBeforeOpponent: answeredFirst,
       streak: streak,
       basePoints: cfg.battleBasePoints,
-      speedBonus: cfg.battleSpeedBonus,
+      maxSpeedBonus: cfg.battleSpeedBonus,
+      firstBonus: cfg.battleFirstBonus,
       streakBonusPerStreak: cfg.battleStreakBonus,
+      maxStreakBonus: cfg.battleMaxStreakBonus,
     );
     return BattleRoundPoints(
       base: parts.base,
       speedBonus: parts.speedBonus,
+      firstBonus: parts.firstBonus,
       streakBonus: parts.streakBonus,
     );
   }
@@ -857,8 +972,13 @@ class BattleProvider extends ChangeNotifier {
     _phase = BattlePhase.finished;
 
     if (isLive) {
-      final winner =
-          isPlayerWin ? _side : isDraw ? 'draw' : (_side == 'a' ? 'b' : 'a');
+      // A forfeit always means the remaining player wins, regardless of the
+      // score at the moment the opponent left.
+      final winner = (isPlayerWin || _forfeitWin)
+          ? _side
+          : isDraw
+              ? 'draw'
+              : (_side == 'a' ? 'b' : 'a');
       _roomService.finishRoom(_roomId!, winner);
 
       // Single-award guard: a room can never pay twice on this device.
@@ -869,14 +989,17 @@ class BattleProvider extends ChangeNotifier {
       HiveService.markBattleRoomProcessed(_roomId!);
     }
 
+    // Performance-scaled rewards: correct answers always pay something, so
+    // students walk away with progress even after a loss — the hook that
+    // makes them queue up for "one more battle".
     if (isPlayerWin || isForfeit) {
-      _earnedCoins = 50;
+      _earnedCoins = 40 + 2 * _playerCorrect;
       _earnedGems = 2;
     } else if (isDraw) {
-      _earnedCoins = 10;
+      _earnedCoins = 15 + _playerCorrect;
       _earnedGems = 0;
     } else {
-      _earnedCoins = 0;
+      _earnedCoins = 5 + _playerCorrect;
       _earnedGems = 0;
     }
 
@@ -903,7 +1026,7 @@ class BattleProvider extends ChangeNotifier {
   void _writeMyAnswer({
     required int selected,
     required bool right,
-    required int remaining,
+    required int msTaken,
   }) {
     final now = DateTime.now().millisecondsSinceEpoch;
     final answer = BattleAnswer(
@@ -911,7 +1034,9 @@ class BattleProvider extends ChangeNotifier {
       correct: right,
       points: _lastRoundPlayer.total,
       timeBonus: _lastRoundPlayer.timeBonus,
+      firstBonus: _lastRoundPlayer.firstBonus,
       streakBonus: _lastRoundPlayer.streakBonus,
+      msTaken: msTaken,
       timedOut: selected < 0,
     );
     _writeMyPlayer({

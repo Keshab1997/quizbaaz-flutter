@@ -42,11 +42,18 @@ class AppConfig {
   /// Base points for a correct battle answer (both sides).
   final int battleBasePoints;
 
-  /// Speed bonus: awarded when player answers before opponent.
+  /// Max time-scaled speed bonus: instant answer pays it all, answering with
+  /// the last second pays ~0 (Kahoot-style continuous speed scoring).
   final int battleSpeedBonus;
+
+  /// Flat race bonus: locked in before the opponent answered.
+  final int battleFirstBonus;
 
   /// Bonus per consecutive correct answer streak (multiplied by streak count).
   final int battleStreakBonus;
+
+  /// Cap for the streak bonus so long battles can't snowball forever.
+  final int battleMaxStreakBonus;
 
   /// Seconds spent looking for a real player before falling back to a bot
   /// (guests and offline players use a short 3 s scan).
@@ -72,16 +79,19 @@ class AppConfig {
     this.streakGoalDays = 7,
     this.battleQuestionCount = 5,
     this.battleBasePoints = 10,
-    this.battleSpeedBonus = 5,
+    this.battleSpeedBonus = 10,
+    this.battleFirstBonus = 3,
     this.battleStreakBonus = 2,
+    this.battleMaxStreakBonus = 10,
     this.battleSearchSeconds = 6,
     this.adminUserIds = const <String>[],
     this.leaderboardCacheMinutes = 10,
   });
 
-  /// Maximum points a single battle question can pay out (base + speed + streak).
+  /// Maximum points a single battle question can pay out
+  /// (base + speed + first + capped streak).
   int get battleMaxPointsPerQuestion =>
-      battleBasePoints + battleSpeedBonus + (battleStreakBonus * 5);
+      battleBasePoints + battleSpeedBonus + battleFirstBonus + battleMaxStreakBonus;
 
   /// Total seconds a full daily quiz can take.
   int get dailyTotalSeconds => dailyQuestionCount * secondsPerQuestion;
@@ -119,7 +129,9 @@ class AppConfig {
         'battle_question_count': battleQuestionCount,
         'battle_base_points': battleBasePoints,
         'battle_speed_bonus': battleSpeedBonus,
+        'battle_first_bonus': battleFirstBonus,
         'battle_streak_bonus': battleStreakBonus,
+        'battle_max_streak_bonus': battleMaxStreakBonus,
         'battle_search_seconds': battleSearchSeconds,
         'admin_user_ids': adminUserIds,
         'leaderboard_cache_minutes': leaderboardCacheMinutes,
@@ -153,8 +165,12 @@ class AppConfig {
           intOr('battle_base_points', fallback.battleBasePoints),
       battleSpeedBonus:
           intOr('battle_speed_bonus', fallback.battleSpeedBonus),
+      battleFirstBonus:
+          intOr('battle_first_bonus', fallback.battleFirstBonus),
       battleStreakBonus:
           intOr('battle_streak_bonus', fallback.battleStreakBonus),
+      battleMaxStreakBonus:
+          intOr('battle_max_streak_bonus', fallback.battleMaxStreakBonus),
       battleSearchSeconds:
           intOr('battle_search_seconds', fallback.battleSearchSeconds),
       adminUserIds: (json['admin_user_ids'] as List<dynamic>?)

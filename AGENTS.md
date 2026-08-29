@@ -59,9 +59,9 @@ Naming: `*_screen.dart`, `*_widget.dart`, `*_provider.dart`, `*_service.dart`.
 One public class per file.
 
 **Size map** (helps you decide what to read before editing):
-`user_provider` 641 · `quiz_provider` 580 · `firestore_service` 470 ·
+`user_provider` 907 · `quiz_provider` 722 · `firestore_service` 470 ·
 `hive_service` 431 · `shop_service` 418 · `sync_service` 355 ·
-`battle_provider` 345 · `translation_service` 223 · `locale_provider` 102.
+`battle_provider` 1099 · `translation_service` 223 · `locale_provider` 102.
 
 ---
 

@@ -282,9 +282,10 @@ class _SetupViewState extends State<_SetupView>
             const SizedBox(height: 8),
             Text(
               '⚡ ${battle.battleQuestionCount} questions • '
-              '✅ Correct +${battle.battleBasePoints}  '
-              '⚡ First +${battle.battleSpeedBonus}  '
-              '🔥 Streak +${battle.battleStreakBonus}×n pts',
+              '✅ Correct +${battle.battleBasePoints} • '
+              '⚡ Speed up to +${battle.battleSpeedBonus} • '
+              '🥇 First +${battle.battleFirstBonus} • '
+              '🔥 Streak +${battle.battleStreakBonus}×n',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 11,
@@ -1600,10 +1601,22 @@ class _PointsBreakdown extends StatelessWidget {
               color: pts.total > 0 ? Colors.white : AppColors.textMuted,
             ),
           ),
+          if (pts.msTaken > 0) ...[
+            const SizedBox(height: 2),
+            Text(
+              '⏱ ${(pts.msTaken / 1000).toStringAsFixed(1)}s',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
           if (pts.total > 0) ...[
             const SizedBox(height: 2),
             _chip('✅ Correct', pts.base, color),
-            if (pts.speedBonus > 0) _chip('⚡ First!', pts.speedBonus, color),
+            if (pts.speedBonus > 0) _chip('⚡ Speed', pts.speedBonus, color),
+            if (pts.firstBonus > 0) _chip('🥇 First', pts.firstBonus, color),
             if (pts.streakBonus > 0) _chip('🔥 Streak', pts.streakBonus, color),
           ] else
             const Text(
@@ -2085,23 +2098,41 @@ class _ResultViewState extends State<_ResultView>
                 child: GlassCard(
                   borderRadius: 20,
                   borderColor: color.withValues(alpha: 0.5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  child: Column(
                     children: [
-                      _resultStat(
-                        S.you,
-                        '${battle.playerScore}',
-                        '${battle.playerCorrect}/'
-                        '${battle.totalQuestions} ${S.correct}',
-                        AppColors.neonCyan,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _resultStat(
+                            S.you,
+                            '${battle.playerScore}',
+                            '${battle.playerCorrect}/'
+                                '${battle.totalQuestions} ${S.correct}',
+                            AppColors.neonCyan,
+                          ),
+                          Container(width: 1, height: 60, color: Colors.white12),
+                          _resultStat(
+                            battle.opponentName,
+                            '${battle.opponentScore}',
+                            S.battleBotCorrect(n: battle.opponentCorrect),
+                            AppColors.neonPink,
+                          ),
+                        ],
                       ),
-                      Container(width: 1, height: 60, color: Colors.white12),
-                      _resultStat(
-                        battle.opponentName,
-                        '${battle.opponentScore}',
-                        S.battleBotCorrect(n: battle.opponentCorrect),
-                        AppColors.neonPink,
-                      ),
+                      // Total answer time — the equal-score tie-breaker.
+                      if (battle.playerTotalMs > 0 && battle.opponentTotalMs > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Text(
+                            '⏱ ${(battle.playerTotalMs / 1000).toStringAsFixed(1)}s'
+                            '  vs  '
+                            '${(battle.opponentTotalMs / 1000).toStringAsFixed(1)}s',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),

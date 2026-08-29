@@ -23,8 +23,10 @@ class BattleAnswer {
   final int selected; // -1 when timed out
   final bool correct;
   final int points;
-  final int timeBonus;
+  final int timeBonus; // time-scaled speed bonus actually paid
+  final int firstBonus; // paid when locked in before the opponent
   final int streakBonus;
+  final int msTaken; // ms spent on this question (0 = unknown / legacy)
   final bool timedOut;
 
   const BattleAnswer({
@@ -34,6 +36,8 @@ class BattleAnswer {
     required this.timeBonus,
     required this.streakBonus,
     required this.timedOut,
+    this.firstBonus = 0,
+    this.msTaken = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -41,7 +45,9 @@ class BattleAnswer {
         'correct': correct,
         'points': points,
         'time_bonus': timeBonus,
+        'first_bonus': firstBonus,
         'streak_bonus': streakBonus,
+        'ms_taken': msTaken,
         'timed_out': timedOut,
       };
 
@@ -50,7 +56,9 @@ class BattleAnswer {
         correct: json['correct'] as bool? ?? false,
         points: (json['points'] as num?)?.toInt() ?? 0,
         timeBonus: (json['time_bonus'] as num?)?.toInt() ?? 0,
+        firstBonus: (json['first_bonus'] as num?)?.toInt() ?? 0,
         streakBonus: (json['streak_bonus'] as num?)?.toInt() ?? 0,
+        msTaken: (json['ms_taken'] as num?)?.toInt() ?? 0,
         timedOut: json['timed_out'] as bool? ?? false,
       );
 }

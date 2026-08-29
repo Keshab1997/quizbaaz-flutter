@@ -59,14 +59,23 @@
 
 | part | value (config) | rule |
 |---|---|---|
-| base | `battle_base_points` = **100** | every correct answer |
-| time bonus | `battle_time_bonus_max` = **100** | `round(bonus × remaining / total)` |
-| streak bonus | `battle_streak_bonus` = **25** | from the 2nd consecutive correct answer |
-| **max / question** | 100 + 100 + 25 = **225** | player & bot use the identical formula |
+| base | `battle_base_points` = **10** | every correct answer |
+| speed bonus | `battle_speed_bonus` = **10** (max) | `round(max × remaining / total)` — instant answer pays it all |
+| first bonus | `battle_first_bonus` = **3** | locked in before the opponent answered |
+| streak bonus | `battle_streak_bonus` = **2** × streak (cap `battle_max_streak_bonus` = **10**) | from the 2nd consecutive correct answer |
+| **max / question** | 10 + 10 + 3 + 8 = **31** | player & bot use the identical formula |
 
+* Wrong / timed-out answers pay **0** — guessing is never punished, students stay in the game.
 * Bot keeps its difficulty-based accuracy (easy 45% / normal 62% / hard 78%) but its
-  "think delay" now feeds the *same* time-bonus formula, so the scoreboard is fair.
-* Reveal shows the breakdown: `+185 (100 base + 60 speed + 25 streak)`.
+  "think delay" now feeds the *same* time-scaled speed formula, so the scoreboard is fair.
+* Once the player has locked in, a pending bot answer is compressed to ≤1.8 s so the
+  round resolves quickly (no staring at "thinking…" after answering).
+* Equal score at the end → **fastest total answer time wins** (same tie-break as the
+  leaderboard); only a dead heat stays a draw.
+* Reveal shows the breakdown: `+25 (10 base + 9 speed + 3 first + 4 streak)` plus the
+  time each side took, e.g. `⏱ 2.3s`.
+* Rewards scale with performance: win `40 + 2×correct` coins + 2 gems, draw
+  `15 + correct`, loss `5 + correct` (a loss still pays, so students re-queue).
 
 ### 3. Matchmaking — `BattleRoomService` (new, Firestore)
 
