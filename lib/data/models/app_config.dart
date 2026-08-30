@@ -47,12 +47,13 @@ class AppConfig {
   final int battleSpeedBonus;
 
   /// Flat race bonus: locked in before the opponent answered.
+  /// Flat bonus for locking in an answer before the opponent (default 2).
   final int battleFirstBonus;
 
   /// Bonus per consecutive correct answer streak (multiplied by streak count).
   final int battleStreakBonus;
 
-  /// Cap for the streak bonus so long battles can't snowball forever.
+  /// Cap for the streak bonus so long battles can't snowball forever (default 6).
   final int battleMaxStreakBonus;
 
   /// Seconds spent looking for a real player before falling back to a bot
@@ -80,16 +81,16 @@ class AppConfig {
     this.battleQuestionCount = 5,
     this.battleBasePoints = 10,
     this.battleSpeedBonus = 10,
-    this.battleFirstBonus = 3,
+    this.battleFirstBonus = 2,
     this.battleStreakBonus = 2,
-    this.battleMaxStreakBonus = 10,
+    this.battleMaxStreakBonus = 6,
     this.battleSearchSeconds = 6,
     this.adminUserIds = const <String>[],
     this.leaderboardCacheMinutes = 10,
   });
 
   /// Maximum points a single battle question can pay out
-  /// (base + speed + first + capped streak).
+  /// (base 10 + speed 10 + first 2 + capped streak 6 = 28).
   int get battleMaxPointsPerQuestion =>
       battleBasePoints + battleSpeedBonus + battleFirstBonus + battleMaxStreakBonus;
 
@@ -182,3 +183,4 @@ class AppConfig {
     );
   }
 }
+
