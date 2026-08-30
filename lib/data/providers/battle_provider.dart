@@ -1105,4 +1105,50 @@ class BattleProvider extends ChangeNotifier {
     }
     super.dispose();
   }
+
+
+  /// Reset battle state — call when navigating away or starting fresh.
+  /// Clears all scores, phase, questions, and timers.
+  void resetBattle() {
+    _disposeTimers();
+    _roomSub?.cancel();
+    _roomSub = null;
+
+    _phase = BattlePhase.setup;
+    _forfeitWin = false;
+    _emptyBank = false;
+    _opponent = null;
+    _isBotMatch = true;
+    _room = null;
+    _roomId = null;
+    _side = 'a';
+
+    _questions = [];
+    _currentIndex = 0;
+
+    _playerScore = 0;
+    _playerCorrect = 0;
+    _playerStreak = 0;
+    _playerSelected = null;
+    _playerAnswered = false;
+    _playerTimedOut = false;
+    _lastRoundPlayer = BattleRoundPoints.zero;
+    _playerTotalMs = 0;
+
+    _opponentScore = 0;
+    _opponentCorrect = 0;
+    _opponentStreak = 0;
+    _opponentSelected = null;
+    _opponentAnswered = false;
+    _lastRoundOpponent = BattleRoundPoints.zero;
+    _botTotalMs = 0;
+
+    _earnedCoins = 0;
+    _earnedGems = 0;
+
+    _searchStartMs = 0;
+    _searchDurationMs = 0;
+
+    notifyListeners();
+  }
 }
