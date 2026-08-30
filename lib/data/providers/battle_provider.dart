@@ -874,14 +874,6 @@ class BattleProvider extends ChangeNotifier {
   String get _botAvatar => _botAvatars[_rng.nextInt(_botAvatars.length)];
   String get _botName => _botNames[_rng.nextInt(_botNames.length)];
 
-  String _randomBotName() {
-    const names = [
-      'NeoMind', 'QuizBot X', 'ByteBrain', 'RoboRaj',
-      'BlazeBhai', 'MegaMind', 'ChipChamp', 'QuantumQ',
-    ];
-    return names[_rng.nextInt(names.length)];
-  }
-
   // ----------------------------------------------------------- questions --
 
   void _startQuestion(int now) {
