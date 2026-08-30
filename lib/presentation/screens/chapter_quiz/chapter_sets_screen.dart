@@ -6,7 +6,9 @@ import '../../../data/models/chapter_model.dart';
 import '../../../data/models/chapter_set_progress.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../../data/repositories/quiz_repository.dart';
+import '../../../data/services/haptic_service.dart';
 import '../../../data/services/hive_service.dart';
+import '../../../data/services/sound_service.dart';
 import '../../../l10n/app_strings.dart';
 import '../../widgets/glass_card.dart';
 import '../daily_quiz/daily_quiz_screen.dart';
@@ -525,6 +527,8 @@ class _ChapterSetsScreenState extends State<ChapterSetsScreen>
   // ------------------------------------------------------------------ play --
 
   Future<void> _play(int setIndex, {required bool practice}) async {
+    SoundService.instance.play('ui_whoosh');
+    Haptics.tap();
     await context.read<QuizProvider>().startChapterQuiz(
           widget.chapter.jsonFile,
           chapterId: _chapterId,

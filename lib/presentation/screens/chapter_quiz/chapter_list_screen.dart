@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/chapter_model.dart';
 import '../../../data/repositories/quiz_repository.dart';
+import '../../../data/services/haptic_service.dart';
+import '../../../data/services/sound_service.dart';
 import '../../widgets/glass_card.dart';
 import 'chapter_sets_screen.dart';
 import '../../../l10n/app_strings.dart';
@@ -130,6 +132,8 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
             padding: const EdgeInsets.only(right: 8.0),
             child: GestureDetector(
               onTap: () {
+                SoundService.instance.play('ui_click');
+                Haptics.tap();
                 setState(() {
                   _selectedCategoryIndex = idx;
                 });
@@ -181,6 +185,8 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
         backgroundColor: isLocked ? const Color(0x221E293B) : const Color(0x331E1B4B),
         onTap: isLocked
             ? () {
+                SoundService.instance.play('ui_deny');
+                Haptics.error();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(S.chapterLockedMsg)),
                 );
@@ -188,7 +194,10 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
             // Opens the set list rather than launching the whole bank at
             // once: a chapter keeps growing, and where the student left off is
             // the first thing they need to see.
-            : () => Navigator.push(
+            : () {
+                SoundService.instance.play('ui_click');
+                Haptics.tap();
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => ChapterSetsScreen(
@@ -197,7 +206,8 @@ class _ChapterListScreenState extends State<ChapterListScreen> {
                       accent: catColor,
                     ),
                   ),
-                ),
+                );
+              },
         child: Row(
           children: [
             // Chapter Number Badge or Lock

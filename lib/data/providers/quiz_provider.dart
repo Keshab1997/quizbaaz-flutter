@@ -8,7 +8,9 @@ import '../models/chapter_set_progress.dart';
 import '../models/question_model.dart';
 import '../models/shop_item.dart';
 import '../repositories/quiz_repository.dart';
+import '../services/haptic_service.dart';
 import '../services/hive_service.dart';
+import '../services/sound_service.dart';
 import 'user_provider.dart';
 import '../../l10n/app_strings.dart';
 
@@ -172,6 +174,8 @@ class QuizProvider extends ChangeNotifier {
     _checkActiveBoosters();
 
     if (_questions.isNotEmpty) _startTimer();
+    SoundService.instance.play('quiz_start');
+    Haptics.tap();
     notifyListeners();
   }
 
@@ -235,6 +239,8 @@ class QuizProvider extends ChangeNotifier {
     _checkActiveBoosters();
 
     if (_questions.isNotEmpty) _startTimer();
+    SoundService.instance.play('quiz_start');
+    Haptics.tap();
     notifyListeners();
   }
 
@@ -279,6 +285,11 @@ class QuizProvider extends ChangeNotifier {
 
     // Extra Life - check if owned
     _extraLifeAvailable = _userProvider.hasItem(ShopItemIds.extraLife);
+
+    if (_doublePointsActive) {
+      SoundService.instance.play('boost');
+      Haptics.medium();
+    }
   }
 
   /// Randomises option order once per load.
@@ -342,6 +353,10 @@ class QuizProvider extends ChangeNotifier {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
         _secondsRemaining--;
+        // Urgency tick for the final 5 seconds.
+        if (_secondsRemaining <= 5) {
+          SoundService.instance.play('quiz_tick');
+        }
         notifyListeners();
       } else {
         _timer?.cancel();
@@ -373,6 +388,8 @@ class QuizProvider extends ChangeNotifier {
       }
 
       _score += points;
+      SoundService.instance.play('quiz_correct');
+      Haptics.light();
     } else {
       // Wrong answer - check for extra life
       if (_extraLifeAvailable && !_extraLifeUsed) {
@@ -380,10 +397,14 @@ class QuizProvider extends ChangeNotifier {
         _userProvider.consumeItem(ShopItemIds.extraLife);
         _isAnswerSubmitted = false;
         _selectedOptionIndex = null;
+        SoundService.instance.play('revive');
+        Haptics.heavy();
         notifyListeners();
         return; // Don't count as wrong, let them try again
       }
       _wrongCount++;
+      SoundService.instance.play('quiz_wrong');
+      Haptics.error();
     }
 
     final q = currentQuestion;
@@ -413,6 +434,8 @@ class QuizProvider extends ChangeNotifier {
       _userProvider.consumeItem(ShopItemIds.extraLife);
       _secondsRemaining = 5; // Give 5 more seconds
       _isAnswerSubmitted = false;
+      SoundService.instance.play('revive');
+      Haptics.heavy();
       _startTimer();
       notifyListeners();
       return;
@@ -420,6 +443,8 @@ class QuizProvider extends ChangeNotifier {
 
     _wrongCount++;
     _totalTimeSeconds += questionTimeSec.toDouble();
+    SoundService.instance.play('quiz_timeout');
+    Haptics.error();
 
     final q = currentQuestion;
     if (q != null) {
@@ -455,6 +480,7 @@ class QuizProvider extends ChangeNotifier {
       _currentHint = null;
       _audiencePollResults = null;
 
+      SoundService.instance.play('ui_whoosh');
       _startTimer();
     } else {
       _isQuizCompleted = true;
@@ -464,6 +490,11 @@ class QuizProvider extends ChangeNotifier {
       if (_doublePointsActive) {
         _userProvider.consumeItem(ShopItemIds.doublePoints);
       }
+
+      final perfect =
+          _questions.isNotEmpty && _correctCount == _questions.length;
+      SoundService.instance.play(perfect ? 'quiz_perfect' : 'quiz_complete');
+      Haptics.heavy();
 
       _grantRewards();
       _recordSetProgress();
@@ -562,6 +593,11 @@ class QuizProvider extends ChangeNotifier {
       _earnedGems = 0;
       _dailyRewardSkipped = true;
     }
+
+    if (granted && (coins > 0 || gems > 0)) {
+      SoundService.instance.play('coin');
+      Haptics.medium();
+    }
   }
 
   // -------------------------------------------------------------- Lifelines --
@@ -584,6 +620,8 @@ class QuizProvider extends ChangeNotifier {
     // Remove 2 wrong options on a 4-option question to leave exactly 2 options active.
     final toRemove = wrongOptions.length >= 2 ? 2 : 1;
     _disabledOptionIndices = wrongOptions.take(toRemove).toList();
+    SoundService.instance.play('lifeline_5050');
+    Haptics.light();
     notifyListeners();
     return true;
   }
@@ -599,6 +637,8 @@ class QuizProvider extends ChangeNotifier {
     }
     _freezeUsed = true;
     _secondsRemaining += 10;
+    SoundService.instance.play('lifeline_freeze');
+    Haptics.light();
     notifyListeners();
     return true;
   }
@@ -628,6 +668,8 @@ class QuizProvider extends ChangeNotifier {
     }
 
     Future.delayed(const Duration(milliseconds: 500), nextQuestion);
+    SoundService.instance.play('lifeline_skip');
+    Haptics.light();
     notifyListeners();
     return true;
   }
@@ -651,6 +693,8 @@ class QuizProvider extends ChangeNotifier {
         currentQuestion!.optionsIn(displayLanguage)[correctIndex];
     _currentHint = _generateHint(correctAnswer);
 
+    SoundService.instance.play('lifeline_hint');
+    Haptics.light();
     notifyListeners();
     return true;
   }
@@ -684,6 +728,8 @@ class QuizProvider extends ChangeNotifier {
     final correctIndex = currentQuestion!.correctIndex;
     _audiencePollResults = _generateAudiencePoll(correctIndex);
 
+    SoundService.instance.play('lifeline_audience');
+    Haptics.light();
     notifyListeners();
     return true;
   }

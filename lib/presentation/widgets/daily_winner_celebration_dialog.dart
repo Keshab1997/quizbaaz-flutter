@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_colors.dart';
 import '../../data/providers/user_provider.dart';
+import '../../data/services/haptic_service.dart';
+import '../../data/services/sound_service.dart';
 import 'glass_card.dart';
 
 /// Modal dialog celebrating yesterday's Daily Quiz leaderboard rank win.
@@ -15,6 +17,8 @@ class DailyWinnerCelebrationDialog extends StatelessWidget {
   });
 
   static Future<void> show(BuildContext context, DailyRewardResult reward) {
+    SoundService.instance.play('champion');
+    Haptics.heavy();
     return showDialog(
       context: context,
       barrierDismissible: false,

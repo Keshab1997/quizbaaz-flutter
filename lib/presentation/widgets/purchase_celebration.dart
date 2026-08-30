@@ -6,6 +6,8 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../data/services/haptic_service.dart';
+import '../../data/services/sound_service.dart';
 
 /// Premium purchase-reward overlay.
 ///
@@ -38,6 +40,9 @@ class PurchaseCelebration {
     // Never stack overlays on rapid taps.
     if (_showing) return;
     _showing = true;
+
+    SoundService.instance.play('ui_open');
+    Haptics.medium();
 
     showGeneralDialog(
       context: context,

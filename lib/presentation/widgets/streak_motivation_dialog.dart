@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_colors.dart';
+import '../../data/services/haptic_service.dart';
+import '../../data/services/sound_service.dart';
 import '../widgets/glass_card.dart';
 
 /// Motivational dialog to encourage user to maintain their streak.
@@ -23,7 +24,8 @@ class StreakMotivationDialog extends StatefulWidget {
     required int streakGoal,
     bool hasShield = false,
   }) {
-    HapticFeedback.mediumImpact();
+    SoundService.instance.play('fire');
+    Haptics.medium();
     return showDialog(
       context: context,
       barrierDismissible: true,

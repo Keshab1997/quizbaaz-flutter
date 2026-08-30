@@ -14,6 +14,7 @@ import 'data/providers/rewards_provider.dart';
 import 'data/providers/user_provider.dart';
 import 'data/services/firebase_options.dart';
 import 'data/services/hive_service.dart';
+import 'data/services/sound_service.dart';
 import 'data/services/sync_service.dart';
 import 'l10n/app_strings.dart';
 import 'presentation/screens/dashboard/dashboard_screen.dart';
@@ -29,6 +30,9 @@ Future<void> main() async {
   // 1b) Language must be resolved before the first frame, otherwise the app
   //     flashes English for a moment on a Bangla/Hindi device.
   final localeProvider = LocaleProvider()..initialize();
+
+  // 1c) Preload all game sound effects so every tap is instant later.
+  await SoundService.instance.init();
 
   // 2) Firebase is optional: the whole app works offline without it.
   try {

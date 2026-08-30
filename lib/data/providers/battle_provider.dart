@@ -10,7 +10,9 @@ import '../models/question_model.dart';
 import '../services/battle_question_generator.dart';
 import '../services/battle_room_service.dart';
 import '../services/challenge_service.dart';
+import '../services/haptic_service.dart';
 import '../services/hive_service.dart';
+import '../services/sound_service.dart';
 import 'user_provider.dart';
 
 enum BattleDifficulty { easy, normal, hard }
@@ -350,6 +352,7 @@ class BattleProvider extends ChangeNotifier {
     _difficulty = difficulty;
     _phase = BattlePhase.searching;
     _forfeitWin = false;
+    SoundService.instance.loop('battle_search');
     _emptyBank = false;
     _opponent = null;
     _isBotMatch = true;
@@ -507,7 +510,11 @@ class BattleProvider extends ChangeNotifier {
     _roomId = BattleRoomService.roomIdFor(_userId, opponentUid);
     _side = _userId.compareTo(opponentUid) < 0 ? 'a' : 'b';
     _phase = BattlePhase.found;
-    
+    SoundService.instance.stop('battle_search');
+    SoundService.instance.play('battle_found');
+    SoundService.instance.play('battle_vs');
+    Haptics.medium();
+
     // Watch the room
     _roomSub = _roomService.watchRoom(_roomId!).listen(_onRoomUpdate);
     
@@ -578,6 +585,8 @@ class BattleProvider extends ChangeNotifier {
       });
       _roomService.leaveQueue(_userId);
     }
+    SoundService.instance.stop('battle_search');
+    SoundService.instance.play('ui_back');
     _phase = BattlePhase.setup;
     notifyListeners();
   }
@@ -586,6 +595,8 @@ class BattleProvider extends ChangeNotifier {
     if (_phase != BattlePhase.searching) return;
     if (_liveCapable) _roomService.leaveQueue(_userId);
     _disposeTimers();
+    SoundService.instance.stop('battle_search');
+    SoundService.instance.play('ui_back');
     _phase = BattlePhase.setup;
     notifyListeners();
   }
@@ -613,6 +624,8 @@ class BattleProvider extends ChangeNotifier {
 
     // Bot match in progress — stop everything and reset
     _disposeTimers();
+    SoundService.instance.stop('battle_search');
+    SoundService.instance.play('ui_back');
     _phase = BattlePhase.setup;
     _opponent = null;
     _questions = [];
@@ -658,6 +671,10 @@ class BattleProvider extends ChangeNotifier {
     );
     _phase = BattlePhase.found;
     _pollTimer?.cancel();
+    SoundService.instance.stop('battle_search');
+    SoundService.instance.play('battle_found');
+    SoundService.instance.play('battle_vs');
+    Haptics.medium();
     notifyListeners();
 
     _roomSub = _roomService.watchRoom(_roomId!).listen(_onRoomUpdate);
@@ -796,6 +813,7 @@ class BattleProvider extends ChangeNotifier {
     if (_countdownUntilMs <= 0) return;
     if (now >= _countdownUntilMs - 2800) {
       _phase = BattlePhase.countdown;
+      SoundService.instance.play('battle_count');
       notifyListeners();
     }
   }
@@ -810,6 +828,8 @@ class BattleProvider extends ChangeNotifier {
     final seconds = remainingMs <= 0 ? 0 : (remainingMs / 1000).ceil();
     if (seconds <= 3 && seconds != _countdownValue) {
       _countdownValue = seconds.clamp(1, 3);
+      SoundService.instance.play('battle_count');
+      Haptics.tap();
       notifyListeners();
     }
     if (remainingMs <= 0) {
@@ -847,6 +867,10 @@ class BattleProvider extends ChangeNotifier {
 
     _countdownUntilMs = DateTime.now().millisecondsSinceEpoch + 5600;
     _phase = BattlePhase.found;
+    SoundService.instance.stop('battle_search');
+    SoundService.instance.play('battle_found');
+    SoundService.instance.play('battle_vs');
+    Haptics.medium();
     notifyListeners();
   }
 
@@ -898,6 +922,8 @@ class BattleProvider extends ChangeNotifier {
     _opponentAnswered = false;
 
     _phase = BattlePhase.question;
+    SoundService.instance.play('battle_go');
+    Haptics.tap();
     notifyListeners();
 
     if (!isLive) {
@@ -1028,9 +1054,13 @@ class BattleProvider extends ChangeNotifier {
       _playerStreak += 1;
       _playerCorrect += 1;
       _playerScore += _lastRoundPlayer.total;
+      SoundService.instance.play('quiz_correct');
+      Haptics.light();
     } else {
       _lastRoundPlayer = BattleRoundPoints.zero.withMs(msTaken);
       _playerStreak = 0;
+      SoundService.instance.play('quiz_wrong');
+      Haptics.error();
     }
 
     // Bot match: once the player has locked in, the bot resolves within a
@@ -1054,6 +1084,8 @@ class BattleProvider extends ChangeNotifier {
     final durationMs = _questionDurationSec * 1000;
     _lastRoundPlayer = BattleRoundPoints.zero.withMs(durationMs);
     _playerTotalMs += durationMs;
+    SoundService.instance.play('quiz_timeout');
+    Haptics.error();
 
     final now = DateTime.now().millisecondsSinceEpoch;
     _compressBotAnswer(now);
@@ -1192,6 +1224,17 @@ class BattleProvider extends ChangeNotifier {
   void _finishBattle() {
     _disposeTimers();
     _phase = BattlePhase.finished;
+    SoundService.instance.stop('battle_search');
+    if (isPlayerWin || isForfeit) {
+      SoundService.instance.play('battle_win');
+      Haptics.heavy();
+    } else if (isDraw) {
+      SoundService.instance.play('battle_lose');
+      Haptics.medium();
+    } else {
+      SoundService.instance.play('battle_lose');
+      Haptics.error();
+    }
 
     if (isLive) {
       // A forfeit always means the remaining player wins, regardless of the

@@ -12,6 +12,8 @@ import '../../../data/models/user_stats.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/rewards_provider.dart';
 import '../../../data/providers/user_provider.dart';
+import '../../../data/services/haptic_service.dart';
+import '../../../data/services/sound_service.dart';
 import '../../../l10n/app_strings.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/name_effect_text.dart';
@@ -86,6 +88,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _onNavTap(int index) {
+    SoundService.instance.play('ui_click');
+    Haptics.tap();
     switch (index) {
       case 0:
         setState(() => _currentNavIndex = 0);
@@ -113,6 +117,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _startDailyQuiz() {
+    SoundService.instance.play('ui_whoosh');
+    Haptics.tap();
     context.read<QuizProvider>().startDailyQuiz();
     Navigator.push(
       context,
@@ -945,7 +951,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             borderRadius: 19,
             borderColor: action.color.withValues(alpha: 0.26),
-            onTap: action.onTap,
+            onTap: () {
+              SoundService.instance.play('ui_click');
+              Haptics.tap();
+              action.onTap();
+            },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

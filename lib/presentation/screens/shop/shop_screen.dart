@@ -5,7 +5,9 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/shop_item.dart';
 import '../../../data/providers/user_provider.dart';
+import '../../../data/services/haptic_service.dart';
 import '../../../data/services/shop_service.dart';
+import '../../../data/services/sound_service.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/purchase_celebration.dart';
 import 'purchase_history_screen.dart';
@@ -448,6 +450,8 @@ class _ShopScreenState extends State<ShopScreen> {
 
     switch (result) {
       case PurchaseStatus.success:
+        SoundService.instance.play('purchase');
+        Haptics.medium();
         PurchaseCelebration.show(
           context,
           itemName: item.name,
@@ -460,6 +464,8 @@ class _ShopScreenState extends State<ShopScreen> {
         );
         break;
       case PurchaseStatus.alreadyOwned:
+        SoundService.instance.play('ui_deny');
+        Haptics.error();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: const Duration(milliseconds: 1200),
@@ -468,6 +474,8 @@ class _ShopScreenState extends State<ShopScreen> {
         );
         break;
       case PurchaseStatus.insufficientFunds:
+        SoundService.instance.play('ui_deny');
+        Haptics.error();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: const Duration(milliseconds: 1200),
