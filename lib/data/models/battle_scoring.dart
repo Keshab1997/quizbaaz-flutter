@@ -4,16 +4,22 @@
 ///
 /// ```text
 /// correct answer  →  base (10)
-///                  + speed bonus  (up to 10 — scaled by time remaining)
-///                  + first bonus  (3 — locked in before the opponent)
-///                  + streak bonus (2 × streak, capped)
+///                  + speed bonus  (up to 10 — with reading grace)
+///                  + first bonus  (2 — locked in before the opponent)
+///                  + streak bonus (2 × streak, capped at 6)
 /// wrong / timeout →  0
 /// ```
 ///
-/// The speed bonus is *continuous*: answering instantly pays the full bonus
-/// and answering with the last second pays almost nothing, so a player is
-/// always rewarded for speed — even when the opponent has already answered
-/// (the flat "first" bonus alone kept nobody racing the clock).
+/// ## Reading Grace (new — human-like fairness)
+///
+/// Nobody can read and answer a question in under ~3 seconds (especially
+/// dual-language Bengali + English). The first 20% of the question window
+/// is a "reading grace zone" — any answer within this zone pays the **full**
+/// speed bonus. After grace, the bonus decays linearly to 0 at the deadline.
+///
+/// This prevents the bot (which answers at 4–8.5 s) from always outscoring
+/// a human student (who needs 5–9 s to read + think). A 4/5 vs 4/5 match
+/// now lands within a few points instead of a 26-point blowout.
 class BattleScoring {
   const BattleScoring._();
 
@@ -32,20 +38,30 @@ class BattleScoring {
     required int streak, // consecutive correct count before this answer
     required int basePoints, // default 10
     required int maxSpeedBonus, // default 10 — full bonus for an instant answer
-    required int firstBonus, // default 3 — flat race bonus
+    required int firstBonus, // default 2 — flat race bonus
     required int streakBonusPerStreak, // default 2
-    int maxStreakBonus = 10, // cap so long battles can't snowball forever
+    int maxStreakBonus = 6, // cap so long battles can't snowball forever
+    int readingGraceMs = 0, // full-bonus zone: nobody reads faster than this
   }) {
     if (!correct) {
       return (base: 0, speedBonus: 0, firstBonus: 0, streakBonus: 0);
     }
 
-    // Time-scaled speed bonus: instant → full bonus, last second → ~0.
+    // Time-scaled speed bonus with reading grace.
+    // Within the grace zone (first ~20% of window): full bonus.
+    // After grace: linear decay to 0 at deadline.
     var speed = 0;
     if (questionDurationMs > 0 && remainingMs > 0 && maxSpeedBonus > 0) {
-      speed = (maxSpeedBonus * remainingMs / questionDurationMs).round();
-      if (speed < 0) speed = 0;
-      if (speed > maxSpeedBonus) speed = maxSpeedBonus;
+      final effectiveWindow = questionDurationMs - readingGraceMs;
+      if (effectiveWindow <= 0 || remainingMs >= effectiveWindow) {
+        // Within grace zone or grace covers entire window → full bonus.
+        speed = maxSpeedBonus;
+      } else {
+        speed =
+            (maxSpeedBonus * remainingMs / effectiveWindow)
+                .round()
+                .clamp(0, maxSpeedBonus);
+      }
     }
 
     final first = answeredBeforeOpponent ? firstBonus : 0;
@@ -67,7 +83,7 @@ class BattleScoring {
   ) =>
       parts.base + parts.speedBonus + parts.firstBonus + parts.streakBonus;
 
-  /// Human-readable breakdown, e.g. `10 + 8 + 3 + 4`
+  /// Human-readable breakdown, e.g. `10 + 8 + 2 + 4`
   static String breakdown(
     ({int base, int speedBonus, int firstBonus, int streakBonus}) parts,
   ) =>
