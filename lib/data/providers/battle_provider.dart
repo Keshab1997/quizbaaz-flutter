@@ -807,7 +807,29 @@ class BattleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String get _botAvatar => 'assets/images/characters/quizbaaz_mascot_boy.png';
+  // Random bot avatars and names for variety
+  static const List<String> _botAvatars = [
+    'assets/images/avatars/male_avatar_1.png',
+    'assets/images/avatars/male_avatar_2.png',
+    'assets/images/avatars/male_avatar_3.png',
+    'assets/images/avatars/male_avatar_4.png',
+    'assets/images/avatars/female_avatar_1.png',
+    'assets/images/avatars/female_avatar_2.png',
+    'assets/images/avatars/female_avatar_3.png',
+    'assets/images/avatars/female_avatar_4.png',
+    'assets/images/avatars/golden_knight_avatar.png',
+    'assets/images/avatars/vip_avatar.png',
+  ];
+
+  static const List<String> _botNames = [
+    'QuizMaster', 'BrainStorm', 'QuickWit', 'SharpMind',
+    'SwiftThinker', 'CleverFox', 'MindBlitz', 'RapidFire',
+    'KnowledgeKing', 'WisdomWarrior', 'PuzzlePro', 'TriviaAce',
+    'BrainWave', 'ThinkFast', 'QuizNinja', 'SmartCookie',
+  ];
+
+  String get _botAvatar => _botAvatars[_rng.nextInt(_botAvatars.length)];
+  String get _botName => _botNames[_rng.nextInt(_botNames.length)];
 
   String _randomBotName() {
     const names = [
