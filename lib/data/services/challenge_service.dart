@@ -37,12 +37,6 @@ import 'package:flutter/foundation.dart';
 ///   ↓  reject/timeout
 /// Sender: notified → can challenge someone else
 /// ```
-///
-/// ## Challenge lifecycle
-///
-/// - Pending: 30 seconds to accept before auto-expire
-/// - Accepted: immediately triggers battle room creation
-/// - Rejected/Expired/Cancelled: clean up
 class ChallengeService {
   ChallengeService({FirebaseFirestore? firestore})
       : _db = firestore ?? FirebaseFirestore.instance;
@@ -62,21 +56,21 @@ class ChallengeService {
     required String fromAvatar,
     String? fromAvatarUrl,
     int fromLevel = 1,
-    required String toUid,
-    required String toName,
-    required String toAvatar,
-    String? toAvatarUrl,
+    required String targetUid,
+    required String targetName,
+    required String targetAvatar,
+    String? targetAvatarUrl,
     String difficulty = 'normal',
   }) async {
     try {
-      // Check if there's already a pending challenge between these users
-      final existingPending = await _hasPendingChallenge(fromUid, toUid);
-      if (existingPending) {
+      final hasPending = await _hasPendingChallenge(fromUid, targetUid);
+      if (hasPending) {
         debugPrint('ChallengeService: pending challenge already exists');
         return null;
       }
 
-      final challengeId = 'ch_${fromUid}_$toUid_${DateTime.now().millisecondsSinceEpoch}';
+      final challengeId =
+          'ch_${fromUid}_${targetUid}_${DateTime.now().millisecondsSinceEpoch}';
       final now = DateTime.now().millisecondsSinceEpoch;
 
       await _db.collection(collection).doc(challengeId).set({
@@ -85,10 +79,10 @@ class ChallengeService {
         'from_avatar': fromAvatar,
         'from_avatar_url': fromAvatarUrl ?? '',
         'from_level': fromLevel,
-        'to_uid': toUid,
-        'to_name': toName,
-        'to_avatar': toAvatar,
-        'to_avatar_url': toAvatarUrl ?? '',
+        'to_uid': targetUid,
+        'to_name': targetName,
+        'to_avatar': targetAvatar,
+        'to_avatar_url': targetAvatarUrl ?? '',
         'difficulty': difficulty,
         'status': 'pending',
         'created_at': now,
@@ -145,7 +139,6 @@ class ChallengeService {
   // ----------------------------------- Watch Incoming Challenges ----------
 
   /// Watches for incoming challenges addressed to [myUid].
-  /// Returns a stream of challenge data.
   Stream<ChallengeData?> watchIncomingChallenges(String myUid) {
     return _db
         .collection(collection)
@@ -180,11 +173,10 @@ class ChallengeService {
 
   /// Watches for outgoing challenges sent by [myUid].
   Stream<ChallengeData?> watchOutgoingChallenge(String myUid) {
-    // Watch challenges from this user that are pending or just accepted
     return _db
         .collection(collection)
         .where('from_uid', isEqualTo: myUid)
-        .where('status', whereIn: ['pending', 'accepted'])
+        .where('status', whereIn: const ['pending', 'accepted'])
         .orderBy('created_at', descending: true)
         .limit(1)
         .snapshots()
@@ -200,7 +192,7 @@ class ChallengeService {
   // ----------------------------------------- Helpers --------------------
 
   /// Check if there's already a pending challenge between two users.
-  Future<bool> _hasPendingChallenge(String uid1, String uid2) async {
+  Future<bool> _hasPendingChallenge(String uidOne, String uidTwo) async {
     try {
       final snapshot = await _db
           .collection(collection)
@@ -209,10 +201,10 @@ class ChallengeService {
 
       for (final doc in snapshot.docs) {
         final data = doc.data();
-        final fromUid = data['from_uid']?.toString() ?? '';
-        final toUid = data['to_uid']?.toString() ?? '';
-        if ((fromUid == uid1 && toUid == uid2) ||
-            (fromUid == uid2 && toUid == uid1)) {
+        final srcUid = data['from_uid']?.toString() ?? '';
+        final dstUid = data['to_uid']?.toString() ?? '';
+        if ((srcUid == uidOne && dstUid == uidTwo) ||
+            (srcUid == uidTwo && dstUid == uidOne)) {
           return true;
         }
       }
@@ -222,11 +214,11 @@ class ChallengeService {
     }
   }
 
-  /// Clean up expired challenges (older than 2x expiry time).
+  /// Clean up expired challenges (older than 4x expiry time).
   Future<void> cleanupExpiredChallenges() async {
     try {
       final cutoff = DateTime.now()
-          .subtract(challengeExpiry * 4)
+          .subtract(const Duration(seconds: 120))
           .millisecondsSinceEpoch;
 
       final snapshot = await _db
@@ -234,26 +226,27 @@ class ChallengeService {
           .where('created_at', isLessThan: cutoff)
           .get();
 
+      if (snapshot.docs.isEmpty) return;
+
       final batch = _db.batch();
       for (final doc in snapshot.docs) {
         batch.delete(doc.reference);
       }
-      if (snapshot.docs.isNotEmpty) {
-        await batch.commit();
-      }
+      await batch.commit();
     } catch (e) {
       debugPrint('ChallengeService: cleanup failed – $e');
     }
   }
 
-  /// Mark any pending challenges to/from a user as expired
-  /// when they go offline.
+  /// Mark any pending challenges to/from a user as expired when they go offline.
   Future<void> expireMyChallenges(String myUid) async {
     try {
       final snapshot = await _db
           .collection(collection)
           .where('status', isEqualTo: 'pending')
           .get();
+
+      if (snapshot.docs.isEmpty) return;
 
       final batch = _db.batch();
       for (final doc in snapshot.docs) {
@@ -282,7 +275,7 @@ class ChallengeData {
   final String toAvatar;
   final String? toAvatarUrl;
   final String difficulty;
-  final String status; // pending | accepted | rejected | expired | cancelled
+  final String status;
   final int createdAtMs;
   final int expiresAtMs;
   final int? acceptedAtMs;
