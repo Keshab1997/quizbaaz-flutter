@@ -2199,6 +2199,67 @@ class _ResultViewState extends State<_ResultView>
               ),
             ),
             const SizedBox(height: 12),
+            
+            // Revenge Match button (only if we have a previous opponent)
+            if (context.read<BattleProvider>().hasRematchTarget)
+              FadeTransition(
+                opacity: _btnFade,
+                child: Container(
+                  width: double.infinity,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFF6B6B), Color(0xFFE94560)],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFE94560).withValues(alpha: 0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () async {
+                        final battle = context.read<BattleProvider>();
+                        final success = await battle.rematchSameOpponent();
+                        if (!success && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Could not start revenge match'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.gavel_rounded, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            context.read<BattleProvider>().lastOpponent?.isBot == true
+                                ? '⚔️ Revenge (Same Bot)'
+                                : '⚔️ Revenge (${context.read<BattleProvider>().lastOpponent?.name ?? "Opponent"})',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             FadeTransition(
               opacity: _btnFade,
               child: OutlinedButton(
