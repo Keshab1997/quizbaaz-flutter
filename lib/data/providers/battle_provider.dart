@@ -590,6 +590,49 @@ class BattleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Quit the current match from ANY phase — properly cleans up everything.
+  /// - Searching: cancels matchmaking
+  /// - Bot match (question/reveal/countdown/found): stops timers, resets to setup
+  /// - Live match: forfeits and notifies opponent
+  void quitMatch() {
+    if (_phase == BattlePhase.setup || _phase == BattlePhase.finished) {
+      // Already done — nothing to quit
+      return;
+    }
+
+    if (_phase == BattlePhase.searching) {
+      cancelSearch();
+      return;
+    }
+
+    // Live match — forfeit properly
+    if (isLive) {
+      forfeitAndLeave();
+      return;
+    }
+
+    // Bot match in progress — stop everything and reset
+    _disposeTimers();
+    _phase = BattlePhase.setup;
+    _opponent = null;
+    _questions = [];
+    _currentIndex = 0;
+    _playerScore = 0;
+    _playerCorrect = 0;
+    _playerStreak = 0;
+    _playerSelected = null;
+    _playerAnswered = false;
+    _playerTimedOut = false;
+    _opponentScore = 0;
+    _opponentCorrect = 0;
+    _opponentStreak = 0;
+    _opponentSelected = null;
+    _opponentAnswered = false;
+    _lastRoundPlayer = BattleRoundPoints.zero;
+    _lastRoundOpponent = BattleRoundPoints.zero;
+    notifyListeners();
+  }
+
   int get _searchSeconds =>
       min(_userProvider.config.battleSearchSeconds, 10);
 
