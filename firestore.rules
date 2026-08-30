@@ -1,183 +1,117 @@
 rules_version = '2';
-
-// Firestore security rules for QuizBaaz 3D.
-//
-// Shape of the problem: question banks, the chapter catalogue and the LLM API
-// key pool are all authored by one admin and read by every student. So the
-// rule is the same everywhere — anyone may read, only an admin may write —
-// with one exception that matters: API keys must never be world-readable.
-//
-// Deploy:
-//   firebase deploy --only firestore:rules
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --------------------------------------------------------------- helpers --
-
+    // ================================================================
+    // Helper functions
+    // ================================================================
     function isSignedIn() {
       return request.auth != null;
     }
-
-    // Admin flag lives on the user document so it can be granted without a
-    // redeploy. A custom claim would be stronger; this matches how the app
-    // already decides `userProvider.isAdmin`.
-    function isAdmin() {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid))
-             .data.get('is_admin', false) == true;
+    function isOwner(uid) {
+      return request.auth.uid == uid;
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    // ================================================================
+    // Users
+    // ================================================================
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isOwner(uid);
     }
 
-    // ------------------------------------------------------- question banks --
-    //
-    // Public read: a student must be able to pull new questions without an
-    // account, because guest trial play is a core flow.
-    // Admin-only write: this is the content that decides what students learn.
-
-    match /question_banks/{chapterId} {
-      allow read: if true;
-      allow write: if isAdmin();
-
-      match /questions/{questionId} {
-        allow read: if true;
-        allow create, update: if isAdmin();
-        // Delete is admin-only and single-document by construction; the client
-        // service has no bulk-delete path.
-        allow delete: if isAdmin();
-      }
+    match /users/{uid}/meta/{doc} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isOwner(uid);
     }
 
-    match /question_categories/{categoryId} {
-      allow read: if true;
-      allow write: if isAdmin();
-
-      match /chapters/{chapterId} {
-        allow read: if true;
-        allow write: if isAdmin();
-      }
+    match /users/{uid}/gifts/{giftId} {
+      allow read: if isSignedIn() && isOwner(uid);
+      allow write: if isSignedIn() && isOwner(uid);
     }
 
-    // --------------------------------------------------------------- keys --
-    //
-    // The one collection that is NOT world-readable. These documents contain
-    // live LLM credentials; a leaked key is someone else's bill.
-
-    match /admin_api_keys/{keyId} {
-      allow read, write: if isAdmin();
+    // ================================================================
+    // Online Users (Presence)
+    // ================================================================
+    match /online_users/{uid} {
+      // Anyone signed in can read the online list
+      allow read: if isSignedIn();
+      // Only the owner can write their own presence
+      allow create, update, delete: if isSignedIn() && isOwner(uid);
     }
 
-    match /admin_key_groups/{groupId} {
-      allow read, write: if isAdmin();
+    // ================================================================
+    // Battle Challenges
+    // ================================================================
+    match /battle_challenges/{challengeId} {
+      // Both sender and receiver can read their challenges
+      allow read: if isSignedIn() &&
+        (request.auth.uid == resource.data.from_uid ||
+         request.auth.uid == resource.data.to_uid);
+
+      // Can create a challenge if signed in and you're the sender
+      allow create: if isSignedIn() &&
+        request.resource.data.from_uid == request.auth.uid;
+
+      // Can update only if you're the receiver (accept/reject) or sender (cancel)
+      allow update: if isSignedIn() &&
+        (request.auth.uid == resource.data.from_uid ||
+         request.auth.uid == resource.data.to_uid);
+
+      // Delete: only the involved users
+      allow delete: if isSignedIn() &&
+        (resource.data.from_uid == request.auth.uid ||
+         resource.data.to_uid == request.auth.uid);
     }
 
-    match /api_error_logs/{logId} {
-      // Any signed-in client may append a failure log — that is how the key
-      // manager reports a dead key — but only an admin may read them back.
-      allow create: if isSignedIn();
-      allow read, update, delete: if isAdmin();
-    }
-
-    match /admin_alerts/{alertId} {
-      allow read: if isAdmin();
-      allow write: if isSignedIn();
-    }
-
-    // ---------------------------------------------------------------- users --
-
-    match /users/{userId} {
-      allow read: if true;                       // leaderboard needs names
-      allow create: if isOwner(userId);
-      // A user may edit their own profile but must not grant themselves admin.
-      allow update: if (isOwner(userId)
-                        && request.resource.data.get('is_admin', false)
-                           == resource.data.get('is_admin', false))
-                    || isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    // ------------------------------------------------- gameplay collections --
-
-    match /scores/{scoreId} {
-      allow read: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isAdmin();
-    }
-
-    match /leaderboard/{entryId} {
-      allow read: if true;
-      allow write: if isSignedIn();
-    }
-
-    match /winners/{winnerId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /gifts/{giftId} {
-      allow read: if true;
-      allow create, update: if isSignedIn();
-      allow delete: if isAdmin();
-    }
-
-    match /quiz_history/{docId} {
-      allow read, write: if isSignedIn();
-    }
-
-    match /purchase_history/{docId} {
-      allow read, write: if isSignedIn();
-    }
-
-    match /meta/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // -------------------------------------------------------- battle 1v1 --
-    //
-    // Matchmaking presence + live rooms (see docs/12_BATTLE_1V1_REAL_PLAYER_PLAN.md).
-    // A queue entry is visible to every signed-in player searching in the
-    // same difficulty, but only its owner can touch it. Rooms may only be
-    // read/written by the two players inside them.
-
+    // ================================================================
+    // Battle Queue (existing)
+    // ================================================================
     match /battle_queue/{uid} {
       allow read: if isSignedIn();
-      allow create, update, delete: if isOwner(uid);
+      allow create, update: if isSignedIn() && isOwner(uid);
+      allow delete: if isSignedIn() && isOwner(uid);
     }
 
+    // ================================================================
+    // Battle Rooms (existing)
+    // ================================================================
     match /battle_rooms/{roomId} {
-      function isInRoom() {
-        return isSignedIn() && (
-          request.resource.data.players.a.uid == request.auth.uid ||
-          request.resource.data.players.b.uid == request.auth.uid
-        );
-      }
-      function isInRoomSnap() {
-        return isSignedIn() && (
-          resource.data.players.a.uid == request.auth.uid ||
-          resource.data.players.b.uid == request.auth.uid
-        );
-      }
-      allow read: if isInRoomSnap();
-      allow create, update: if isInRoom();
-      allow delete: if false;
-    }
-
-    // ---------------------------------------------------------------- audit --
-    //
-    // Append-only from the client. Nothing may rewrite history, including an
-    // admin — that is the point of an audit log.
-
-    match /admin_audit_logs/{logId} {
-      allow read: if isAdmin();
+      allow read: if isSignedIn();
       allow create: if isSignedIn();
-      allow update, delete: if false;
+      // Only players in the room can update it
+      allow update: if isSignedIn() &&
+        (resource.data.players.a.uid == request.auth.uid ||
+         resource.data.players.b.uid == request.auth.uid);
     }
 
-    // Anything not matched above is denied.
+    // ================================================================
+    // Leaderboard (existing)
+    // ================================================================
+    match /leaderboard/{date}/scores/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isOwner(uid);
+    }
+
+    // ================================================================
+    // Champions (existing)
+    // ================================================================
+    match /champions/{date} {
+      allow read: if isSignedIn();
+      allow write: if false; // Admin only — handled by admin tooling
+    }
+
+    match /champions/{date}/winners/{uid} {
+      allow read: if isSignedIn();
+      allow write: if false; // Admin only
+    }
+
+    // ================================================================
+    // Config (existing)
+    // ================================================================
+    match /config/{doc} {
+      allow read: if isSignedIn();
+      allow write: if false; // Admin only
+    }
   }
 }
