@@ -902,6 +902,7 @@ class _NetworkAwareAvatar extends StatelessWidget {
       return CachedAvatar(
         url: avatar,
         fit: BoxFit.cover,
+        alignment: Alignment.topCenter,
         fallbackIcon: Icons.person_rounded,
         fallbackIconColor: Colors.white,
         fallbackIconSize: 34,
@@ -910,6 +911,7 @@ class _NetworkAwareAvatar extends StatelessWidget {
     return Image.asset(
       avatar,
       fit: BoxFit.cover,
+      alignment: Alignment.topCenter,
       errorBuilder: (_, __, ___) => const Icon(
         Icons.person_rounded,
         color: Colors.white,
