@@ -694,12 +694,12 @@ class _OnlineBattleScreenState extends State<OnlineBattleScreen>
             ),
           ],
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.flash_on, size: 16, color: Colors.white),
-            const SizedBox(width: 6),
-            const Text('CHALLENGE',
+            Icon(Icons.flash_on, size: 16, color: Colors.white),
+            SizedBox(width: 6),
+            Text('CHALLENGE',
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
