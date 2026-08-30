@@ -98,7 +98,7 @@ class BattleScreen extends StatelessWidget {
     // Bot match চলছে — confirm dialog
     final confirm = await _showQuitDialog(context);
     if (confirm == true && context.mounted) {
-      battle.cancelSearch();
+      battle.quitMatch();
       Navigator.of(context).pop();
     }
   }
