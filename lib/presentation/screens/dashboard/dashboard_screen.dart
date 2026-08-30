@@ -1806,87 +1806,89 @@ class _BattleArenaCardState extends State<_BattleArenaCard>
                               ),
                             ],
                           ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // ── ONLINE button ──
-                              GestureDetector(
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const OnlineBattleScreen()),
+                          Flexible(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // ── ONLINE button ──
+                                GestureDetector(
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const OnlineBattleScreen()),
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(18),
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFF00B4D8), Color(0xFF0077B6)],
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF00B4D8).withValues(alpha: 0.4),
+                                          blurRadius: 8,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.wifi_rounded,
+                                            color: Colors.white, size: 11),
+                                        SizedBox(width: 3),
+                                        Text(
+                                          'ONLINE',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                            letterSpacing: 0.8,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                child: Container(
+                                const SizedBox(width: 6),
+                                // ── FIGHT button (existing) ──
+                                Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 7,
+                                    horizontal: 10, vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
+                                    borderRadius: BorderRadius.circular(18),
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFF00B4D8), Color(0xFF0077B6)],
+                                      colors: [AppColors.neonPink, AppColors.neonPurple],
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF00B4D8).withValues(alpha: 0.5),
-                                        blurRadius: 12,
+                                        color: AppColors.neonPink.withValues(alpha: 0.4),
+                                        blurRadius: 8,
                                       ),
                                     ],
                                   ),
                                   child: const Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.people_alt_rounded,
-                                          color: Colors.white, size: 13),
-                                      SizedBox(width: 4),
                                       Text(
-                                        'ONLINE',
+                                        'FIGHT',
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w900,
                                           color: Colors.white,
-                                          letterSpacing: 1,
+                                          letterSpacing: 0.8,
                                         ),
                                       ),
+                                      SizedBox(width: 3),
+                                      Icon(Icons.bolt_rounded,
+                                          color: Colors.white, size: 12),
                                     ],
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              // ── FIGHT button (existing) ──
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 7,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  gradient: const LinearGradient(
-                                    colors: [AppColors.neonPink, AppColors.neonPurple],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.neonPink.withValues(alpha: 0.5),
-                                      blurRadius: 12,
-                                    ),
-                                  ],
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'FIGHT',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
-                                    SizedBox(width: 4),
-                                    Icon(Icons.bolt_rounded,
-                                        color: Colors.white, size: 14),
-                                  ],
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
