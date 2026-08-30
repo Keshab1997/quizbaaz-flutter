@@ -1,0 +1,1029 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../data/models/challenge_service.dart' show ChallengeData;
+import '../../data/services/online_presence_service.dart';
+import '../../data/services/challenge_service.dart';
+import '../../data/providers/user_provider.dart';
+import '../../data/providers/battle_provider.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/neon_button.dart';
+import '../widgets/cached_avatar.dart';
+
+/// Screen showing online users available for 1v1 battle challenge.
+///
+/// Features:
+/// - Real-time list of online users (Firestore stream)
+/// - Tap any user to send a challenge
+/// - Shows incoming challenge notifications
+/// - Battle difficulty selector
+/// - Animated "searching..." and VS transitions
+class OnlineBattleScreen extends StatefulWidget {
+  const OnlineBattleScreen({super.key});
+
+  @override
+  State<OnlineBattleScreen> createState() => _OnlineBattleScreenState();
+}
+
+class _OnlineBattleScreenState extends State<OnlineBattleScreen>
+    with WidgetsBindingObserver {
+  final OnlinePresenceService _presence = OnlinePresenceService();
+  final ChallengeService _challengeService = ChallengeService();
+
+  List<OnlineUser> _onlineUsers = [];
+  bool _isLoading = true;
+  String? _pendingChallengeToUid; // uid we sent a challenge to
+  StreamSubscription? _presenceSub;
+  StreamSubscription? _incomingChallengeSub;
+  StreamSubscription? _outgoingChallengeSub;
+  Timer? _heartbeatTimer;
+
+  String _selectedDifficulty = 'normal';
+  ChallengeData? _incomingChallenge;
+  ChallengeData? _outgoingChallenge;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializePresence();
+    _startHeartbeat();
+    _watchOnlineUsers();
+    _watchIncomingChallenges();
+  }
+
+  Future<void> _initializePresence() async {
+    final userProvider = context.read<UserProvider>();
+    final user = userProvider.user;
+
+    await _presence.goOnline(
+      uid: user.userId,
+      name: user.username,
+      avatar: user.avatarPath,
+      avatarUrl: user.avatarUrl,
+      level: user.level,
+      isAvailable: true,
+      activity: 'idle',
+    );
+
+    // Cleanup stale entries on enter
+    _presence.cleanupStaleEntries();
+    _challengeService.cleanupExpiredChallenges();
+  }
+
+  void _startHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(
+      OnlinePresenceService.heartbeatInterval,
+      (_) {
+        _presence.heartbeat(
+          isAvailable: _pendingChallengeToUid == null &&
+              _incomingChallenge == null,
+          activity: 'idle',
+        );
+      },
+    );
+  }
+
+  void _watchOnlineUsers() {
+    final userProvider = context.read<UserProvider>();
+    _presenceSub = _presence
+        .watchOnlineUsers(excludeUid: userProvider.user.userId)
+        .listen((users) {
+      setState(() {
+        _onlineUsers = users;
+        _isLoading = false;
+      });
+    });
+  }
+
+  void _watchIncomingChallenges() {
+    final userProvider = context.read<UserProvider>();
+    _incomingChallengeSub = _challengeService
+        .watchIncomingChallenges(userProvider.user.userId)
+        .listen((challenge) {
+      if (challenge != null && challenge.isPending && !challenge.hasExpired) {
+        setState(() => _incomingChallenge = challenge);
+        _showIncomingChallengeDialog(challenge);
+      }
+    });
+  }
+
+  void _watchOutgoingChallenge(String toUid) {
+    _outgoingChallengeSub?.cancel();
+    _outgoingChallengeSub = _challengeService
+        .watchOutgoingChallenge(
+            context.read<UserProvider>().user.userId)
+        .listen((challenge) {
+      if (challenge == null) {
+        setState(() {
+          _pendingChallengeToUid = null;
+          _outgoingChallenge = null;
+        });
+        return;
+      }
+      setState(() => _outgoingChallenge = challenge);
+
+      if (challenge.isAccepted) {
+        // Start the battle!
+        _startBattleWithOpponent(
+          opponentUid: challenge.toUid,
+          opponentName: challenge.toName,
+          opponentAvatar: challenge.toAvatar,
+          opponentAvatarUrl: challenge.toAvatarUrl,
+          difficulty: challenge.difficulty,
+        );
+      } else if (challenge.isRejected || challenge.isExpired || challenge.isCancelled) {
+        setState(() {
+          _pendingChallengeToUid = null;
+          _outgoingChallenge = null;
+        });
+        if (mounted) {
+          _showChallengeResultSnackbar(
+            challenge.toName,
+            challenge.status,
+          );
+        }
+      }
+    });
+  }
+
+  Future<void> _sendChallenge(OnlineUser user) async {
+    final userProvider = context.read<UserProvider>();
+    final myUser = userProvider.user;
+
+    if (myUser.isGuest) {
+      _showGuestRestrictionDialog();
+      return;
+    }
+
+    // Check if user is still online
+    final isOnline = await _presence.isUserOnline(user.uid);
+    if (!isOnline) {
+      _showSnackBar('${user.name} is no longer online');
+      return;
+    }
+
+    setState(() => _pendingChallengeToUid = user.uid);
+
+    final challengeId = await _challengeService.sendChallenge(
+      fromUid: myUser.userId,
+      fromName: myUser.username,
+      fromAvatar: myUser.avatarPath,
+      fromAvatarUrl: myUser.avatarUrl,
+      fromLevel: myUser.level,
+      toUid: user.uid,
+      toName: user.name,
+      toAvatar: user.avatar,
+      toAvatarUrl: user.avatarUrl,
+      difficulty: _selectedDifficulty,
+    );
+
+    if (challengeId != null) {
+      _watchOutgoingChallenge(user.uid);
+      _showChallengeSentDialog(user);
+    } else {
+      setState(() => _pendingChallengeToUid = null);
+      _showSnackBar('Could not send challenge. Try again!');
+    }
+  }
+
+  Future<void> _acceptChallenge(ChallengeData challenge) async {
+    final success = await _challengeService.acceptChallenge(challenge.challengeId);
+    if (success) {
+      Navigator.of(context).pop(); // Dismiss the incoming dialog
+      _startBattleWithOpponent(
+        opponentUid: challenge.fromUid,
+        opponentName: challenge.fromName,
+        opponentAvatar: challenge.fromAvatar,
+        opponentAvatarUrl: challenge.fromAvatarUrl,
+        difficulty: challenge.difficulty,
+      );
+    }
+  }
+
+  Future<void> _rejectChallenge(ChallengeData challenge) async {
+    await _challengeService.rejectChallenge(challenge.challengeId);
+    Navigator.of(context).pop();
+    setState(() => _incomingChallenge = null);
+  }
+
+  Future<void> _cancelOutgoingChallenge() async {
+    if (_outgoingChallenge != null) {
+      await _challengeService.cancelChallenge(_outgoingChallenge!.challengeId);
+    }
+    setState(() {
+      _pendingChallengeToUid = null;
+      _outgoingChallenge = null;
+    });
+    Navigator.of(context).pop(); // Dismiss challenge sent dialog
+  }
+
+  void _startBattleWithOpponent({
+    required String opponentUid,
+    required String opponentName,
+    required String opponentAvatar,
+    String? opponentAvatarUrl,
+    required String difficulty,
+  }) {
+    // Set both users as unavailable (in battle)
+    _presence.setAvailability(isAvailable: false, activity: 'battling');
+
+    final battleProvider = context.read<BattleProvider>();
+    // The existing startBattleWithOpponent method handles the rest
+    // We need to navigate to the battle screen
+
+    setState(() {
+      _pendingChallengeToUid = null;
+      _incomingChallenge = null;
+      _outgoingChallenge = null;
+    });
+
+    // Navigate to existing battle screen
+    Navigator.of(context).pushNamed('/battle');
+  }
+
+  // --------------------------------------------------------- UI Dialogs ---
+
+  void _showIncomingChallengeDialog(ChallengeData challenge) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _IncomingChallengeDialog(
+        challenge: challenge,
+        onAccept: () => _acceptChallenge(challenge),
+        onReject: () => _rejectChallenge(challenge),
+      ),
+    );
+  }
+
+  void _showChallengeSentDialog(OnlineUser user) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _ChallengeSentDialog(
+        userName: user.name,
+        userAvatar: user.effectiveAvatar,
+        onCancel: _cancelOutgoingChallenge,
+      ),
+    );
+  }
+
+  void _showChallengeResultSnackbar(String name, String status) {
+    String message;
+    switch (status) {
+      case 'rejected':
+        message = '❌ $name declined your challenge';
+        break;
+      case 'expired':
+        message = '⏰ Challenge to $name expired';
+        break;
+      case 'cancelled':
+        message = 'Challenge cancelled';
+        break;
+      default:
+        message = 'Challenge status: $status';
+    }
+    _showSnackBar(message);
+  }
+
+  void _showGuestRestrictionDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('🔒 Sign In Required',
+            style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'You need to sign in to challenge other players. '
+          'Go to Profile → Sign In to create your account.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: Colors.cyan)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDifficultySheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1A1A2E),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('⚔️ Select Difficulty',
+                style: TextStyle(color: Colors.white, fontSize: 18,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            ...['easy', 'normal', 'hard'].map((d) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: ListTile(
+                tileColor: _selectedDifficulty == d
+                    ? Colors.cyan.withOpacity(0.2)
+                    : Colors.white.withOpacity(0.05),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                leading: Icon(
+                  d == 'easy' ? Icons.ease : d == 'normal' ? Icons.balance : Icons.local_fire_department,
+                  color: d == 'easy' ? Colors.green : d == 'normal' ? Colors.cyan : Colors.orange,
+                ),
+                title: Text(d.toUpperCase(),
+                    style: const TextStyle(color: Colors.white)),
+                trailing: _selectedDifficulty == d
+                    ? const Icon(Icons.check_circle, color: Colors.cyan)
+                    : null,
+                onTap: () {
+                  setState(() => _selectedDifficulty = d);
+                  Navigator.pop(context);
+                },
+              ),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFF16213E),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _presence.goOnline(
+        uid: context.read<UserProvider>().user.userId,
+        name: context.read<UserProvider>().user.username,
+        avatar: context.read<UserProvider>().user.avatarPath,
+        avatarUrl: context.read<UserProvider>().user.avatarUrl,
+        level: context.read<UserProvider>().user.level,
+      );
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _presence.goOffline();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _presenceSub?.cancel();
+    _incomingChallengeSub?.cancel();
+    _outgoingChallengeSub?.cancel();
+    _heartbeatTimer?.cancel();
+    _presence.goOffline();
+    super.dispose();
+  }
+
+  // --------------------------------------------------------- Build ------
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A0E21),
+      appBar: AppBar(
+        title: const Text('⚔️ Online Arena',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          // Difficulty selector
+          IconButton(
+            icon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _selectedDifficulty == 'easy' ? Icons.ease :
+                  _selectedDifficulty == 'normal' ? Icons.balance :
+                  Icons.local_fire_department,
+                  color: _selectedDifficulty == 'easy' ? Colors.green :
+                  _selectedDifficulty == 'normal' ? Colors.cyan :
+                  Colors.orange,
+                  size: 20,
+                ),
+                const SizedBox(width: 4),
+                Text(_selectedDifficulty.toUpperCase(),
+                    style: TextStyle(
+                      color: _selectedDifficulty == 'easy' ? Colors.green :
+                      _selectedDifficulty == 'normal' ? Colors.cyan :
+                      Colors.orange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    )),
+              ],
+            ),
+            onPressed: _showDifficultySheet,
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          // Background gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0A0E21), Color(0xFF1A1A2E), Color(0xFF16213E)],
+              ),
+            ),
+          ),
+          // Content
+          _buildContent(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    if (_isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Colors.cyan),
+            SizedBox(height: 16),
+            Text('Scanning for players...',
+                style: TextStyle(color: Colors.white54)),
+          ],
+        ),
+      );
+    }
+
+    if (_onlineUsers.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.people_outline, size: 80, color: Colors.white24),
+            const SizedBox(height: 16),
+            const Text('No players online right now',
+                style: TextStyle(color: Colors.white54, fontSize: 16)),
+            const SizedBox(height: 8),
+            const Text('Try again in a few minutes!',
+                style: TextStyle(color: Colors.white30, fontSize: 13)),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() => _isLoading = true);
+                _watchOnlineUsers();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.cyan.withOpacity(0.2),
+                foregroundColor: Colors.cyan,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        // Online count header
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 10, height: 10,
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${_onlineUsers.length} player${_onlineUsers.length != 1 ? 's' : ''} online',
+                style: const TextStyle(
+                    color: Colors.white70, fontSize: 14),
+              ),
+              const Spacer(),
+              // Quick Match button (existing matchmaking)
+              TextButton.icon(
+                onPressed: () {
+                  // Fall back to existing random matchmaking
+                  Navigator.of(context).pushNamed('/battle');
+                },
+                icon: const Icon(Icons.casino, color: Colors.amber, size: 18),
+                label: const Text('Quick Match',
+                    style: TextStyle(color: Colors.amber, fontSize: 13)),
+              ),
+            ],
+          ),
+        ),
+        // Users list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _onlineUsers.length,
+            itemBuilder: (context, index) => _buildUserTile(_onlineUsers[index]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildUserTile(OnlineUser user) {
+    final isPendingToThis = _pendingChallengeToUid == user.uid;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GlassCard(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Avatar
+              Stack(
+                children: [
+                  CachedAvatar(
+                    url: user.effectiveAvatar,
+                    size: 48,
+                  ),
+                  // Online indicator
+                  Positioned(
+                    right: 0, bottom: 0,
+                    child: Container(
+                      width: 14, height: 14,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF1A1A2E), width: 2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 14),
+              // User info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.stars, size: 13, color: Colors.amber),
+                        const SizedBox(width: 4),
+                        Text('Lv.${user.level}',
+                            style: const TextStyle(
+                                color: Colors.amber, fontSize: 12)),
+                        const SizedBox(width: 10),
+                        Icon(_activityIcon(user.currentActivity),
+                            size: 13, color: Colors.white38),
+                        const SizedBox(width: 4),
+                        Text(user.activityLabel,
+                            style: const TextStyle(
+                                color: Colors.white38, fontSize: 12)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Challenge button or status
+              if (isPendingToThis)
+                _buildPendingIndicator()
+              else
+                _buildChallengeButton(user),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChallengeButton(OnlineUser user) {
+    return GestureDetector(
+      onTap: () => _sendChallenge(user),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFE94560), Color(0xFFC62828)],
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFE94560).withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.swords, size: 16, color: Colors.white),
+            SizedBox(width: 6),
+            Text('CHALLENGE',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPendingIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 14, height: 14,
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: Colors.cyan),
+          ),
+          SizedBox(width: 8),
+          Text('SENT',
+              style: TextStyle(color: Colors.cyan, fontSize: 12,
+                  fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  IconData _activityIcon(String activity) {
+    switch (activity) {
+      case 'idle': return Icons.hourglass_empty;
+      case 'battling': return Icons.swords;
+      case 'quiz': return Icons.quiz;
+      case 'shop': return Icons.shopping_bag;
+      default: return Icons.circle;
+    }
+  }
+}
+
+// ================================================================ Dialogs ===
+
+/// Dialog shown to the receiver when they get a challenge.
+class _IncomingChallengeDialog extends StatefulWidget {
+  final ChallengeData challenge;
+  final VoidCallback onAccept;
+  final VoidCallback onReject;
+
+  const _IncomingChallengeDialog({
+    required this.challenge,
+    required this.onAccept,
+    required this.onReject,
+  });
+
+  @override
+  State<_IncomingChallengeDialog> createState() =>
+      _IncomingChallengeDialogState();
+}
+
+class _IncomingChallengeDialogState extends State<_IncomingChallengeDialog>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  int _timeLeft = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _timeLeft = widget.challenge.secondsRemaining;
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final remaining = widget.challenge.secondsRemaining;
+      if (remaining <= 0) {
+        _timer?.cancel();
+        widget.onReject(); // Auto-reject on expiry
+      } else {
+        setState(() => _timeLeft = remaining);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1A2E),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.cyan.withOpacity(0.3), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.cyan.withOpacity(0.2),
+              blurRadius: 20,
+              spreadRadius: 5,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('⚔️ BATTLE CHALLENGE!',
+                style: TextStyle(
+                  color: Colors.cyan,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                )),
+            const SizedBox(height: 24),
+            // Challenger avatar
+            AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                final scale = 1.0 + (_pulseController.value * 0.1);
+                return Transform.scale(
+                  scale: scale,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.cyan, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.cyan.withOpacity(0.4),
+                          blurRadius: 15 + (_pulseController.value * 10),
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundImage:
+                          NetworkImage(widget.challenge.fromEffectiveAvatar),
+                      onBackgroundError: (_) {},
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            Text(widget.challenge.fromName,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 18,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text('Lv.${widget.challenge.fromLevel}',
+                style: const TextStyle(color: Colors.amber, fontSize: 14)),
+            const SizedBox(height: 4),
+            Text(
+              'Difficulty: ${widget.challenge.difficulty.toUpperCase()}',
+              style: TextStyle(
+                color: widget.challenge.difficulty == 'easy'
+                    ? Colors.green
+                    : widget.challenge.difficulty == 'hard'
+                        ? Colors.orange
+                        : Colors.cyan,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Countdown
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: _timeLeft <= 10
+                    ? Colors.red.withOpacity(0.2)
+                    : Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '⏱ $_timeLeft seconds to respond',
+                style: TextStyle(
+                  color: _timeLeft <= 10 ? Colors.red : Colors.white70,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: widget.onReject,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.red, width: 1.5),
+                      ),
+                      child: const Center(
+                        child: Text('✕ DECLINE',
+                            style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15)),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: widget.onAccept,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF00B4D8), Color(0xFF0077B6)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.cyan.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text('⚔️ ACCEPT',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Dialog shown to sender while waiting for the challenge to be accepted/rejected.
+class _ChallengeSentDialog extends StatefulWidget {
+  final String userName;
+  final String userAvatar;
+  final VoidCallback onCancel;
+
+  const _ChallengeSentDialog({
+    required this.userName,
+    required this.userAvatar,
+    required this.onCancel,
+  });
+
+  @override
+  State<_ChallengeSentDialog> createState() => _ChallengeSentDialogState();
+}
+
+class _ChallengeSentDialogState extends State<_ChallengeSentDialog>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _dotsController;
+  int _elapsed = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _dotsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() => _elapsed++);
+      if (_elapsed >= 30) {
+        widget.onCancel(); // Auto-cancel after 30s
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _dotsController.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1A2E),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.orange.withOpacity(0.3), width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.swords, size: 50, color: Colors.orange),
+            const SizedBox(height: 16),
+            Text(
+              'Challenge sent to',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.userName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Pulsing dots
+            AnimatedBuilder(
+              animation: _dotsController,
+              builder: (context, _) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (i) {
+                    final delay = i * 0.2;
+                    final value = ((_dotsController.value + delay) % 1.0);
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: 10, height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.3 + value * 0.7),
+                        shape: BoxShape.circle,
+                      ),
+                    );
+                  }),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Waiting for response... ($_elapsed s)',
+              style: const TextStyle(color: Colors.white54, fontSize: 13),
+            ),
+            const SizedBox(height: 24),
+            GestureDetector(
+              onTap: widget.onCancel,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 32, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white24, width: 1.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text('CANCEL',
+                    style: TextStyle(color: Colors.white54, fontSize: 14)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
