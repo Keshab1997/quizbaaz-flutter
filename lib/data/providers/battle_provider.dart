@@ -906,8 +906,8 @@ class BattleProvider extends ChangeNotifier {
     }
   }
 
-  /// Scoring: base=10, speed=up to +10 scaled by time remaining,
-  /// first=+3 before the opponent, streak=+2×streak (capped).
+  /// Scoring: base=10, speed=up to +10 (with 20% reading grace),
+  /// first=+2 before the opponent, streak=+2×streak (capped at 6).
   BattleRoundPoints _computePoints({
     required bool correct,
     required bool answeredFirst, // true = this side answered before the other
@@ -926,6 +926,7 @@ class BattleProvider extends ChangeNotifier {
       firstBonus: cfg.battleFirstBonus,
       streakBonusPerStreak: cfg.battleStreakBonus,
       maxStreakBonus: cfg.battleMaxStreakBonus,
+      readingGraceMs: _readingGraceMs,
     );
     return BattleRoundPoints(
       base: parts.base,
@@ -1066,16 +1067,24 @@ class BattleProvider extends ChangeNotifier {
     }
   }
 
+  /// Bot delay ranges — human-like reading+thinking time.
+  /// The bot now "reads" the question like a student would, preventing
+  /// the old 26-point blowout when both got 4/5 correct.
   (double, double) get _botDelayRange {
     switch (_difficulty) {
       case BattleDifficulty.easy:
-        return (4.0, 8.0);
+        return (5.0, 10.0);  // Was 4-8
       case BattleDifficulty.normal:
-        return (2.5, 6.0);
+        return (4.0, 8.5);   // Was 2.5-6
       case BattleDifficulty.hard:
-        return (1.5, 4.0);
+        return (3.0, 6.5);   // Was 1.5-4
     }
   }
+
+  /// Reading grace: the first 20% of the question window pays the full speed
+  /// bonus — nobody can read a question faster than that, so sub-grace answers
+  /// (human or bot) are all treated as "instant".
+  int get _readingGraceMs => (_questionDurationSec * 1000 * 0.20).round();
 
   // ----------------------------------------------------------------- misc --
 
