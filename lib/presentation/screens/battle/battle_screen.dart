@@ -2258,7 +2258,6 @@ class _ResultViewState extends State<_ResultView>
                   ),
                 ),
               ),
-            ),
             const SizedBox(height: 12),
             FadeTransition(
               opacity: _btnFade,
