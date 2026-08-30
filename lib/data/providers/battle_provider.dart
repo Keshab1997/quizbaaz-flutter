@@ -9,6 +9,7 @@ import '../models/battle_scoring.dart';
 import '../models/question_model.dart';
 import '../services/battle_question_generator.dart';
 import '../services/battle_room_service.dart';
+import '../services/challenge_service.dart';
 import '../services/hive_service.dart';
 import 'user_provider.dart';
 
@@ -104,6 +105,9 @@ class BattleProvider extends ChangeNotifier {
   // ----------------------------------------------------------- opponent --
 
   BattleOpponent? _opponent;
+  BattleOpponent? _lastOpponent; // persists across reset for revenge match
+  final ChallengeService _challengeService = ChallengeService();
+  String? _revengeChallengeId;
   bool _isBotMatch = true;
 
   // -------------------------------------------------------------- player --
@@ -172,6 +176,9 @@ class BattleProvider extends ChangeNotifier {
   BattlePhase get phase => _phase;
   BattleDifficulty get difficulty => _difficulty;
   BattleOpponent? get opponent => _opponent;
+  BattleOpponent? get lastOpponent => _lastOpponent;
+  bool get hasRematchTarget => _lastOpponent != null;
+  String? get revengeChallengeId => _revengeChallengeId;
   bool get isLive => _opponent?.isBot == false;
   bool get isBotMatch => _isBotMatch;
   bool get isForfeit => _forfeitWin;
@@ -346,6 +353,8 @@ class BattleProvider extends ChangeNotifier {
     _emptyBank = false;
     _opponent = null;
     _isBotMatch = true;
+    // Save opponent info for revenge match before clearing
+    _lastOpponent = _opponent;
     _room = null;
     _roomId = null;
 
@@ -398,6 +407,161 @@ class BattleProvider extends ChangeNotifier {
   }
 
   Future<void> rematch() => startBattle(_difficulty);
+
+  /// Start a revenge match against the same opponent from the last battle.
+  /// - Bot match: instantly starts with same difficulty
+  /// - Real player: sends a challenge and waits for acceptance
+  /// Returns true if match started (bot) or challenge sent (live).
+  Future<bool> rematchSameOpponent() async {
+    final target = _lastOpponent;
+    if (target == null) return false;
+
+    // Store opponent before reset so we can use it after
+    final savedOpponent = target;
+
+    // Reset the battle state
+    resetBattle();
+
+    if (savedOpponent.isBot) {
+      // Bot match: just start a new battle with same difficulty
+      await startBattle(_difficulty);
+      return true;
+    }
+
+    // Real player: send a challenge
+    final uid = savedOpponent.uid;
+    if (uid == null || uid.isEmpty) {
+      // No uid available — fall back to random match
+      await startBattle(_difficulty);
+      return true;
+    }
+
+    final user = _userProvider.user;
+    final challengeId = await _challengeService.sendChallenge(
+      fromUid: user.userId,
+      fromName: user.username.isEmpty ? user.fullName : user.username,
+      fromAvatar: user.effectiveAvatar,
+      fromAvatarUrl: user.avatarUrl,
+      fromLevel: user.level,
+      targetUid: uid,
+      targetName: savedOpponent.name,
+      targetAvatar: savedOpponent.avatar,
+      difficulty: _difficulty.name,
+    );
+
+    if (challengeId != null) {
+      _revengeChallengeId = challengeId;
+      _phase = BattlePhase.searching; // show waiting state
+      notifyListeners();
+      
+      // Watch for challenge acceptance
+      _watchRevengeChallenge(challengeId, savedOpponent);
+      return true;
+    }
+    return false;
+  }
+  
+  /// Watch a revenge challenge and start the battle when accepted.
+  void _watchRevengeChallenge(String challengeId, BattleOpponent opponent) {
+    _challengeService.watchChallengeStatus(challengeId).listen((challenge) {
+      if (challenge == null) return;
+      
+      if (challenge.isAccepted) {
+        // Challenge accepted! Start the battle with this opponent
+        _revengeChallengeId = null;
+        _startBattleWithOpponent(
+          opponentUid: opponent.uid!,
+          opponentName: opponent.name,
+          opponentAvatar: opponent.avatar,
+          difficulty: _difficulty,
+        );
+      } else if (challenge.isRejected || challenge.isExpired || challenge.isCancelled) {
+        // Challenge was rejected/expired/cancelled — go back to setup
+        _revengeChallengeId = null;
+        _phase = BattlePhase.setup;
+        notifyListeners();
+      }
+    });
+  }
+  
+  /// Start a live battle with a specific opponent (used by revenge matches).
+  /// Creates a Firestore room and syncs with the opponent's client.
+  void _startBattleWithOpponent({
+    required String opponentUid,
+    required String opponentName,
+    required String opponentAvatar,
+    required BattleDifficulty difficulty,
+  }) async {
+    _userId = _userProvider.user.userId;
+    _opponent = BattleOpponent(
+      name: opponentName,
+      avatar: opponentAvatar,
+      isBot: false,
+      uid: opponentUid,
+    );
+    _isBotMatch = false;
+    _liveCapable = true;
+    _difficulty = difficulty;
+    
+    // Deterministic room ID (same as normal matchmaking)
+    _roomId = BattleRoomService.roomIdFor(_userId, opponentUid);
+    _side = _userId.compareTo(opponentUid) < 0 ? 'a' : 'b';
+    _phase = BattlePhase.found;
+    
+    // Watch the room
+    _roomSub = _roomService.watchRoom(_roomId!).listen(_onRoomUpdate);
+    
+    if (_side == 'a') {
+      // We are the creator: generate questions and publish the room
+      final questions = await BattleQuestionGenerator()
+          .generateBattleQuestions(count: battleQuestionCount);
+      if (questions.isEmpty || _phase != BattlePhase.found) {
+        await _abandonLiveMatch();
+        return;
+      }
+      _questions = questions;
+      _countdownUntilMs = DateTime.now().millisecondsSinceEpoch + 8000;
+      await _roomService.createRoom(
+        roomId: _roomId!,
+        difficulty: _difficulty.name,
+        questions: questions,
+        countdownUntilMs: _countdownUntilMs,
+        me: BattleRoomPlayerInfo(
+          uid: _userId,
+          name: _userProvider.user.username.isEmpty
+              ? _userProvider.user.fullName
+              : _userProvider.user.username,
+          avatar: _userProvider.user.effectiveAvatar,
+        ),
+        opponent: BattleRoomPlayerInfo(
+          uid: opponentUid,
+          name: opponentName,
+          avatar: opponentAvatar,
+        ),
+      );
+      await _writeMyPlayer({'last_seen': DateTime.now().millisecondsSinceEpoch});
+    }
+    // If side == 'b', we wait for the room to appear (opponent creates it)
+    
+    // Start tick timer
+    _tickTimer?.cancel();
+    _tickTimer = Timer.periodic(
+      const Duration(milliseconds: 200),
+      (_) => _tick(),
+    );
+    
+    notifyListeners();
+  }
+
+  /// Cancel a pending revenge challenge.
+  Future<void> cancelRevengeChallenge() async {
+    if (_revengeChallengeId != null) {
+      await _challengeService.cancelChallenge(_revengeChallengeId!);
+      _revengeChallengeId = null;
+      _phase = BattlePhase.setup;
+      notifyListeners();
+    }
+  }
 
   /// Player intentionally left mid-match → opponent wins instantly.
   /// Writes 'abandoned: true' + 'phase: finished' to Firestore so the
