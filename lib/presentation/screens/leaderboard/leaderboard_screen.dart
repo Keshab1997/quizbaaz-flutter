@@ -565,7 +565,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${userProvider.bestDailyScore}',
+                '${userProvider.todayBestScore > 0 ? userProvider.todayBestScore : userProvider.bestDailyScore}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w900,

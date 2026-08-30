@@ -64,6 +64,11 @@ class UserProvider extends ChangeNotifier {
   bool _isInitialized = false;
   String? _lastDailyRewardDate;
 
+  /// Highest daily score the current flat scoring can produce: 10 questions ×
+  /// 10 points, doubled by the Double Points booster. Anything above this is
+  /// a leftover from the old time-bonus scoring and must be reset.
+  static const int kMaxPossibleDailyScore = 200;
+
   // ------------------------------------------------------------- Getters --
 
   UserModel get user => _user;
@@ -100,15 +105,50 @@ class UserProvider extends ChangeNotifier {
   /// When the ranking data was last refreshed from Firestore.
   DateTime? get rankingsUpdatedAt => _rankings.lastUpdated;
 
+  /// The player's own row in today's live leaderboard, if present.
+  LeaderboardItem? get myLeaderboardEntry {
+    for (final item in _leaderboard) {
+      if (item.userId == _user.userId || item.username == _user.username) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  /// Today's personal-best daily score — the number actually pushed to
+  /// today's leaderboard. This is NOT [bestDailyScore], which is a lifetime
+  /// best that never decreases and can still carry a phantom value from the
+  /// old time-bonus scoring (e.g. 370) long after a 90-point quiz.
+  int get todayBestScore {
+    final dayKey = _todayKey();
+    final meta = HiveService.getMeta<int>('daily_best_score_$dayKey');
+    if (meta != null && meta > 0) return meta;
+    return myLeaderboardEntry?.score ?? 0;
+  }
+
+  /// Today's best time (seconds) for the tie-breaker, matching
+  /// [todayBestScore].
+  double get todayBestTimeSeconds {
+    final dayKey = _todayKey();
+    final meta = HiveService.getMeta<double>('daily_best_time_$dayKey');
+    if (meta != null && meta > 0) return meta;
+    return myLeaderboardEntry?.timeSeconds ?? 0;
+  }
+
   /// Position among the cached leaderboard rows, or null when not ranked yet.
   int? get playerRank {
     if (!hasPlayedDailyQuiz) return null;
+    final myScore = todayBestScore;
+    final myTime = todayBestTimeSeconds;
     var rank = 1;
     for (final item in _leaderboard) {
+      if (item.userId == _user.userId) continue;
       if (item.username == _user.username) continue;
-      final isAhead = item.score > _stats.bestDailyScore ||
-          (item.score == _stats.bestDailyScore &&
-              item.timeSeconds < _stats.bestDailyTimeSeconds);
+      final isAhead = item.score > myScore ||
+          (item.score == myScore &&
+              myScore > 0 &&
+              myTime > 0 &&
+              item.timeSeconds < myTime);
       if (isAhead) rank++;
     }
     return rank;
@@ -135,6 +175,8 @@ class UserProvider extends ChangeNotifier {
 
     _loadFromHive();
     notifyListeners();
+
+    await _normalizeLegacyBest();
 
     await loadInitialData();
     await _syncWithRemote();
@@ -195,10 +237,41 @@ class UserProvider extends ChangeNotifier {
       if (!_user.isGuest) {
         _user = await SyncService.pullUser(_user);
         _stats = await SyncService.pullStats(_user.userId, _stats);
+        await _normalizeLegacyBest();
       }
       notifyListeners();
     } catch (e) {
       debugPrint('UserProvider: remote sync failed – $e');
+    }
+  }
+
+  /// Resets an impossible lifetime-best daily score left over from the old
+  /// time-bonus scoring (10 + seconds-remaining × 2 could reach 500+), so the
+  /// profile and the "your position" card stop showing a phantom number like
+  /// 370 after the flat 10-points-per-correct change. Mirrors the correction
+  /// to Firestore so it never comes back on a reinstall.
+  Future<void> _normalizeLegacyBest() async {
+    // Today's per-day best (what gets pushed to the leaderboard) can also be
+    // a phantom if the player used an old build earlier the same day.
+    final dayKey = _todayKey();
+    final bestKey = 'daily_best_score_$dayKey';
+    final todayBest = HiveService.getMeta<int>(bestKey);
+    if (todayBest != null && todayBest > kMaxPossibleDailyScore) {
+      await HiveService.setMeta(bestKey, 0);
+      await HiveService.setMeta('daily_best_time_$dayKey', 0.0);
+    }
+
+    if (_stats.bestDailyScore <= kMaxPossibleDailyScore) return;
+    debugPrint(
+      'UserProvider: resetting legacy best daily score '
+      '${_stats.bestDailyScore} → 0',
+    );
+    _stats.bestDailyScore = 0;
+    _stats.bestDailyTimeSeconds = 0;
+    notifyListeners();
+    await HiveService.saveStats(_stats);
+    if (!_user.isGuest) {
+      await SyncService.pushStats(_user.userId, _stats);
     }
   }
 
@@ -896,12 +969,19 @@ class UserProvider extends ChangeNotifier {
   /// This re-pushes the entry (Firestore merges by user id) so the freshly
   /// chosen avatar shows up immediately. Skipped for guests and for players
   /// who haven't played today's daily quiz (no entry to update).
+  ///
+  /// The score re-pushed here is TODAY's best (from Hive meta), never the
+  /// lifetime [UserStats.bestDailyScore] — pushing the lifetime best could
+  /// resurrect a phantom legacy score (e.g. 370) into today's ranking.
   Future<void> _refreshLeaderboardAvatar() async {
     if (_user.isGuest || !_user.playedTodayDailyQuiz) return;
+    final dayKey = _todayKey();
+    final todayBest = HiveService.getMeta<int>('daily_best_score_$dayKey') ?? 0;
+    if (todayBest <= 0) return;
     await SyncService.pushLeaderboardEntry(
       user: _user,
-      score: _stats.bestDailyScore,
-      timeSeconds: _stats.bestDailyTimeSeconds,
+      score: todayBest,
+      timeSeconds: HiveService.getMeta<double>('daily_best_time_$dayKey') ?? 0,
     );
   }
 }

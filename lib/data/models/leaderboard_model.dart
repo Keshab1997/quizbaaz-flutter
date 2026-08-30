@@ -1,5 +1,6 @@
 class LeaderboardItem {
   final int rank;
+  final String userId;
   final String name;
   final String username;
   final String avatarPath;
@@ -10,6 +11,7 @@ class LeaderboardItem {
 
   LeaderboardItem({
     required this.rank,
+    this.userId = '',
     required this.name,
     required this.username,
     required this.avatarPath,
@@ -22,6 +24,7 @@ class LeaderboardItem {
   factory LeaderboardItem.fromJson(Map<String, dynamic> json) {
     return LeaderboardItem(
       rank: json['rank'] ?? 1,
+      userId: json['user_id'] ?? '',
       name: json['name'] ?? '',
       username: json['username'] ?? '',
       avatarPath: json['avatar_path'] ?? '',
