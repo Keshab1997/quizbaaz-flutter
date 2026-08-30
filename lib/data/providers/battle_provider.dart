@@ -787,7 +787,7 @@ class BattleProvider extends ChangeNotifier {
       _roomService.leaveQueue(_userId);
     }
     _opponent = BattleOpponent(
-      name: _randomBotName(),
+      name: _botName,
       avatar: _botAvatar,
       isBot: true,
     );
