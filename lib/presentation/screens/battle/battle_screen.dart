@@ -211,6 +211,15 @@ class _SetupViewState extends State<_SetupView>
   @override
   void initState() {
     super.initState();
+    
+    // Reset battle state if previous game was finished
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final battle = context.read<BattleProvider>();
+      if (battle.phase == BattlePhase.finished) {
+        battle.resetBattle();
+      }
+    });
+    
     _enterCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 700),
@@ -2200,7 +2209,10 @@ class _ResultViewState extends State<_ResultView>
                   ),
                   minimumSize: const Size.fromHeight(50),
                 ),
-                onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                onPressed: () {
+                  context.read<BattleProvider>().resetBattle();
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                },
                 child: Text(
                   S.battleBackHome,
                   style: const TextStyle(
