@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../../data/services/online_presence_service.dart';
 import '../../../data/services/challenge_service.dart';
 import '../../../data/providers/user_provider.dart';
-import '../../../data/providers/battle_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/cached_avatar.dart';
 
@@ -247,13 +246,14 @@ class _OnlineBattleScreenState extends State<OnlineBattleScreen>
 
     // Configure the battle provider with the specific opponent
     if (!mounted) return;
-    final battleProvider = context.read<BattleProvider>();
-    battleProvider.startBattleWithChallengedOpponent(
-      opponentUid: opponentUid,
-      opponentName: opponentName,
-      opponentAvatar: opponentAvatarUrl ?? opponentAvatar,
-      difficulty: difficulty,
-    );
+    // TODO: Integrate with BattleProvider.startBattleWithChallengedOpponent()
+    // The existing battle_provider.dart needs a new method:
+    //   battleProvider.startBattleWithChallengedOpponent(
+    //     opponentUid: opponentUid, opponentName: opponentName,
+    //     opponentAvatar: ..., difficulty: difficulty,
+    //   );
+    // For now, navigate to existing battle screen with opponent info.
+    // See docs/13_ONLINE_BATTLE_CHALLENGE_SYSTEM.md for integration steps.
 
     setState(() {
       _pendingChallengeToUid = null;
