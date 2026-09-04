@@ -185,6 +185,18 @@ const Map<String, String> kStringsBn = {
   'profileSignOut': 'সাইন আউট',
   'profileSignOutConfirm':
       'আপনি কি সাইন আউট করতে চান? আপনার লোকাল ডেটা থেকে যাবে।',
+  'accountDelete': 'অ্যাকাউন্ট মুছুন',
+  'accountDeleteWarning':
+      'এতে আপনার অ্যাকাউন্ট, প্রোফাইল, কুইজ ইতিহাস, কয়েন, জেমস, রিওয়ার্ড ও শপ আইটেম স্থায়ীভাবে মুছে যাবে। এটি আর ফেরানো যাবে না।',
+  'accountDeleteConfirmLabel': 'নিশ্চিত করতে নিচে DELETE লিখুন।',
+  'accountDeleting': 'আপনার অ্যাকাউন্ট মুছে ফেলা হচ্ছে…',
+  'accountDeleted': 'আপনার অ্যাকাউন্ট মুছে ফেলা হয়েছে। আপনার সব ডেটা সরিয়ে ফেলা হয়েছে।',
+  'accountDeleteFailed': 'অ্যাকাউন্ট মুছে ফেলা যায়নি। আবার চেষ্টা করুন।',
+  'accountDeleteReauth':
+      'নিরাপত্তার জন্য Google দিয়ে আবার সাইন ইন করে চেষ্টা করুন।',
+  'accountDeleteLocalOnly': 'এই ডিভাইস থেকে আপনার গেস্ট প্রগ্রেস মুছে যাবে।',
+  'linkOpenFailed': 'লিংক খোলা যায়নি। আবার চেষ্টা করুন।',
+  'shareMsg': 'QuizBaaz খেলুন — দৈনিক কুইজ, ১v১ ব্যাটল ও রিওয়ার্ড! 🎯',
   'profileSignInPrompt': 'অগ্রগতি সেভ করতে সাইন ইন করুন',
   'profileGuestMode': 'বর্তমানে: গেস্ট মোড',
   'profileRegistered': 'বর্তমানে: নিবন্ধিত ব্যবহারকারী',

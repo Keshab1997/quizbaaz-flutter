@@ -1,12 +1,17 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_links.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/models/user_stats.dart';
 import '../../../data/providers/locale_provider.dart';
 import '../../../data/providers/user_provider.dart';
+import '../../../data/services/account_deletion_service.dart';
 import '../../screens/settings/language_screen.dart';
 import '../../widgets/aura_avatar.dart';
 import '../../widgets/glass_card.dart';
@@ -589,19 +594,28 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.all(18),
               child: Column(
                 children: [
-                  _buildAppInfoRow(Icons.star_rounded, S.profileRateApp, () {}),
+                  _buildAppInfoRow(Icons.star_rounded, S.profileRateApp,
+                      () => _openLink(context, AppLinks.playStore)),
                   const Divider(color: Colors.white12),
-                  _buildAppInfoRow(Icons.share_rounded, S.profileShare, () {}),
+                  _buildAppInfoRow(Icons.share_rounded, S.profileShare,
+                      () => _shareApp(context)),
                   const Divider(color: Colors.white12),
-                  _buildAppInfoRow(Icons.policy_rounded, S.profilePrivacy, () {}),
+                  _buildAppInfoRow(Icons.policy_rounded, S.profilePrivacy,
+                      () => _openLink(context, AppLinks.privacyPolicy)),
                   const Divider(color: Colors.white12),
-                  _buildAppInfoRow(Icons.description_rounded, S.profileTerms, () {}),
+                  _buildAppInfoRow(Icons.description_rounded, S.profileTerms,
+                      () => _openLink(context, AppLinks.terms)),
                   const Divider(color: Colors.white12),
                   _buildAppInfoRow(Icons.info_rounded, S.profileVersion(v: '1.0.0'), null),
                   if (auth.isSignedIn) ...[
                     const Divider(color: Colors.white12),
                     _buildAppInfoRow(Icons.logout_rounded, S.profileSignOut,
                         () => _confirmSignOut(context, auth),
+                        color: AppColors.neonRed),
+                    const Divider(color: Colors.white12),
+                    _buildAppInfoRow(Icons.delete_forever_rounded,
+                        S.accountDelete,
+                        () => _confirmDeleteAccount(context, auth, userProvider),
                         color: AppColors.neonRed),
                   ],
                 ],
@@ -640,6 +654,198 @@ class ProfileScreen extends StatelessWidget {
     if (confirmed == true) {
       await auth.signOut();
     }
+  }
+
+  /// Opens an external URL (Play Store, privacy policy, terms).
+  Future<void> _openLink(BuildContext context, String url) async {
+    final ok = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.linkOpenFailed),
+          backgroundColor: Colors.red.shade800,
+        ),
+      );
+    }
+  }
+
+  /// Shares the Play Store link via the system share sheet.
+  Future<void> _shareApp(BuildContext context) async {
+    final box = context.findRenderObject() as RenderBox?;
+    await Share.share(
+      '${S.shareMsg}\n${AppLinks.playStore}',
+      subject: S.appTitle,
+      // Anchors the share sheet on iPads, where it must be a popover.
+      sharePositionOrigin: box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null,
+    );
+  }
+
+  /// Two-step account deletion: confirmation dialog (type DELETE), then a
+  /// progress dialog while the remote data + Firebase Auth account are wiped.
+  Future<void> _confirmDeleteAccount(BuildContext context, AuthProvider auth,
+      UserProvider userProvider) async {
+    final controller = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        var match = false;
+        return StatefulBuilder(
+          builder: (ctx, setState) => AlertDialog(
+            backgroundColor: AppColors.surfaceElevated,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20)),
+            title: Text(S.accountDelete,
+                style: const TextStyle(color: AppColors.neonRed)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  S.accountDeleteWarning,
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 13),
+                ),
+                if (!auth.isSignedIn) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    S.accountDeleteLocalOnly,
+                    style: const TextStyle(
+                        color: AppColors.neonCyan, fontSize: 12),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Text(
+                  S.accountDeleteConfirmLabel,
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  style: const TextStyle(color: Colors.white),
+                  onChanged: (value) =>
+                      setState(() => match = value.trim() == 'DELETE'),
+                  decoration: InputDecoration(
+                    hintText: 'DELETE',
+                    hintStyle: const TextStyle(
+                        color: Colors.white24, letterSpacing: 2),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.white24),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.neonRed),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(S.cancel,
+                    style:
+                        const TextStyle(color: AppColors.textSecondary)),
+              ),
+              TextButton(
+                onPressed: match ? () => Navigator.pop(ctx, true) : null,
+                child: Text(S.accountDelete,
+                    style: const TextStyle(color: AppColors.neonRed)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (confirmed != true) {
+      controller.dispose();
+      return;
+    }
+
+    // Progress dialog — not dismissible while the account is being deleted.
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          backgroundColor: AppColors.surfaceElevated,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20))),
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 26,
+                height: 26,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Text(
+                  S.accountDeleting,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    AccountDeletionStatus status = AccountDeletionStatus.success;
+    try {
+      final user = auth.firebaseUser;
+      if (user != null) {
+        status = await AccountDeletionService.deleteAccount(user);
+      }
+      // Always wipe the local Hive profile, so a later sync cannot
+      // resurrect the deleted remote account.
+      await userProvider.signOutLocal();
+      if (user != null) await auth.signOut();
+    } catch (e) {
+      debugPrint('Delete account flow error: $e');
+      status = AccountDeletionStatus.failed;
+    }
+
+    if (!context.mounted) {
+      controller.dispose();
+      return;
+    }
+    // Close the progress dialog.
+    Navigator.of(context, rootNavigator: true).pop();
+
+    final messenger = ScaffoldMessenger.of(context);
+    switch (status) {
+      case AccountDeletionStatus.success:
+        messenger.showSnackBar(
+          SnackBar(content: Text(S.accountDeleted)),
+        );
+        break;
+      case AccountDeletionStatus.canceled:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(S.accountDeleteReauth),
+            backgroundColor: Colors.orange.shade800,
+          ),
+        );
+        break;
+      case AccountDeletionStatus.failed:
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(S.accountDeleteFailed),
+            backgroundColor: Colors.red.shade800,
+          ),
+        );
+        break;
+    }
+    controller.dispose();
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value,

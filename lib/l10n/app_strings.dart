@@ -125,54 +125,34 @@ class S {
   static String get dashMoreOptions => raw('dashMoreOptions');
   static String get dashDayStreak => raw('dashDayStreak');
   static String get dashStreakTitle => raw('dashStreakTitle');
-
-  // ---- streak dialogs
   static String get streakMotivationTitle => raw('streakMotivationTitle');
-  static String streakMotivationDaysToGoal({required Object n}) => fill(
-        raw('streakMotivationDaysToGoal'),
-        {'n': n},
-      );
+  static String streakMotivationDaysToGoal({required Object n}) =>
+      fill(raw('streakMotivationDaysToGoal'), {'n': n});
   static String get streakMotivationGoalReached => raw('streakMotivationGoalReached');
   static String get streakMotivationStart => raw('streakMotivationStart');
   static String get streakMotivationBeginner => raw('streakMotivationBeginner');
-  static String streakMotivationBuilding({required Object n}) => fill(
-        raw('streakMotivationBuilding'),
-        {'n': n},
-      );
-  static String streakMotivationConsistent({required Object n}) => fill(
-        raw('streakMotivationConsistent'),
-        {'n': n},
-      );
+  static String streakMotivationBuilding({required Object n}) =>
+      fill(raw('streakMotivationBuilding'), {'n': n});
+  static String streakMotivationConsistent({required Object n}) =>
+      fill(raw('streakMotivationConsistent'), {'n': n});
   static String get streakMotivationMaster => raw('streakMotivationMaster');
-  static String streakMotivationLegend({required Object n}) => fill(
-        raw('streakMotivationLegend'),
-        {'n': n},
-      );
+  static String streakMotivationLegend({required Object n}) =>
+      fill(raw('streakMotivationLegend'), {'n': n});
   static String get streakMotivationBtn => raw('streakMotivationBtn');
   static String get streakMotivationBtnStart => raw('streakMotivationBtnStart');
   static String get streakResetTitle => raw('streakResetTitle');
-  static String streakResetEncourage30({required Object n}) => fill(
-        raw('streakResetEncourage30'),
-        {'n': n},
-      );
-  static String streakResetEncourage14({required Object n}) => fill(
-        raw('streakResetEncourage14'),
-        {'n': n},
-      );
-  static String streakResetEncourage7({required Object n}) => fill(
-        raw('streakResetEncourage7'),
-        {'n': n},
-      );
-  static String streakResetEncourage3({required Object n}) => fill(
-        raw('streakResetEncourage3'),
-        {'n': n},
-      );
+  static String streakResetEncourage30({required Object n}) =>
+      fill(raw('streakResetEncourage30'), {'n': n});
+  static String streakResetEncourage14({required Object n}) =>
+      fill(raw('streakResetEncourage14'), {'n': n});
+  static String streakResetEncourage7({required Object n}) =>
+      fill(raw('streakResetEncourage7'), {'n': n});
+  static String streakResetEncourage3({required Object n}) =>
+      fill(raw('streakResetEncourage3'), {'n': n});
   static String get streakResetEncourage0 => raw('streakResetEncourage0');
   static String get streakShieldAvailable => raw('streakShieldAvailable');
-  static String streakShieldUse({required Object n}) => fill(
-        raw('streakShieldUse'),
-        {'n': n},
-      );
+  static String streakShieldUse({required Object n}) =>
+      fill(raw('streakShieldUse'), {'n': n});
   static String get streakShieldBtn => raw('streakShieldBtn');
   static String get streakShieldProtect => raw('streakShieldProtect');
   static String get streakShieldProtectDesc => raw('streakShieldProtectDesc');
@@ -274,6 +254,16 @@ class S {
   static String get profileSignIn => raw('profileSignIn');
   static String get profileSignOut => raw('profileSignOut');
   static String get profileSignOutConfirm => raw('profileSignOutConfirm');
+  static String get accountDelete => raw('accountDelete');
+  static String get accountDeleteWarning => raw('accountDeleteWarning');
+  static String get accountDeleteConfirmLabel => raw('accountDeleteConfirmLabel');
+  static String get accountDeleting => raw('accountDeleting');
+  static String get accountDeleted => raw('accountDeleted');
+  static String get accountDeleteFailed => raw('accountDeleteFailed');
+  static String get accountDeleteReauth => raw('accountDeleteReauth');
+  static String get accountDeleteLocalOnly => raw('accountDeleteLocalOnly');
+  static String get linkOpenFailed => raw('linkOpenFailed');
+  static String get shareMsg => raw('shareMsg');
   static String get profileSignInPrompt => raw('profileSignInPrompt');
   static String get profileGuestMode => raw('profileGuestMode');
   static String get profileRegistered => raw('profileRegistered');

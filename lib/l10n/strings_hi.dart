@@ -185,6 +185,18 @@ const Map<String, String> kStringsHi = {
   'profileSignOut': 'साइन आउट',
   'profileSignOutConfirm':
       'क्या आप साइन आउट करना चाहते हैं? आपका लोकल डेटा सुरक्षित रहेगा।',
+  'accountDelete': 'खाता हटाएं',
+  'accountDeleteWarning':
+      'इससे आपका खाता, प्रोफ़ाइल, क्विज़ इतिहास, सिक्के, रत्न, रिवार्ड्स और शॉप आइटम स्थायी रूप से हट जाएंगे। इसे वापस नहीं लाया जा सकता।',
+  'accountDeleteConfirmLabel': 'पुष्टि करने के लिए नीचे DELETE लिखें।',
+  'accountDeleting': 'आपका खाता हटाया जा रहा है…',
+  'accountDeleted': 'आपका खाता हटा दिया गया है। आपका सारा डेटा हटा दिया गया है।',
+  'accountDeleteFailed': 'खाता हटाया नहीं जा सका। कृपया फिर कोशिश करें।',
+  'accountDeleteReauth':
+      'सुरक्षा के लिए कृपया Google से दोबारा साइन इन करके प्रयास करें।',
+  'accountDeleteLocalOnly': 'इस डिवाइस से आपकी गेस्ट प्रगति हटा दी जाएगी।',
+  'linkOpenFailed': 'लिंक नहीं खोला जा सका। कृपया फिर कोशिश करें।',
+  'shareMsg': 'QuizBaaz खेलें — दैनिक क्विज़, 1v1 बैटल और रिवार्ड्स! 🎯',
   'profileSignInPrompt': 'अपनी प्रगति सेव करने के लिए साइन इन करें',
   'profileGuestMode': 'फ़िलहाल: गेस्ट मोड',
   'profileRegistered': 'फ़िलहाल: रजिस्टर्ड यूज़र',

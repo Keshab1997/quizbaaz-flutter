@@ -192,6 +192,19 @@ const Map<String, String> kStringsEn = {
   'profileSignOut': 'Sign Out',
   'profileSignOutConfirm':
       'Are you sure you want to sign out? Your local data will be kept.',
+  'accountDelete': 'Delete Account',
+  'accountDeleteWarning':
+      'This will permanently delete your account, profile, quiz history, coins, gems, rewards and shop items. This cannot be undone.',
+  'accountDeleteConfirmLabel': 'Type DELETE below to confirm.',
+  'accountDeleting': 'Deleting your account…',
+  'accountDeleted':
+      'Your account has been deleted. All your data has been removed.',
+  'accountDeleteFailed': 'Could not delete your account. Please try again.',
+  'accountDeleteReauth':
+      'For your security, please sign in with Google once more and try again.',
+  'accountDeleteLocalOnly': 'Your guest progress will be cleared from this device.',
+  'linkOpenFailed': 'Could not open the link. Please try again.',
+  'shareMsg': 'Play QuizBaaz — daily quizzes, 1v1 battles & rewards! 🎯',
   'profileSignInPrompt': 'Sign in to save your progress',
   'profileGuestMode': 'Currently: Guest Mode',
   'profileRegistered': 'Currently: Registered User',

@@ -28,6 +28,10 @@ dependencies:
   hive_flutter: ^1.1.0
   http: ^1.2.0
   image_picker: ^1.0.7
+  # Opens external links (privacy policy, terms, Play Store) from the
+  # Profile screen, and the system share sheet for "Share with Friends".
+  url_launcher: ^6.3.1
+  share_plus: ^10.1.0
   # SHA-1 for question fingerprints (duplicate detection).
   crypto: ^3.0.3
   # Firestore-backed pool of LLM API keys with failover, cooldowns and an admin
