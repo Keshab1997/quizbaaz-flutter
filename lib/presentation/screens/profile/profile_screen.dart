@@ -12,6 +12,7 @@ import '../../../data/models/user_stats.dart';
 import '../../../data/providers/locale_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../../data/services/account_deletion_service.dart';
+import '../../../data/services/consent_service.dart';
 import '../../screens/settings/language_screen.dart';
 import '../../widgets/aura_avatar.dart';
 import '../../widgets/glass_card.dart';
@@ -607,6 +608,14 @@ class ProfileScreen extends StatelessWidget {
                       () => _openLink(context, AppLinks.terms)),
                   const Divider(color: Colors.white12),
                   _buildAppInfoRow(Icons.info_rounded, S.profileVersion(v: '1.0.0'), null),
+                  // Google UMP change-consent entry point — shown only where
+                  // required (EU/EEA/UK). Hidden automatically for India.
+                  if (ConsentService.instance.privacyOptionsRequired) ...[
+                    const Divider(color: Colors.white12),
+                    _buildAppInfoRow(
+                        Icons.privacy_tip_rounded, S.profileConsentOptions,
+                        () => ConsentService.instance.showPrivacyOptions()),
+                  ],
                   if (auth.isSignedIn) ...[
                     const Divider(color: Colors.white12),
                     _buildAppInfoRow(Icons.logout_rounded, S.profileSignOut,

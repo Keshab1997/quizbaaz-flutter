@@ -181,6 +181,7 @@ const Map<String, String> kStringsBn = {
   'profilePrivacy': 'প্রাইভেসি পলিসি',
   'profileTerms': 'শর্তাবলি',
   'profileVersion': 'সংস্করণ {v}',
+  'profileConsentOptions': 'বিজ্ঞাপন সম্মতির বিকল্প',
   'profileSignIn': 'সাইন ইন',
   'profileSignOut': 'সাইন আউট',
   'profileSignOutConfirm':

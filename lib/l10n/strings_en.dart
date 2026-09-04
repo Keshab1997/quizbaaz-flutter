@@ -188,6 +188,7 @@ const Map<String, String> kStringsEn = {
   'profilePrivacy': 'Privacy Policy',
   'profileTerms': 'Terms & Conditions',
   'profileVersion': 'Version {v}',
+  'profileConsentOptions': 'Ad Consent Options',
   'profileSignIn': 'Sign In',
   'profileSignOut': 'Sign Out',
   'profileSignOutConfirm':

@@ -13,6 +13,7 @@ import 'data/providers/quiz_provider.dart';
 import 'data/providers/rewards_provider.dart';
 import 'data/providers/user_provider.dart';
 import 'data/services/ad_service.dart';
+import 'data/services/consent_service.dart';
 import 'data/services/firebase_options.dart';
 import 'data/services/hive_service.dart';
 import 'data/services/sound_service.dart';
@@ -57,9 +58,14 @@ Future<void> main() async {
   // 4) Replay anything queued while the app was offline, then refresh config.
   unawaitedSync();
 
-  // 5) AdMob — optional; runs on Google's official test IDs until the real
-  //    App ID is added (see lib/core/constants/ad_config.dart).
+  // 5) AdMob consent (UMP) first, then the ads SDK. For EU/EEA/UK users the
+  //    Google consent form is shown after the first frame (dashboard); until
+  //    it is resolved every ad request stays gated off. For India and the
+  //    rest of the world no form is shown and ads work immediately.
+  //    Ad IDs are Google's official test IDs until the real App ID is added
+  //    (see lib/core/constants/ad_config.dart).
   try {
+    await ConsentService.instance.initialize();
     await AdService.instance.init();
   } catch (e) {
     debugPrint('AdMob not initialised: $e');

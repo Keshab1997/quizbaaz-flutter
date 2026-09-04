@@ -13,6 +13,7 @@ import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/rewards_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../../data/services/ad_service.dart';
+import '../../../data/services/consent_service.dart';
 import '../../../data/services/haptic_service.dart';
 import '../../../data/services/sound_service.dart';
 import '../../../l10n/app_strings.dart';
@@ -55,6 +56,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context
           .read<RewardsProvider>()
           .initialize(userId: userProvider.user.userId);
+
+      // UMP consent: shows Google's consent form only where required
+      // (EU/EEA/UK). Ads are gated until this resolves; elsewhere this
+      // returns immediately.
+      await ConsentService.instance.showConsentFormIfRequired();
 
       // Preload the AdMob interstitial so it is ready when a quiz ends.
       AdService.instance.preloadInterstitial();
@@ -212,7 +218,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // AdMob banner (SizedBox.shrink until loaded — no layout jump).
-          AdService.instance.banner(),
+          // Rebuilt when consent resolves, so EU/UK users get their banner
+          // right after answering the consent form.
+          ListenableBuilder(
+            listenable: ConsentService.instance,
+            builder: (context, _) => AdService.instance.banner(),
+          ),
           _buildBottomNavigation(),
         ],
       ),

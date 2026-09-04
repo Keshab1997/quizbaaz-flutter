@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../core/constants/ad_config.dart';
+import 'consent_service.dart';
 import 'hive_service.dart';
 
 /// App-wide AdMob helper.
@@ -12,6 +13,9 @@ import 'hive_service.dart';
 ///   once every [AdConfig.interstitialFrequency] quizzes.
 /// * Ads stay optional: if the SDK fails to load (offline, no Google Play
 ///   services, etc.) the app silently continues without them.
+/// * **Consent-aware:** every ad request is gated on
+///   [ConsentService.instance.canRequestAds], so EU/EEA/UK users never see an
+///   ad before they have answered Google's UMP consent form (GDPR).
 class AdService {
   AdService._();
 
@@ -24,7 +28,7 @@ class AdService {
 
   bool get isInitialized => _initialized;
 
-  /// Call once at app start. Never throws.
+  /// Call once at app start (after [ConsentService.initialize]). Never throws.
   Future<void> init() async {
     if (_initialized) return;
     try {
@@ -39,7 +43,9 @@ class AdService {
   /// Banner widget for the dashboard. Shows [SizedBox.shrink] until the ad is
   /// ready, so the layout never jumps or breaks.
   Widget banner() {
-    if (!_initialized) return const SizedBox.shrink();
+    if (!_initialized || !ConsentService.instance.canRequestAds) {
+      return const SizedBox.shrink();
+    }
 
     if (_bannerAd == null) {
       final ad = BannerAd(
@@ -71,9 +77,10 @@ class AdService {
   }
 
   /// Preloads the next interstitial so it is ready when a quiz ends.
-  /// Safe to call repeatedly.
+  /// Safe to call repeatedly. No-op until consent allows ads.
   void preloadInterstitial() {
-    if (!_initialized || _loadingInterstitial) return;
+    if (!_initialized || !ConsentService.instance.canRequestAds) return;
+    if (_loadingInterstitial) return;
     if (_interstitialAd != null) return;
     _loadingInterstitial = true;
 
@@ -99,7 +106,7 @@ class AdService {
   /// Shows the interstitial after a finished quiz, honouring the frequency
   /// cap. Call from the quiz result screen's first frame.
   Future<void> showInterstitialAfterQuiz() async {
-    if (!_initialized) return;
+    if (!_initialized || !ConsentService.instance.canRequestAds) return;
 
     // Count completions in Hive so the cap survives restarts.
     var count = HiveService.getMeta<int>(AdConfig.quizCounterKey) ?? 0;

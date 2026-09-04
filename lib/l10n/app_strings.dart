@@ -251,6 +251,7 @@ class S {
   static String get profileTerms => raw('profileTerms');
   static String profileVersion({required Object v}) =>
       fill(raw('profileVersion'), {'v': v});
+  static String get profileConsentOptions => raw('profileConsentOptions');
   static String get profileSignIn => raw('profileSignIn');
   static String get profileSignOut => raw('profileSignOut');
   static String get profileSignOutConfirm => raw('profileSignOutConfirm');

@@ -49,5 +49,8 @@
 	     before publishing (test ID below). -->
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3940256099942544~3347511713</string>
+	<!-- Required by App Tracking Transparency for UMP personalised ads. -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This identifier is used to deliver personalized ads to you.</string>
 </dict>
 </plist>
