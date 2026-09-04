@@ -238,6 +238,9 @@ class UserProvider extends ChangeNotifier {
         _user = await SyncService.pullUser(_user);
         _stats = await SyncService.pullStats(_user.userId, _stats);
         await _normalizeLegacyBest();
+        // Correct today's leaderboard entry if it holds a phantom legacy
+        // score (old builds pushed the lifetime best, e.g. 370).
+        await _healTodayLeaderboard();
       }
       notifyListeners();
     } catch (e) {
@@ -273,6 +276,40 @@ class UserProvider extends ChangeNotifier {
     if (!_user.isGuest) {
       await SyncService.pushStats(_user.userId, _stats);
     }
+  }
+
+  /// Fixes today's leaderboard entry when it disagrees with the player's
+  /// real per-day best.
+  ///
+  /// Old builds pushed the *lifetime* best daily score into today's
+  /// leaderboard, so a player could see "your score: 70" next to a list that
+  /// showed "370" — and because the new code only pushes when a run beats the
+  /// stored best, the phantom entry was never corrected. The Hive per-day
+  /// best (`daily_best_score_<today>`) is the source of truth: whenever it
+  /// exists and the remote entry differs, it is pushed back so the leaderboard
+  /// always shows the real score.
+  Future<void> _healTodayLeaderboard() async {
+    if (_user.isGuest || _user.userId.isEmpty) return;
+    final dayKey = _todayKey();
+    final bestScore = HiveService.getMeta<int>('daily_best_score_$dayKey');
+    if (bestScore == null || bestScore <= 0) return;
+
+    final remote = await SyncService.pullLeaderboardEntry(_user.userId);
+    if (remote == null) return; // No entry today — nothing to fix.
+
+    final remoteScore = (remote['score'] as num?)?.toInt() ?? 0;
+    if (remoteScore == bestScore) return;
+
+    final bestTime = HiveService.getMeta<double>('daily_best_time_$dayKey') ?? 0;
+    debugPrint(
+      'UserProvider: healing today leaderboard $remoteScore → $bestScore',
+    );
+    await SyncService.pushLeaderboardEntry(
+      user: _user,
+      score: bestScore,
+      timeSeconds: bestTime,
+    );
+    await refreshRankings(force: true);
   }
 
   // ------------------------------------------------------------- Settings --
@@ -774,6 +811,11 @@ class UserProvider extends ChangeNotifier {
           timeSeconds: timeSeconds,
         );
         await refreshRankings(force: true);
+      } else {
+        // The run did not beat the stored best (or the shield blocked it).
+        // The Firestore entry may still hold an old phantom score (e.g. 370
+        // pushed by a previous build) — reconcile it with the true best.
+        await _healTodayLeaderboard();
       }
     }
     await SyncService.pushUser(_user);

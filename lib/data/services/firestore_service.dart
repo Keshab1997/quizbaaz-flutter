@@ -173,6 +173,32 @@ class FirestoreService {
     }
   }
 
+  /// Reads this user's own leaderboard entry for [date], or null.
+  ///
+  /// Used by the daily leaderboard self-heal: the player's Hive per-day best
+  /// is the source of truth, and the entry in Firestore is corrected when it
+  /// no longer matches (e.g. a phantom "legacy" score left by an old build).
+  static Future<Map<String, dynamic>?> getLeaderboardEntry(
+    String userId,
+    DateTime date,
+  ) async {
+    if (!isReady || userId.isEmpty) return null;
+    try {
+      final doc = await _db
+          .collection(_leaderboard)
+          .doc(dateKey(date))
+          .collection('scores')
+          .doc(userId)
+          .get();
+      if (!doc.exists) return null;
+      return Map<String, dynamic>.from(doc.data()!)
+        ..remove('timestamp');
+    } catch (e) {
+      debugPrint('Firestore: getLeaderboardEntry error – $e');
+      return null;
+    }
+  }
+
   /// Fetches the top N scores for a given date, already rank-ordered.
   static Future<List<Map<String, dynamic>>> getLeaderboard(
     DateTime date, {

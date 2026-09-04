@@ -301,6 +301,15 @@ class SyncService {
     return merged;
   }
 
+  /// Downloads this user's own leaderboard entry for today, or null.
+  static Future<Map<String, dynamic>?> pullLeaderboardEntry(
+    String userId, {
+    DateTime? date,
+  }) async {
+    if (userId.isEmpty) return null;
+    return FirestoreService.getLeaderboardEntry(userId, date ?? DateTime.now());
+  }
+
   /// Downloads today's leaderboard into the Hive cache and returns the rows.
   static Future<List<Map<String, dynamic>>> pullLeaderboard({
     DateTime? date,
