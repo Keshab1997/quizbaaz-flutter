@@ -237,14 +237,45 @@ class SyncService {
     final remote = await FirestoreService.loadUser(local.userId);
     if (remote == null) return local;
 
+    // The daily streak and its date are ONE logical unit and must be merged
+    // together. Merging them independently could produce an impossible state
+    // (e.g. a "6-day streak ending 09-04") or resurrect a streak that was
+    // deliberately reset to 0 on another device.
+    //
+    // Rules:
+    //   * Same date on both sides (or both empty): an intentional reset
+    //     (0 with a date set) wins; otherwise keep the higher streak.
+    //   * Different dates: the LATER date is ahead in time, so its whole
+    //     (streak, date) pair wins.
+    final localDate = local.lastStreakDate;
+    final remoteDate = remote.lastStreakDate;
+    int mergedStreak;
+    String? mergedDate;
+    if (localDate == remoteDate) {
+      mergedDate = localDate;
+      if (local.dailyStreak == 0 || remote.dailyStreak == 0) {
+        mergedStreak =
+            local.dailyStreak == 0 ? local.dailyStreak : remote.dailyStreak;
+      } else {
+        mergedStreak = local.dailyStreak >= remote.dailyStreak
+            ? local.dailyStreak
+            : remote.dailyStreak;
+      }
+    } else if (remoteDate != null &&
+        (localDate == null || remoteDate.compareTo(localDate) > 0)) {
+      mergedDate = remoteDate;
+      mergedStreak = remote.dailyStreak;
+    } else {
+      mergedDate = localDate;
+      mergedStreak = local.dailyStreak;
+    }
+
     final merged = local.copyWith(
       coins: local.coins >= remote.coins ? local.coins : remote.coins,
       gems: local.gems >= remote.gems ? local.gems : remote.gems,
-      dailyStreak: local.dailyStreak >= remote.dailyStreak
-          ? local.dailyStreak
-          : remote.dailyStreak,
+      dailyStreak: mergedStreak,
       isAdmin: local.isAdmin || remote.isAdmin,
-      lastStreakDate: _laterDate(local.lastStreakDate, remote.lastStreakDate),
+      lastStreakDate: mergedDate,
       avatarUrl: local.avatarUrl ?? remote.avatarUrl,
       nameEffect: local.nameEffect ?? remote.nameEffect,
     );
@@ -405,11 +436,5 @@ class SyncService {
     final d = int.tryParse(parts[2]);
     if (y == null || m == null || d == null) return null;
     return DateTime(y, m, d);
-  }
-
-  static String? _laterDate(String? a, String? b) {
-    if (a == null) return b;
-    if (b == null) return a;
-    return a.compareTo(b) >= 0 ? a : b;
   }
 }

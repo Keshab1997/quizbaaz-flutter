@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
+import '../../../data/models/shop_item.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../../data/services/ad_service.dart';
+import '../../../data/services/hive_service.dart';
+import '../../widgets/streak_motivation_dialog.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
 import '../leaderboard/leaderboard_screen.dart';
@@ -28,7 +31,29 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
     // AdService, so it never shows on every single quiz.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AdService.instance.showInterstitialAfterQuiz();
+      _maybeShowStreakMotivation();
     });
+  }
+
+  /// Celebrates streak milestones (e.g. every [AppConfig.streakGoalDays]
+  /// days) once per streak value — guarded in Hive so it never repeats.
+  void _maybeShowStreakMotivation() {
+    final userProvider = context.read<UserProvider>();
+    final streak = userProvider.user.dailyStreak;
+    final goal = userProvider.config.streakGoalDays;
+    if (streak <= 0 || goal <= 0) return;
+    if (streak % goal != 0) return;
+
+    if (HiveService.getMeta<int>('last_streak_motivation') == streak) return;
+    HiveService.setMeta('last_streak_motivation', streak);
+
+    if (!mounted) return;
+    StreakMotivationDialog.show(
+      context,
+      currentStreak: streak,
+      streakGoal: goal,
+      hasShield: userProvider.hasItem(ShopItemIds.streakShield),
+    );
   }
 
   @override

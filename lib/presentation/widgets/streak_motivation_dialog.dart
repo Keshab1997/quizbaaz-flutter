@@ -86,7 +86,9 @@ class _StreakMotivationDialogState extends State<StreakMotivationDialog>
     } else if (streak < 3) {
       return 'Great start! Keep the fire burning 🔥';
     } else if (streak < 7) {
-      return 'You\'re on fire! $streak more days to the goal! 🔥';
+      // Days LEFT to the goal — not the current streak.
+      final remaining = (widget.streakGoal - streak).clamp(1, widget.streakGoal);
+      return 'You\'re on fire! Just $remaining more day${remaining == 1 ? '' : 's'} to the goal! 🔥';
     } else if (streak < 14) {
       return 'Amazing consistency! $streak days strong! 🏆';
     } else if (streak < 30) {

@@ -443,7 +443,15 @@ class UserProvider extends ChangeNotifier {
 
   bool get canEarnDailyRewards => _lastDailyRewardDate != _todayKey();
 
-  /// Checks if the user missed yesterday and lost their streak today.
+  /// Detects a lost daily streak (a full day was missed) and resets it.
+  ///
+  /// Returns the details for the reset dialog, or null. The reset actually
+  /// happens here — before, the old streak stayed on the profile so the
+  /// dashboard still showed e.g. "12 days" while the dialog claimed it was
+  /// lost, and the same warning nagged on every app open. Now:
+  ///   * the streak is zeroed once and pushed, so every streak UI is
+  ///     consistent and the dialog never repeats;
+  ///   * `UserStats.longestStreak` (history) is untouched.
   StreakResetDetails? checkStreakResetWarning() {
     final now = DateTime.now();
     final today = _dateKey(now);
@@ -454,25 +462,31 @@ class UserProvider extends ChangeNotifier {
       return null;
     }
 
-    final String lastWarnedDate = HiveService.getMeta<String>('warned_streak_reset_date') ?? '';
-    if (lastWarnedDate == today) return null;
-
     final lostStreak = _user.dailyStreak;
     if (lostStreak <= 0) return null;
 
-    // Record warned today
-    HiveService.setMeta('warned_streak_reset_date', today);
+    final String lastWarnedDate =
+        HiveService.getMeta<String>('warned_streak_reset_date') ?? '';
+    if (lastWarnedDate == today) return null;
 
-    final hasShield = hasItem(ShopItemIds.streakShield);
+    // The streak is truly gone — zero it now and persist, so the flame card,
+    // calendar dots and profile all agree with the dialog.
+    _user.dailyStreak = 0;
+    notifyListeners();
+    _persistUser();
+
+    // Record warned today.
+    HiveService.setMeta('warned_streak_reset_date', today);
 
     return StreakResetDetails(
       lostStreak: lostStreak,
-      hasShield: hasShield,
+      hasShield: hasItem(ShopItemIds.streakShield),
     );
   }
 
   /// Restores player's streak using 1 Streak Freeze Shield from inventory.
   bool restoreStreakWithShield(int lostStreak) {
+    if (lostStreak <= 0) return false;
     if (!consumeItem(ShopItemIds.streakShield)) return false;
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
     final m = yesterday.month.toString().padLeft(2, '0');
@@ -683,7 +697,10 @@ class UserProvider extends ChangeNotifier {
     );
 
     if (isDaily) {
-      // Check for streak shield before updating streak
+      // Check for streak shield before updating streak. This is the fallback
+      // auto-freeze path (used when the reset was not seen, e.g. the app was
+      // reopened straight into the quiz): if the streak was just reset to 1
+      // and the player owned a shield, the shield restores it.
       final hadStreakShield = hasItem(ShopItemIds.streakShield);
       final previousStreak = _user.dailyStreak;
 

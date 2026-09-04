@@ -72,12 +72,18 @@ class StreakFlameWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Day bubbles
+          // Day bubbles — a 7-slot weekly cycle. A streak that is an exact
+          // multiple of 7 fills all 7 slots; otherwise the remainder fills the
+          // first slots and the next slot is "today".
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(7, (index) {
-              final isCompleted = index < streakDays % 7 || (streakDays >= 7 && index < 6);
-              final isToday = index == (streakDays % 7);
+              final cycle = streakDays % 7;
+              final completedCount =
+                  (cycle == 0 && streakDays > 0) ? 7 : cycle;
+              final isCompleted = index < completedCount;
+              final isToday =
+                  streakDays == 0 ? index == 0 : (cycle != 0 && index == cycle);
 
               return Container(
                 width: 34,

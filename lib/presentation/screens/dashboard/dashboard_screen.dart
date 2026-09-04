@@ -67,13 +67,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       // Check and claim yesterday's daily leaderboard rewards!
       final reward = await userProvider.checkAndClaimDailyLeaderboardRewards();
-      if (mounted && reward != null) {
-        DailyWinnerCelebrationDialog.show(context, reward);
-      } else if (mounted) {
-        // Check if daily streak was reset and warn player / offer Streak Shield recovery!
+
+      // Streak reset warning takes priority over the reward celebration —
+      // it is the more urgent message (and both can occur on the same day).
+      if (mounted) {
         final streakReset = userProvider.checkStreakResetWarning();
         if (streakReset != null) {
           StreakResetDialog.show(context, streakReset);
+        } else if (reward != null) {
+          DailyWinnerCelebrationDialog.show(context, reward);
         }
       }
     });
