@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -51,7 +50,7 @@ class AdService {
       final ad = BannerAd(
         adUnitId: AdConfig.bannerAdUnitId,
         size: AdSize.banner,
-        request: AdRequest(),
+        request: const AdRequest(),
         listener: BannerAdListener(
           onAdLoaded: (ad) => debugPrint('AdService: banner loaded'),
           onAdFailedToLoad: (ad, error) {
@@ -86,16 +85,17 @@ class AdService {
 
     InterstitialAd.load(
       adUnitId: AdConfig.interstitialAdUnitId,
-      request: AdRequest(),
+      request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _interstitialAd = ad;
           _loadingInterstitial = false;
           debugPrint('AdService: interstitial loaded');
         },
-        onAdFailedToLoad: (ad, error) {
+        // google_mobile_ads 9.x: the failure callback carries only the
+        // LoadAdError — there is no ad object to dispose here.
+        onAdFailedToLoad: (error) {
           debugPrint('AdService: interstitial failed – ${error.message}');
-          ad.dispose();
           _interstitialAd = null;
           _loadingInterstitial = false;
         },

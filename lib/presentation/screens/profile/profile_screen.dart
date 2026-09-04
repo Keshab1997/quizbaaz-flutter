@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -774,6 +773,12 @@ class ProfileScreen extends StatelessWidget {
       },
     );
     if (confirmed != true) {
+      controller.dispose();
+      return;
+    }
+    // The confirm dialog above is async — never touch the context after it
+    // without checking it is still mounted.
+    if (!context.mounted) {
       controller.dispose();
       return;
     }
