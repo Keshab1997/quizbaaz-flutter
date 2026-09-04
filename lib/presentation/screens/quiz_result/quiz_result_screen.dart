@@ -5,6 +5,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/user_provider.dart';
+import '../../../data/services/ad_service.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/neon_button.dart';
 import '../leaderboard/leaderboard_screen.dart';
@@ -12,8 +13,23 @@ import 'review_answers_screen.dart';
 import '../../widgets/cached_avatar.dart';
 import '../../../l10n/app_strings.dart';
 
-class QuizResultScreen extends StatelessWidget {
+class QuizResultScreen extends StatefulWidget {
   const QuizResultScreen({super.key});
+
+  @override
+  State<QuizResultScreen> createState() => _QuizResultScreenState();
+}
+
+class _QuizResultScreenState extends State<QuizResultScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // AdMob interstitial after a finished quiz — frequency-capped inside
+    // AdService, so it never shows on every single quiz.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AdService.instance.showInterstitialAfterQuiz();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

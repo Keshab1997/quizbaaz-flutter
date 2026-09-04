@@ -32,6 +32,10 @@ dependencies:
   # Profile screen, and the system share sheet for "Share with Friends".
   url_launcher: ^6.3.1
   share_plus: ^10.1.0
+  # AdMob — banner + interstitial. Runs on official Google test ad unit IDs
+  # until the real IDs from the AdMob console are pasted into
+  # lib/core/constants/ad_config.dart (see the "HOW TO GO LIVE" note there).
+  google_mobile_ads: ^9.1.0
   # SHA-1 for question fingerprints (duplicate detection).
   crypto: ^3.0.3
   # Firestore-backed pool of LLM API keys with failover, cooldowns and an admin

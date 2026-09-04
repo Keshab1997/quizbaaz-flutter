@@ -12,6 +12,7 @@ import '../../../data/models/user_stats.dart';
 import '../../../data/providers/quiz_provider.dart';
 import '../../../data/providers/rewards_provider.dart';
 import '../../../data/providers/user_provider.dart';
+import '../../../data/services/ad_service.dart';
 import '../../../data/services/haptic_service.dart';
 import '../../../data/services/sound_service.dart';
 import '../../../l10n/app_strings.dart';
@@ -54,6 +55,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context
           .read<RewardsProvider>()
           .initialize(userId: userProvider.user.userId);
+
+      // Preload the AdMob interstitial so it is ready when a quiz ends.
+      AdService.instance.preloadInterstitial();
 
       // Check and claim yesterday's daily leaderboard rewards!
       final reward = await userProvider.checkAndClaimDailyLeaderboardRewards();
@@ -204,7 +208,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigation(),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // AdMob banner (SizedBox.shrink until loaded — no layout jump).
+          AdService.instance.banner(),
+          _buildBottomNavigation(),
+        ],
+      ),
     );
   }
 

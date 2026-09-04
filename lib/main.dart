@@ -12,6 +12,7 @@ import 'data/providers/locale_provider.dart';
 import 'data/providers/quiz_provider.dart';
 import 'data/providers/rewards_provider.dart';
 import 'data/providers/user_provider.dart';
+import 'data/services/ad_service.dart';
 import 'data/services/firebase_options.dart';
 import 'data/services/hive_service.dart';
 import 'data/services/sound_service.dart';
@@ -55,6 +56,14 @@ Future<void> main() async {
 
   // 4) Replay anything queued while the app was offline, then refresh config.
   unawaitedSync();
+
+  // 5) AdMob — optional; runs on Google's official test IDs until the real
+  //    App ID is added (see lib/core/constants/ad_config.dart).
+  try {
+    await AdService.instance.init();
+  } catch (e) {
+    debugPrint('AdMob not initialised: $e');
+  }
 
   runApp(QuizBaazApp(localeProvider: localeProvider));
 }
