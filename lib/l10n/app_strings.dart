@@ -506,4 +506,16 @@ class S {
   static String get setsEmptyBody => raw('setsEmptyBody');
   static String setsPlayedOn({required Object date}) =>
       fill(raw('setsPlayedOn'), {'date': date});
+
+  // ---- notifications
+  static String get notifDailyTitle => raw('notifDailyTitle');
+  static String get notifDailyBody => raw('notifDailyBody');
+  static String get notifStreakTitle => raw('notifStreakTitle');
+  static String notifStreakBody({required Object n}) =>
+      fill(raw('notifStreakBody'), {'n': n});
+  static String get notifPermissionDenied => raw('notifPermissionDenied');
+  static String get notifBellOn => raw('notifBellOn');
+  static String get notifBellOff => raw('notifBellOff');
+  static String get notifChannelName => raw('notifChannelName');
+  static String get notifChannelDesc => raw('notifChannelDesc');
 }

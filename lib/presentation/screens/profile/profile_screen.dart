@@ -12,6 +12,7 @@ import '../../../data/providers/locale_provider.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../../data/services/account_deletion_service.dart';
 import '../../../data/services/consent_service.dart';
+import '../../../data/services/notification_service.dart';
 import '../../screens/settings/language_screen.dart';
 import '../../widgets/aura_avatar.dart';
 import '../../widgets/glass_card.dart';
@@ -569,17 +570,17 @@ class ProfileScreen extends StatelessWidget {
                         : _languageLabel(context.watch<LocaleProvider>().appLanguage),
                   ),
                   const Divider(color: Colors.white12),
-                  _buildSettingRow(userProvider, Icons.notifications_rounded,
+                  _buildSettingRow(context, userProvider, Icons.notifications_rounded,
                       S.profileNotifications, UserProvider.settingNotifications),
                   const Divider(color: Colors.white12),
-                  _buildSettingRow(userProvider, Icons.music_note_rounded,
+                  _buildSettingRow(context, userProvider, Icons.music_note_rounded,
                       S.profileSound, UserProvider.settingSound),
                   const Divider(color: Colors.white12),
-                  _buildSettingRow(userProvider, Icons.volume_up_rounded,
+                  _buildSettingRow(context, userProvider, Icons.volume_up_rounded,
                       S.profileVibration, UserProvider.settingVibration,
                       defaultValue: false),
                   const Divider(color: Colors.white12),
-                  _buildSettingRow(userProvider, Icons.dark_mode_rounded,
+                  _buildSettingRow(context, userProvider, Icons.dark_mode_rounded,
                       S.profileDarkMode, UserProvider.settingDarkMode),
                 ],
               ),
@@ -1238,6 +1239,7 @@ class ProfileScreen extends StatelessWidget {
 
   /// Reads and writes the toggle straight through Hive — no dead switches.
   Widget _buildSettingRow(
+    BuildContext context,
     UserProvider userProvider,
     IconData icon,
     String label,
@@ -1258,7 +1260,21 @@ class ProfileScreen extends StatelessWidget {
         ),
         Switch(
           value: isOn,
-          onChanged: (val) => userProvider.setSetting(settingKey, val),
+          onChanged: (val) async {
+            if (settingKey == UserProvider.settingNotifications && val) {
+              final allowed =
+                  await NotificationService.instance.requestPermission();
+              if (!allowed) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(S.notifPermissionDenied)),
+                  );
+                }
+                return;
+              }
+            }
+            await userProvider.setSetting(settingKey, val);
+          },
           activeTrackColor: AppColors.neonCyan.withValues(alpha: 0.5),
           activeThumbColor: AppColors.neonCyan,
         ),

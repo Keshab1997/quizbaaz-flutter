@@ -423,4 +423,17 @@ const Map<String, String> kStringsEn = {
   'setsEmpty': 'No questions in this chapter yet',
   'setsEmptyBody': 'Questions are being added. Check back soon!',
   'setsPlayedOn': 'Last played {date}',
+
+  // ------------------------------------------------------ notifications --
+  'notifDailyTitle': 'Daily Quiz is live',
+  'notifDailyBody': '10 questions. One run. Climb the board.',
+  'notifStreakTitle': 'Your streak is on the line',
+  'notifStreakBody': '{n}-day streak — play today\'s Daily Quiz to keep it.',
+  'notifPermissionDenied':
+      'Notification permission is off. Enable it in system settings to get Daily Quiz reminders.',
+  'notifBellOn': 'Daily Quiz reminder is on · 7:00 PM',
+  'notifBellOff':
+      'Reminders are off. Turn on Notifications in Profile → Settings.',
+  'notifChannelName': 'Daily reminders',
+  'notifChannelDesc': 'Daily Quiz and streak reminders',
 };
