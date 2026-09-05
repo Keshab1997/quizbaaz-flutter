@@ -12,7 +12,7 @@ import '../models/user_model.dart';
 import '../models/user_stats.dart';
 import '../repositories/leaderboard_repository.dart';
 import '../services/hive_service.dart';
-import '../services/notification_service.dart';
+import '../services/push_sync.dart';
 import '../services/sync_service.dart';
 
 /// Result of a shop purchase attempt.
@@ -331,7 +331,7 @@ class UserProvider extends ChangeNotifier {
     await HiveService.setMeta(key, value);
     notifyListeners();
     if (key == settingNotifications || key == settingVibration) {
-      unawaited(NotificationService.instance.syncFromHive());
+      unawaited(PushSync.syncFromHive());
     }
   }
 
@@ -827,7 +827,7 @@ class UserProvider extends ChangeNotifier {
     await SyncService.pushUser(_user);
     await SyncService.pushStats(_user.userId, _stats);
     if (isDaily) {
-      unawaited(NotificationService.instance.syncFromHive());
+      unawaited(PushSync.syncFromHive());
     }
   }
 
@@ -991,6 +991,7 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
     await SyncService.pushUser(_user);
     await SyncService.pushStats(_user.userId, _stats);
+    unawaited(PushSync.syncFromHive());
   }
 
   void saveProfile({
@@ -1020,7 +1021,7 @@ class UserProvider extends ChangeNotifier {
     _leaderboard = const [];
     _lastDailyRewardDate = null;
     notifyListeners();
-    unawaited(NotificationService.instance.syncFromHive());
+    unawaited(PushSync.syncFromHive());
   }
 
   // ---------------------------------------------------------- Persistence --

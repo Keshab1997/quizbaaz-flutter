@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../services/onesignal_service.dart';
+
 /// A simple exception carrying a user-friendly message for the UI.
 class AuthException implements Exception {
   final String message;
@@ -80,6 +82,7 @@ class AuthProvider extends ChangeNotifier {
         );
       }
       await auth.signInWithCredential(credential);
+      unawaited(OneSignalService.instance.syncFromHive());
       return auth.currentUser != null;
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled ||
@@ -116,6 +119,10 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _auth?.signOut();
     } catch (_) {}
+    unawaited(Future(() async {
+      await OneSignalService.instance.logout();
+      await OneSignalService.instance.syncFromHive();
+    }));
     notifyListeners();
   }
 

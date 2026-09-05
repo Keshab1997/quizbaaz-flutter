@@ -17,7 +17,9 @@ import '../../../data/services/ad_service.dart';
 import '../../../data/services/consent_service.dart';
 import '../../../data/services/haptic_service.dart';
 import '../../../data/services/notification_service.dart';
+import '../../../data/services/onesignal_service.dart';
 import '../../../data/services/sound_service.dart';
+import '../../app_navigator.dart';
 import '../../../l10n/app_strings.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/name_effect_text.dart';
@@ -56,6 +58,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await userProvider.initialize();
       if (!mounted) return;
       unawaited(NotificationService.instance.bootstrap());
+      unawaited(OneSignalService.instance.syncFromHive());
+      AppNavigator.flushPending();
       context
           .read<RewardsProvider>()
           .initialize(userId: userProvider.user.userId);

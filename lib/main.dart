@@ -18,9 +18,11 @@ import 'data/services/ad_service.dart';
 import 'data/services/consent_service.dart';
 import 'data/services/firebase_options.dart';
 import 'data/services/hive_service.dart';
+import 'data/services/onesignal_service.dart';
 import 'data/services/sound_service.dart';
 import 'data/services/sync_service.dart';
 import 'l10n/app_strings.dart';
+import 'presentation/app_navigator.dart';
 import 'presentation/screens/dashboard/dashboard_screen.dart';
 import 'presentation/widgets/app_background.dart';
 
@@ -79,6 +81,11 @@ Future<void> main() async {
   }));
 
   runApp(QuizBaazApp(localeProvider: localeProvider));
+
+  // After the first frame is scheduled — never before runApp. Click
+  // listener must be up so a killed-app tap is not dropped.
+  OneSignalService.onNotificationOpen = AppNavigator.handleOpen;
+  unawaited(OneSignalService.instance.bootstrap());
 }
 
 /// Fire-and-forget startup sync (never blocks the first frame).
@@ -128,6 +135,7 @@ class QuizBaazApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
+          navigatorKey: AppNavigator.key,
           builder: (context, child) => AppBackground(
             child: child ?? const SizedBox.shrink(),
           ),
