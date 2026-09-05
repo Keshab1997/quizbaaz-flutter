@@ -82,7 +82,7 @@ class _DailyQuizLoadingCardState extends State<DailyQuizLoadingCard>
     final config = context.watch<UserProvider>().config;
     final isDaily = quiz.isDailyQuiz;
     final character =
-        isDaily ? AppAssets.quizChampion : AppAssets.heroGirl;
+        isDaily ? AppAssets.dailyStar : AppAssets.heroGirl;
 
     final eyebrow = isDaily ? S.quizLoadEyebrow : S.quizLoadChapterEyebrow;
     final title = isDaily
