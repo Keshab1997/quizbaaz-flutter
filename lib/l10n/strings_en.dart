@@ -127,6 +127,18 @@ const Map<String, String> kStringsEn = {
   'quizNoPoll': 'No Audience Poll left! Buy more in the Shop. 🛒',
   'quizPollUsed': 'Already used Poll on this question.',
   'quizPollBlocked': 'Cannot use Poll now.',
+  'quizLoadEyebrow': 'DAILY LIVE QUIZ',
+  'quizLoadTitle': 'Get set, champion',
+  'quizLoadBody': '{n} fresh questions are lining up.',
+  'quizLoadStepShuffle': 'Shuffling today\'s questions…',
+  'quizLoadStepTimer': 'Winding up the timer…',
+  'quizLoadStepBoost': 'Checking your power-ups…',
+  'quizLoadStepReady': 'Get ready…',
+  'quizLoadMetaQuestions': '{n} questions',
+  'quizLoadMetaCoins': 'up to {n} coins',
+  'quizLoadChapterEyebrow': 'CHAPTER SET',
+  'quizLoadChapterTitle': 'Loading Set {n}',
+  'quizLoadChapterBody': 'Ten questions. Same energy.',
 
   // --------------------------------------------------------------- chapter --
   'chapterAllSubjects': 'All Subjects',

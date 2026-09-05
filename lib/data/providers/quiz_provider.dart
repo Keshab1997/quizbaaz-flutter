@@ -105,6 +105,7 @@ class QuizProvider extends ChangeNotifier {
   bool get isAnswerSubmitted => _isAnswerSubmitted;
   bool get isQuizCompleted => _isQuizCompleted;
   bool get isLoading => _isLoading;
+  bool get isDailyQuiz => _isDailyQuiz;
   int get secondsRemaining => _secondsRemaining;
   List<int> get disabledOptionIndices => _disabledOptionIndices;
 
@@ -160,6 +161,10 @@ class QuizProvider extends ChangeNotifier {
 
   // ------------------------------------------------------------- Lifecycle --
 
+  /// How long the 3D loading card stays up so it can actually be seen.
+  /// Local JSON loads in milliseconds otherwise, and the intro would flash.
+  static const Duration _dailyIntroMin = Duration(milliseconds: 2000);
+
   /// Initialize the Daily Quiz.
   Future<void> startDailyQuiz() async {
     _resetQuizState();
@@ -167,7 +172,9 @@ class QuizProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
+    final sw = Stopwatch()..start();
     _questions = _shuffleOptions(await _repository.getDailyQuizQuestions());
+    await _holdIntro(sw, _dailyIntroMin);
     _isLoading = false;
 
     // Check for active boosters
@@ -290,6 +297,12 @@ class QuizProvider extends ChangeNotifier {
       SoundService.instance.play('boost');
       Haptics.medium();
     }
+  }
+
+  /// Keeps [isLoading] true long enough for the 3D intro card to play.
+  Future<void> _holdIntro(Stopwatch sw, Duration min) async {
+    final left = min - sw.elapsed;
+    if (left > Duration.zero) await Future<void>.delayed(left);
   }
 
   /// Randomises option order once per load.

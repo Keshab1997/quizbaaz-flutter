@@ -7,6 +7,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/quiz_language_pills.dart';
 import '../quiz_result/quiz_result_screen.dart';
 import '../../../l10n/app_strings.dart';
+import 'daily_quiz_loading_card.dart';
 
 class DailyQuizScreen extends StatelessWidget {
   const DailyQuizScreen({super.key});
@@ -53,6 +54,7 @@ class DailyQuizScreen extends StatelessWidget {
           onPressed: () => _showExitDialog(context),
         ),
         actions: [
+          if (currentQ != null) ...[
           // Active Boosters Indicator
           if (quiz.doublePointsActive)
             Container(
@@ -121,6 +123,7 @@ class DailyQuizScreen extends StatelessWidget {
               ],
             ),
           ),
+          ],
         ],
       ),
       body: currentQ == null
@@ -152,7 +155,7 @@ class DailyQuizScreen extends StatelessWidget {
                         ],
                       ),
                     )
-                  : const CircularProgressIndicator(color: AppColors.neonCyan),
+                  : const DailyQuizLoadingCard(),
             )
           : SafeArea(
               child: Padding(
