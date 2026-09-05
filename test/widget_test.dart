@@ -1,17 +1,22 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 import 'package:quizbaaz/data/models/localized_text.dart';
 import 'package:quizbaaz/data/models/question_model.dart';
 import 'package:quizbaaz/data/models/user_stats.dart';
 import 'package:quizbaaz/data/providers/locale_provider.dart';
+import 'package:quizbaaz/data/providers/quiz_provider.dart';
+import 'package:quizbaaz/data/providers/user_provider.dart';
 import 'package:quizbaaz/data/services/hive_service.dart';
 import 'package:quizbaaz/l10n/app_strings.dart';
 import 'package:quizbaaz/l10n/strings_bn.dart';
 import 'package:quizbaaz/l10n/strings_en.dart';
 import 'package:quizbaaz/l10n/strings_hi.dart';
 import 'package:quizbaaz/main.dart';
+import 'package:quizbaaz/presentation/screens/daily_quiz/daily_quiz_loading_card.dart';
 
 void main() {
   late Directory tempDir;
@@ -26,6 +31,26 @@ void main() {
   tearDownAll(() async {
     await Hive.close();
     if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
+  });
+
+  testWidgets('daily quiz loading card shows the 3D intro', (tester) async {
+    S.load('en');
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => UserProvider()),
+          ChangeNotifierProvider(
+            create: (ctx) => QuizProvider(ctx.read<UserProvider>()),
+          ),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: DailyQuizLoadingCard()),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(DailyQuizLoadingCard), findsOneWidget);
+    expect(find.text(S.quizLoadStepShuffle), findsOneWidget);
   });
 
   testWidgets('QuizBaazApp builds without crashing', (tester) async {

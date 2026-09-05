@@ -187,6 +187,22 @@ class S {
   static String get quizNoPoll => raw('quizNoPoll');
   static String get quizPollUsed => raw('quizPollUsed');
   static String get quizPollBlocked => raw('quizPollBlocked');
+  static String get quizLoadEyebrow => raw('quizLoadEyebrow');
+  static String get quizLoadTitle => raw('quizLoadTitle');
+  static String quizLoadBody({required Object n}) =>
+      fill(raw('quizLoadBody'), {'n': n});
+  static String get quizLoadStepShuffle => raw('quizLoadStepShuffle');
+  static String get quizLoadStepTimer => raw('quizLoadStepTimer');
+  static String get quizLoadStepBoost => raw('quizLoadStepBoost');
+  static String get quizLoadStepReady => raw('quizLoadStepReady');
+  static String quizLoadMetaQuestions({required Object n}) =>
+      fill(raw('quizLoadMetaQuestions'), {'n': n});
+  static String quizLoadMetaCoins({required Object n}) =>
+      fill(raw('quizLoadMetaCoins'), {'n': n});
+  static String get quizLoadChapterEyebrow => raw('quizLoadChapterEyebrow');
+  static String quizLoadChapterTitle({required Object n}) =>
+      fill(raw('quizLoadChapterTitle'), {'n': n});
+  static String get quizLoadChapterBody => raw('quizLoadChapterBody');
 
   // ---- chapter
   static String get chapterAllSubjects => raw('chapterAllSubjects');

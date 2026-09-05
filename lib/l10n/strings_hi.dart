@@ -120,6 +120,18 @@ const Map<String, String> kStringsHi = {
   'quizNoPoll': 'ऑडियंस पोल खत्म! शॉप से और खरीदें। 🛒',
   'quizPollUsed': 'इस सवाल पर पोल पहले ही इस्तेमाल हो चुका है।',
   'quizPollBlocked': 'अभी पोल इस्तेमाल नहीं कर सकते।',
+  'quizLoadEyebrow': 'डेली लाइव क्विज़',
+  'quizLoadTitle': 'तैयार हो जाओ, चैंपियन',
+  'quizLoadBody': '{n} नए सवाल तैयार हो रहे हैं।',
+  'quizLoadStepShuffle': 'आज के सवाल मिलाए जा रहे हैं…',
+  'quizLoadStepTimer': 'टाइमर सेट हो रहा है…',
+  'quizLoadStepBoost': 'पावर-अप जाँचे जा रहे हैं…',
+  'quizLoadStepReady': 'तैयार हो जाइए…',
+  'quizLoadMetaQuestions': '{n} प्रश्न',
+  'quizLoadMetaCoins': 'अधिकतम {n} कॉइन',
+  'quizLoadChapterEyebrow': 'अध्याय सेट',
+  'quizLoadChapterTitle': 'सेट {n} लोड हो रहा है',
+  'quizLoadChapterBody': 'दस प्रश्न। वही जोश।',
 
   // --------------------------------------------------------------- chapter --
   'chapterAllSubjects': 'सभी विषय',

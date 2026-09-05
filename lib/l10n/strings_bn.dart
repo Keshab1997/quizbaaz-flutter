@@ -120,6 +120,18 @@ const Map<String, String> kStringsBn = {
   'quizNoPoll': 'অডিয়েন্স পোল শেষ! শপ থেকে আরও কিনুন। 🛒',
   'quizPollUsed': 'এই প্রশ্নে পোল ইতিমধ্যে ব্যবহার করেছেন।',
   'quizPollBlocked': 'এখন পোল ব্যবহার করা যাবে না।',
+  'quizLoadEyebrow': 'আজকের লাইভ কুইজ',
+  'quizLoadTitle': 'তৈরি তো, চ্যাম্পিয়ন?',
+  'quizLoadBody': '{n}টা তাজা প্রশ্ন সাজানো হচ্ছে।',
+  'quizLoadStepShuffle': 'আজকের প্রশ্ন মেশানো হচ্ছে…',
+  'quizLoadStepTimer': 'টাইমার সেট হচ্ছে…',
+  'quizLoadStepBoost': 'পাওয়ার-আপ চেক হচ্ছে…',
+  'quizLoadStepReady': 'প্রস্তুত হও…',
+  'quizLoadMetaQuestions': '{n}টি প্রশ্ন',
+  'quizLoadMetaCoins': 'সর্বোচ্চ {n} কয়েন',
+  'quizLoadChapterEyebrow': 'অধ্যায় সেট',
+  'quizLoadChapterTitle': 'সেট {n} লোড হচ্ছে',
+  'quizLoadChapterBody': 'দশটা প্রশ্ন। একই জোশ।',
 
   // --------------------------------------------------------------- chapter --
   'chapterAllSubjects': 'সব বিষয়',
