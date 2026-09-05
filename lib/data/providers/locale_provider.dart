@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_strings.dart';
 import '../services/hive_service.dart';
+import '../services/notification_service.dart';
 
 /// Owns the app language.
 ///
@@ -67,6 +69,7 @@ class LocaleProvider extends ChangeNotifier {
     await HiveService.setMeta(metaAppLanguage, code);
     await HiveService.setMeta(metaFollowSystem, false);
     notifyListeners();
+    unawaited(NotificationService.instance.syncFromHive());
   }
 
   /// Hands language selection back to the operating system.
@@ -77,6 +80,7 @@ class LocaleProvider extends ChangeNotifier {
     await HiveService.setMeta(metaFollowSystem, true);
     await HiveService.setMeta(metaAppLanguage, null);
     notifyListeners();
+    unawaited(NotificationService.instance.syncFromHive());
   }
 
 

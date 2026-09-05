@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ import '../../../data/providers/user_provider.dart';
 import '../../../data/services/ad_service.dart';
 import '../../../data/services/consent_service.dart';
 import '../../../data/services/haptic_service.dart';
+import '../../../data/services/notification_service.dart';
 import '../../../data/services/sound_service.dart';
 import '../../../l10n/app_strings.dart';
 import '../../widgets/glass_card.dart';
@@ -53,6 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final userProvider = context.read<UserProvider>();
       await userProvider.initialize();
       if (!mounted) return;
+      unawaited(NotificationService.instance.bootstrap());
       context
           .read<RewardsProvider>()
           .initialize(userId: userProvider.user.userId);
@@ -320,36 +323,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: AppColors.neonPurple,
         ),
         const SizedBox(width: 7),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.055),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
-              ),
-              child: const Icon(
-                Icons.notifications_none_rounded,
-                color: AppColors.textPrimary,
-                size: 19,
-              ),
+        GestureDetector(
+          onTap: () {
+            final on = userProvider.setting(UserProvider.settingNotifications);
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(on ? S.notifBellOn : S.notifBellOff)),
+            );
+          },
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.055),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
             ),
-            Positioned(
-              top: 5,
-              right: 5,
-              child: Container(
-                width: 7,
-                height: 7,
-                decoration: const BoxDecoration(
-                  color: AppColors.neonRed,
-                  shape: BoxShape.circle,
-                ),
-              ),
+            child: Icon(
+              userProvider.setting(UserProvider.settingNotifications)
+                  ? Icons.notifications_rounded
+                  : Icons.notifications_off_outlined,
+              color: AppColors.textPrimary,
+              size: 19,
             ),
-          ],
+          ),
         ),
       ],
     );

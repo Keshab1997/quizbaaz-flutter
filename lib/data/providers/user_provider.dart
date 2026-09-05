@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/app_config.dart';
@@ -10,6 +12,7 @@ import '../models/user_model.dart';
 import '../models/user_stats.dart';
 import '../repositories/leaderboard_repository.dart';
 import '../services/hive_service.dart';
+import '../services/notification_service.dart';
 import '../services/sync_service.dart';
 
 /// Result of a shop purchase attempt.
@@ -327,6 +330,9 @@ class UserProvider extends ChangeNotifier {
   Future<void> setSetting(String key, bool value) async {
     await HiveService.setMeta(key, value);
     notifyListeners();
+    if (key == settingNotifications || key == settingVibration) {
+      unawaited(NotificationService.instance.syncFromHive());
+    }
   }
 
   // ------------------------------------------------------------ Inventory --
@@ -820,6 +826,9 @@ class UserProvider extends ChangeNotifier {
     }
     await SyncService.pushUser(_user);
     await SyncService.pushStats(_user.userId, _stats);
+    if (isDaily) {
+      unawaited(NotificationService.instance.syncFromHive());
+    }
   }
 
   /// Saves quiz history to Hive and mirrors to Firestore.
@@ -1011,6 +1020,7 @@ class UserProvider extends ChangeNotifier {
     _leaderboard = const [];
     _lastDailyRewardDate = null;
     notifyListeners();
+    unawaited(NotificationService.instance.syncFromHive());
   }
 
   // ---------------------------------------------------------- Persistence --

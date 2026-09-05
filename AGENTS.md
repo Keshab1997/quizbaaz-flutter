@@ -46,7 +46,7 @@ lib/
 │   ├── models/       plain serialisable classes (fromJson/toJson)
 │   ├── providers/    ChangeNotifier state — the only source of UI state
 │   ├── repositories/ thin layer between providers and services
-│   └── services/     hive · firestore · sync · shop · imgbb · translation
+│   └── services/     hive · firestore · sync · shop · imgbb · translation · notifications
 ├── l10n/             string catalogues + generated `S` accessor      (§5)
 └── presentation/
     ├── screens/      one folder per feature, one screen per file
@@ -59,9 +59,9 @@ Naming: `*_screen.dart`, `*_widget.dart`, `*_provider.dart`, `*_service.dart`.
 One public class per file.
 
 **Size map** (helps you decide what to read before editing):
-`user_provider` 907 · `quiz_provider` 722 · `firestore_service` 470 ·
+`user_provider` ~1050 · `quiz_provider` 782 · `firestore_service` 470 ·
 `hive_service` 431 · `shop_service` 418 · `sync_service` 355 ·
-`battle_provider` 1099 · `translation_service` 223 · `locale_provider` 102.
+`battle_provider` 1099 · `notification_service` ~220 · `locale_provider` 90.
 
 ---
 
@@ -80,7 +80,7 @@ One public class per file.
 | Never hand-edit `lib/l10n/app_strings.dart` | Generated — run `tool/gen_strings.py` |
 | Never commit secrets, real API keys, or `.env` | Use env vars / local settings |
 | Do not add Riverpod, GetX, or Bloc | The app is Provider-based; a partial migration is worse than none |
-| Never `await` optional SDKs before `runApp` | Sounds, AdMob, UMP consent and the LLM key pool can hang forever (empty placeholder WAVs, missing Play Services). Only Hive is required for the first frame — everything else is `unawaited` with a timeout |
+| Never `await` optional SDKs before `runApp` | Sounds, AdMob, UMP consent, local notifications and the LLM key pool can hang forever (empty placeholder WAVs, missing Play Services, OS permission dialogs). Only Hive is required for the first frame — everything else is `unawaited` with a timeout |
 
 ---
 
@@ -205,9 +205,10 @@ python3 tool/validate_questions.py
   treats a mismatch as an error — a card promising 20 questions and delivering
   3 is worse than a card that says 3.
 - Generate new chapter scaffolding with `tool/generate_chapters.py`.
-- `docs/01`…`docs/11` are the architecture blueprints; `docs/10` is the question
-  authoring guide and `docs/11` the admin generator plan. **Read the matching doc
-  before touching that subsystem.** `ADMIN_TODO.md` tracks admin work.
+- `docs/01`…`docs/15` are the architecture blueprints; `docs/10` is the question
+  authoring guide, `docs/11` the admin generator plan, `docs/15` local Daily Quiz
+  reminders (no FCM). **Read the matching doc before touching that subsystem.**
+  `ADMIN_TODO.md` tracks admin work.
 
 ---
 
