@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -31,7 +33,9 @@ class AdService {
   Future<void> init() async {
     if (_initialized) return;
     try {
-      await MobileAds.instance.initialize();
+      await MobileAds.instance
+          .initialize()
+          .timeout(const Duration(seconds: 8));
       _initialized = true;
       debugPrint('AdService: initialised');
     } catch (e) {

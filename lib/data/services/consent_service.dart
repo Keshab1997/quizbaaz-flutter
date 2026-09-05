@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+/// UMP callbacks have been observed to never fire on some devices (no Play
+/// Services, flaky network). Without a timeout the native splash freezes.
+const Duration _umpTimeout = Duration(seconds: 5);
+
 /// Google User Messaging Platform (UMP) consent flow for QuizBaaz.
 ///
 /// Why this exists:
@@ -103,13 +107,17 @@ class ConsentService extends ChangeNotifier {
     );
     ConsentInformation.instance.requestConsentInfoUpdate(
       params,
-      () => completer.complete(),
+      () {
+        if (!completer.isCompleted) completer.complete();
+      },
       (FormError error) {
         debugPrint('ConsentService: update error – ${error.message}');
-        completer.complete();
+        if (!completer.isCompleted) completer.complete();
       },
     );
-    return completer.future;
+    return completer.future.timeout(_umpTimeout, onTimeout: () {
+      debugPrint('ConsentService: info update timed out');
+    });
   }
 
   Future<void> _runWithListener(
@@ -121,9 +129,11 @@ class ConsentService extends ChangeNotifier {
       if (error != null) {
         debugPrint('ConsentService: $what error – ${error.message}');
       }
-      completer.complete();
+      if (!completer.isCompleted) completer.complete();
     });
-    return completer.future;
+    return completer.future.timeout(_umpTimeout, onTimeout: () {
+      debugPrint('ConsentService: $what timed out');
+    });
   }
 
   Future<void> _refreshStatuses() async {

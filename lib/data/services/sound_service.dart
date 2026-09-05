@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
@@ -6,15 +8,16 @@ import 'hive_service.dart';
 /// Central SFX player for the whole app — the single place every tap, ding,
 /// buzz and fanfare goes through.
 ///
-/// * Sounds are bundled under `assets/sounds/` and **preloaded** into a pool
-///   of [AudioPlayer] instances at startup, so a tap never waits for a file
-///   to open (game-like low latency).
+/// * Sounds are bundled under `assets/sounds/` and loaded **lazily** on first
+///   play, with a short timeout. The repo currently ships 0-byte placeholder
+///   WAVs; `audioplayers` can hang forever on `setSource` for those, which
+///   used to freeze the native splash because [init] was awaited in `main()`.
+/// * Missing / empty / corrupt files are remembered and skipped — the tap
+///   still works, that sound just stays silent (see
+///   `docs/quizbaaz_sound_files_needed.md`).
 /// * The on/off toggle lives in Profile → Settings (`setting_sound` in Hive)
 ///   and is read live on every [play], so turning it off silences the app
 ///   immediately.
-///
-/// The `.wav` asset files must exist in `assets/sounds/` — see [soundFiles]
-/// below for the exact file names to drop in.
 class SoundService {
   SoundService._();
 
@@ -22,6 +25,10 @@ class SoundService {
 
   /// Setting key shared with UserProvider (Hive meta box).
   static const String settingKey = 'setting_sound';
+
+  /// Empty/corrupt assets must not stall the UI. Native decoders have been
+  /// seen to never return on a 0-byte WAV.
+  static const Duration _loadTimeout = Duration(milliseconds: 800);
 
   /// Every sound the app can play, mapped to its asset file.
   /// Files live in `assets/sounds/` (registered in pubspec.yaml as
@@ -72,36 +79,63 @@ class SoundService {
   static const Set<String> loopIds = {'battle_search'};
 
   final Map<String, AudioPlayer> _players = {};
+  final Set<String> _failed = {};
+  final Map<String, Future<AudioPlayer?>> _loading = {};
   bool _ready = false;
 
   /// True when sound effects are enabled (profile setting, defaults ON).
   static bool get enabled => HiveService.getMeta<bool>(settingKey) ?? true;
 
-  /// Preloads every bundled sound into its own player. Call once at startup
-  /// (after Hive is ready) so later plays are instant.
+  /// Marks the service ready. Does **not** preload — placeholder WAVs in
+  /// `assets/sounds/` are 0 bytes and must not run on the startup path.
+  /// Safe to call more than once; never throws.
   Future<void> init() async {
-    if (_ready) return;
-    for (final entry in soundFiles.entries) {
-      try {
-        final player = AudioPlayer();
-        await player.setReleaseMode(
-          loopIds.contains(entry.key) ? ReleaseMode.loop : ReleaseMode.stop,
-        );
-        // AssetSource paths are relative to the assets/ folder.
-        await player.setSource(AssetSource('sounds/${entry.value}'));
-        _players[entry.key] = player;
-      } catch (e) {
-        debugPrint('SoundService: could not load "${entry.value}" – $e');
-      }
-    }
     _ready = true;
-    debugPrint('SoundService: preloaded ${_players.length} sounds');
+  }
+
+  Future<AudioPlayer?> _ensurePlayer(String id) {
+    if (_failed.contains(id)) return Future<AudioPlayer?>.value(null);
+    final existing = _players[id];
+    if (existing != null) return Future<AudioPlayer?>.value(existing);
+    return _loading.putIfAbsent(id, () => _load(id));
+  }
+
+  Future<AudioPlayer?> _load(String id) async {
+    final file = soundFiles[id];
+    if (file == null) {
+      _failed.add(id);
+      _loading.remove(id);
+      return null;
+    }
+    AudioPlayer? player;
+    try {
+      player = AudioPlayer();
+      await player.setReleaseMode(
+        loopIds.contains(id) ? ReleaseMode.loop : ReleaseMode.stop,
+      );
+      // AssetSource paths are relative to the assets/ folder.
+      await player
+          .setSource(AssetSource('sounds/$file'))
+          .timeout(_loadTimeout);
+      _players[id] = player;
+      return player;
+    } catch (e) {
+      debugPrint('SoundService: could not load "$file" – $e');
+      _failed.add(id);
+      try {
+        await player?.dispose();
+      } catch (_) {}
+      return null;
+    } finally {
+      _loading.remove(id);
+    }
   }
 
   /// Plays [id] once. No-op when sound is disabled or the file is missing.
   Future<void> play(String id, {double volume = 1.0}) async {
     if (!enabled) return;
-    final player = _players[id];
+    if (!_ready) _ready = true;
+    final player = await _ensurePlayer(id);
     if (player == null) return;
     try {
       await player.setVolume(volume);
@@ -117,7 +151,8 @@ class SoundService {
   /// restarts the loop; call [stop] to silence it.
   Future<void> loop(String id) async {
     if (!enabled) return;
-    final player = _players[id];
+    if (!_ready) _ready = true;
+    final player = await _ensurePlayer(id);
     if (player == null) return;
     try {
       await player.stop();
@@ -147,6 +182,8 @@ class SoundService {
       } catch (_) {}
     }
     _players.clear();
+    _failed.clear();
+    _loading.clear();
     _ready = false;
   }
 }

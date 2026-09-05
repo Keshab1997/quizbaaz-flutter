@@ -80,6 +80,7 @@ One public class per file.
 | Never hand-edit `lib/l10n/app_strings.dart` | Generated — run `tool/gen_strings.py` |
 | Never commit secrets, real API keys, or `.env` | Use env vars / local settings |
 | Do not add Riverpod, GetX, or Bloc | The app is Provider-based; a partial migration is worse than none |
+| Never `await` optional SDKs before `runApp` | Sounds, AdMob, UMP consent and the LLM key pool can hang forever (empty placeholder WAVs, missing Play Services). Only Hive is required for the first frame — everything else is `unawaited` with a timeout |
 
 ---
 
