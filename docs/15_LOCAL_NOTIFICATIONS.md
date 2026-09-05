@@ -129,16 +129,11 @@ no-op. Widget tests must not crash if the plugin is missing.
 
 ---
 
-## Out of scope (do not add in this change)
+## Out of scope for *this* file
 
-- Firebase Messaging / `firebase_messaging`
-- OneSignal, SuprSend, Pushy, SNS
-- Live battle-challenge pings, admin broadcasts, "you won yesterday"
-  from the server
 - Exact-alarm permission, custom alarm sound (the empty WAVs in
   `assets/sounds/` must never be used here)
 - Notification inbox / badge counts
 
-Phase 2, if the owner later wants live pings: add FCM (already have
-`firebase_core`) **or** OneSignal (still FCM under the hood) as an
-explicit, separate decision.
+Live server-push (admin broadcast, 1v1 challenge) is OneSignal + FCM —
+see `docs/16_ONESIGNAL_FCM_SETUP.md`. Do **not** add `firebase_messaging`.

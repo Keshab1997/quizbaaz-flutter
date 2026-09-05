@@ -44,6 +44,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.onesignal.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_onesignal_default" />
         <!-- flutter_local_notifications: fire + restore after reboot. -->
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
