@@ -18,7 +18,7 @@ class OneSignalConfig {
   OneSignalConfig._();
 
   /// OneSignal App ID (UUID). Empty = SDK does not initialise.
-  static const String appId = '';
+  static const String appId = '578dc90c-b87a-4be4-afe8-004aecd8b1e6';
 
   static bool get isConfigured =>
       appId.length == 36 && !appId.contains('YOUR_');
