@@ -830,6 +830,7 @@ class _AvatarSelectionScreenState extends State<AvatarSelectionScreen> {
     if (path.contains('female_avatar_2')) return 'Traditional Girl';
     if (path.contains('female_avatar_3')) return 'Smart Girl';
     if (path.contains('female_avatar_4')) return 'Modern Girl';
+    if (path.contains('daily_star_avatar')) return 'Daily Quiz Star';
     if (path.contains('vip_avatar')) return 'VIP Golden Avatar';
     if (path.contains('golden_knight')) return 'Golden Knight';
     if (path.contains('neon_cyber')) return 'Neon Cyber';
