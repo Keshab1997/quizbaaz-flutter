@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:admin_api_key_manager/admin_api_key_manager.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -33,54 +35,59 @@ Future<void> main() async {
   //     flashes English for a moment on a Bangla/Hindi device.
   final localeProvider = LocaleProvider()..initialize();
 
-  // 1c) Preload all game sound effects so every tap is instant later.
-  await SoundService.instance.init();
+  // Everything below is optional. Empty placeholder WAVs, a slow Play
+  // Services handshake, UMP consent fetches and the LLM key pool have all
+  // been observed to hang forever on `await` — which freezes the native
+  // splash and looks like the app "opened but never started". Hive is the
+  // only thing the first frame needs.
+  unawaited(SoundService.instance.init());
 
   // 2) Firebase is optional: the whole app works offline without it.
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    );
+    ).timeout(const Duration(seconds: 8));
   } catch (e) {
     debugPrint('Firebase not configured yet: $e');
   }
 
-  // 3) LLM key pool for the admin question generator. It needs Firestore, so
-  //     it comes after Firebase; it is admin-only, so a failure here must not
-  //     stop the app for a student.
-  try {
-    await KeyCache.init();
-    ApiKeyManager.instance.initialize();
-  } catch (e) {
-    debugPrint('API key manager unavailable: $e');
-  }
+  // 3) LLM key pool for the admin question generator. Admin-only — a
+  //    failure here must not stop the app for a student.
+  unawaited(Future(() async {
+    try {
+      await KeyCache.init().timeout(const Duration(seconds: 5));
+      ApiKeyManager.instance.initialize();
+    } catch (e) {
+      debugPrint('API key manager unavailable: $e');
+    }
+  }));
 
   // 4) Replay anything queued while the app was offline, then refresh config.
   unawaitedSync();
 
-  // 5) AdMob consent (UMP) first, then the ads SDK. For EU/EEA/UK users the
-  //    Google consent form is shown after the first frame (dashboard); until
-  //    it is resolved every ad request stays gated off. For India and the
-  //    rest of the world no form is shown and ads work immediately.
-  //    Ad IDs are Google's official test IDs until the real App ID is added
-  //    (see lib/core/constants/ad_config.dart).
-  try {
-    await ConsentService.instance.initialize();
-    await AdService.instance.init();
-  } catch (e) {
-    debugPrint('AdMob not initialised: $e');
-  }
+  // 5) AdMob consent (UMP) then the ads SDK. For EU/EEA/UK users the Google
+  //    consent form is shown after the first frame (dashboard); until it is
+  //    resolved every ad request stays gated off. For India and the rest of
+  //    the world no form is shown and ads work immediately.
+  unawaited(Future(() async {
+    try {
+      await ConsentService.instance.initialize();
+      await AdService.instance.init();
+    } catch (e) {
+      debugPrint('AdMob not initialised: $e');
+    }
+  }));
 
   runApp(QuizBaazApp(localeProvider: localeProvider));
 }
 
 /// Fire-and-forget startup sync (never blocks the first frame).
 void unawaitedSync() {
-  Future(() async {
+  unawaited(Future(() async {
     if (!SyncService.isOnline) return;
     await SyncService.drainPending();
     await SyncService.pullConfig();
-  });
+  }));
 }
 
 class QuizBaazApp extends StatelessWidget {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -13,23 +15,44 @@ class AuthException implements Exception {
 
 /// Handles Google Sign-In via Firebase Authentication.
 class AuthProvider extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-
   bool _isBusy = false;
   String? _lastError;
 
   bool get isBusy => _isBusy;
   String? get lastError => _lastError;
 
+  /// Firebase may not be ready (init timed out / offline). Never throw from
+  /// a getter — the rest of the app must still render as a guest.
+  FirebaseAuth? get _auth {
+    try {
+      return FirebaseAuth.instance;
+    } catch (e) {
+      debugPrint('AuthProvider: FirebaseAuth unavailable – $e');
+      return null;
+    }
+  }
+
+  GoogleSignIn get _googleSignIn => GoogleSignIn.instance;
+
   /// The signed-in Firebase user, or null when signed out.
-  User? get firebaseUser => _auth.currentUser;
+  User? get firebaseUser {
+    try {
+      return _auth?.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
 
-  bool get isSignedIn => _auth.currentUser != null;
+  bool get isSignedIn => firebaseUser != null;
 
-  /// Initializes the Google Sign-In manager.
+  /// Initializes the Google Sign-In manager. Never blocks the first frame
+  /// (called fire-and-forget from `main.dart`) and never throws.
   Future<void> initialize() async {
-    await _googleSignIn.initialize();
+    try {
+      await _googleSignIn.initialize().timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('AuthProvider: GoogleSignIn init failed – $e');
+    }
   }
 
   /// Starts the Google sign-in flow.
@@ -50,8 +73,14 @@ class AuthProvider extends ChangeNotifier {
         idToken: googleAuth.idToken,
       );
 
-      await _auth.signInWithCredential(credential);
-      return _auth.currentUser != null;
+      final auth = _auth;
+      if (auth == null) {
+        throw const AuthException(
+          'Firebase is not ready yet. Check your internet connection and try again.',
+        );
+      }
+      await auth.signInWithCredential(credential);
+      return auth.currentUser != null;
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled ||
           e.code == GoogleSignInExceptionCode.interrupted) {
@@ -64,6 +93,9 @@ class AuthProvider extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       _lastError = _friendlyAuthError(e);
       throw AuthException(_lastError ?? 'Sign-in failed.');
+    } on AuthException catch (e) {
+      _lastError = e.message;
+      rethrow;
     } catch (e) {
       debugPrint('Google Sign-In error: $e');
       _lastError = 'Google Sign-In failed. Please try again.';
@@ -81,7 +113,9 @@ class AuthProvider extends ChangeNotifier {
     } catch (_) {
       // Ignore google sign-out errors (e.g. not signed in).
     }
-    await _auth.signOut();
+    try {
+      await _auth?.signOut();
+    } catch (_) {}
     notifyListeners();
   }
 
